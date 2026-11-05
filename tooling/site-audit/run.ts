@@ -1,0 +1,409 @@
+#!/usr/bin/env node
+// Site audit (ADR 0009 rule 13). Starts `next start` on port 3000 (run `pnpm build` first), audits every page of
+// pages.ts in a real Chrome and stops the server again.
+//
+//   node tooling/site-audit/run.ts --leg pages|mobile|desktop
+//
+// The mobile and desktop legs run Lighthouse (3 valid runs per page, up to 2 extra attempts for runs Lighthouse failed to record, median) against thresholds.json.
+// Report: site-audit-report/report.json, screenshots/ (pages) and Lighthouse JSON and HTML (mobile, desktop). Exit codes: 0 ok, 1 audit failures, 2 setup problem
+// (usage, Chrome missing, server did not start).
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { parseArgs } from 'node:util';
+import type AxeCore from 'axe-core';
+import lighthouse, { desktopConfig } from 'lighthouse';
+import puppeteer, { type Page } from 'puppeteer-core';
+import {
+  consoleProblems,
+  hasHorizontalOverflow,
+  imageProblem,
+  pageSeoProblems,
+  readPageSeo,
+  reciprocalProblems,
+  redirectProblem,
+  robotsProblems,
+  sitemapUrls,
+  summarizeAxe,
+  type ConsoleEntry,
+  type ImageFacts,
+  type PageSeo,
+} from './checks.ts';
+import { findChrome } from './chrome.ts';
+import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
+import { PAGES } from './pages.ts';
+import {
+  agenticFailures,
+  discardReason,
+  judge,
+  medianRun,
+  medianScores,
+  nextStep,
+  transferOf,
+  type LhrLike,
+  type Thresholds,
+} from './scoring.ts';
+
+const PORT = 3000;
+const BASE = `http://localhost:${PORT}`;
+const REPORT_DIR = path.resolve('site-audit-report');
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
+const require = createRequire(import.meta.url);
+
+const failures: string[] = [];
+const fail = (where: string, what: string) => failures.push(`${where}: ${what}`);
+
+async function startServer(): Promise<ChildProcess> {
+  if (
+    await fetch(BASE, { redirect: 'manual' }).then(
+      () => true,
+      () => false,
+    )
+  ) {
+    throw new Error(`port ${PORT} is already in use`);
+  }
+  const next = require.resolve('next/dist/bin/next');
+  const child = spawn(process.execPath, [next, 'start', '-p', String(PORT)], {
+    stdio: ['ignore', 'inherit', 'inherit'],
+    // The audit measures the site as it will be once indexing is open (Lighthouse flags noindex as not crawlable).
+    env: { ...process.env, SITE_INDEXING: 'on', SITE_URL: BASE },
+    detached: process.platform !== 'win32',
+  });
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) throw new Error(`next start exited with ${child.exitCode}`);
+    if (
+      await fetch(`${BASE}/tr`, { redirect: 'manual' }).then(
+        () => true,
+        () => false,
+      )
+    )
+      return child;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  stopServer(child);
+  throw new Error('server did not become ready in 60 s');
+}
+
+function stopServer(child: ChildProcess): void {
+  if (child.pid === undefined || child.exitCode !== null) return;
+  if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+  else process.kill(-child.pid, 'SIGTERM');
+}
+
+async function redirectOf(pathname: string, lang?: string) {
+  const res = await fetch(BASE + pathname, { redirect: 'manual', headers: lang ? { 'accept-language': lang } : {} });
+  const loc = res.headers.get('location');
+  return { status: res.status, location: loc ? new URL(loc, BASE).pathname : null };
+}
+
+async function httpChecks(): Promise<void> {
+  for (const p of PAGES) {
+    const res = await fetch(BASE + p, { redirect: 'manual' });
+    if (res.status !== 200) fail(`http ${p}`, `status ${res.status}, expected 200`);
+  }
+  const roots: [string, string | undefined, string][] = [
+    ['/ with Accept-Language en', 'en', '/en'],
+    ['/ with Accept-Language tr', 'tr', '/tr'],
+    ['/ without Accept-Language', undefined, '/tr'],
+  ];
+  for (const [label, lang, expected] of roots) {
+    const problem = redirectProblem(label, await redirectOf('/', lang), expected);
+    if (problem) fail('http', problem);
+  }
+  const unknown = await fetch(`${BASE}/xx`);
+  if (unknown.status !== 404) fail('http /xx', `status ${unknown.status}, expected 404`);
+  await seoChecks();
+}
+
+// robots.txt, the sitemap and, for every address in the sitemap, the raw HTML: one request each, no browser.
+async function seoChecks(): Promise<void> {
+  const robots = await fetch(`${BASE}/robots.txt`);
+  if (robots.status !== 200) fail('http /robots.txt', `status ${robots.status}, expected 200`);
+  else for (const problem of robotsProblems(await robots.text(), `${BASE}/sitemap.xml`)) fail('seo', problem);
+
+  const sitemap = await fetch(`${BASE}/sitemap.xml`);
+  if (sitemap.status !== 200) {
+    fail('http /sitemap.xml', `status ${sitemap.status}, expected 200`);
+    return;
+  }
+  const urls = sitemapUrls(await sitemap.text());
+  const listed = new Set(urls);
+  for (const p of PAGES) {
+    if (!listed.has(BASE + p)) fail('seo', `${p} is a page of the audit but is not in the sitemap`);
+  }
+  const alternates = new Map<string, PageSeo['alternates']>();
+  for (const url of urls) {
+    const res = await fetch(url, { redirect: 'manual' });
+    if (res.status !== 200) {
+      fail(`http ${url}`, `status ${res.status}, expected 200`);
+      continue;
+    }
+    const seo = readPageSeo(await res.text());
+    alternates.set(url, seo.alternates);
+    for (const problem of pageSeoProblems(new URL(url).pathname, seo, url)) fail('seo', problem);
+  }
+  for (const problem of reciprocalProblems(alternates)) fail('seo', problem);
+}
+
+async function setViewport(page: Page, d: Pick<Device, 'width' | 'height' | 'touch' | 'dpr'>) {
+  await page.setViewport({
+    width: d.width,
+    height: d.height,
+    deviceScaleFactor: d.dpr,
+    hasTouch: d.touch,
+    isMobile: d.touch,
+  });
+}
+
+async function overflowSweep(page: Page, url: string): Promise<void> {
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  for (const width of sweepWidths()) {
+    await setViewport(page, { width, height: SWEEP_HEIGHT, touch: false, dpr: 1 });
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    if (hasHorizontalOverflow(scrollWidth, width)) fail(`overflow ${url} @${width}`, `scrollWidth ${scrollWidth}`);
+  }
+}
+
+async function auditView(page: Page, url: string, d: Device, axeSource: string): Promise<void> {
+  const where = `${url} @${d.width}x${d.height}`;
+  const entries: ConsoleEntry[] = [];
+  const onConsole = (m: { type(): string; text(): string }) => entries.push({ type: m.type(), text: m.text() });
+  const onPageError = (e: unknown) => entries.push({ type: 'pageerror', text: String(e) });
+  page.on('console', onConsole);
+  page.on('pageerror', onPageError);
+
+  await setViewport(page, d);
+  const response = await page.goto(url, { waitUntil: 'networkidle0' });
+  if (response && response.status() !== 200) fail(`status ${where}`, `status ${response.status()}, expected 200`);
+
+  const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  if (hasHorizontalOverflow(scrollWidth, d.width)) fail(`overflow ${where}`, `scrollWidth ${scrollWidth}`);
+
+  const violations = await page.evaluate(() => {
+    const w = window as unknown as { __csp: string[] };
+    return w.__csp;
+  });
+  for (const v of violations) fail(`csp ${where}`, v);
+
+  const modals = await page.evaluate(
+    () =>
+      [...document.querySelectorAll('dialog[open], [aria-modal="true"]')].filter(
+        (el) => el.matches('dialog[open]') || el.getClientRects().length > 0,
+      ).length,
+  );
+  if (modals > 0) fail(`modal ${where}`, `${modals} modal(s) open on load`);
+
+  const images: ImageFacts[] = await page.evaluate(
+    async (dpr) =>
+      Promise.all(
+        [...document.images].map(async (img) => {
+          // Load lazy images as a scrolling visitor would; one that stays unloaded has no currentSrc and is skipped.
+          img.loading = 'eager';
+          await Promise.race([img.decode().catch(() => undefined), new Promise((r) => setTimeout(r, 5000))]);
+          // img.naturalWidth is density-corrected for srcset width descriptors; a probe decodes the file itself.
+          const probe = new Image();
+          if (img.currentSrc) {
+            probe.src = img.currentSrc;
+            await probe.decode().catch(() => undefined);
+          }
+          return {
+            src: img.currentSrc || img.src,
+            naturalWidth: probe.naturalWidth,
+            displayWidth: img.getBoundingClientRect().width,
+            viewportWidth: document.documentElement.clientWidth,
+            dpr,
+            hasSrcset: img.hasAttribute('srcset'),
+            hasSizes: img.hasAttribute('sizes'),
+          };
+        }),
+      ),
+    d.dpr,
+  );
+  for (const img of images) {
+    const problem = imageProblem(img);
+    if (problem) fail(`image ${where}`, problem);
+  }
+
+  await page.evaluate(axeSource);
+  const axeResult = await page.evaluate(async (tags) => {
+    const axe = (window as unknown as { axe: typeof AxeCore }).axe;
+    const r = await axe.run(document, { runOnly: { type: 'tag', values: tags } });
+    return r.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => ({ target: [...n.target] })) }));
+  }, AXE_TAGS);
+  for (const s of summarizeAxe(axeResult)) fail(`axe ${where}`, s);
+
+  if (isScreenshotDevice(d)) {
+    const slug = new URL(url).pathname.slice(1).replaceAll('/', '-');
+    await page.screenshot({ path: path.join(REPORT_DIR, 'screenshots', `${slug}-${d.width}x${d.height}.png`) });
+  }
+
+  page.off('console', onConsole);
+  page.off('pageerror', onPageError);
+  for (const p of consoleProblems(entries)) fail(`console ${where}`, p);
+}
+
+async function browserChecks(): Promise<string> {
+  const executablePath = findChrome(process.env, process.platform, existsSync);
+  if (!executablePath) throw new Error('Chrome not found; set CHROME_PATH');
+  const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+  const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
+  try {
+    const version = await browser.version();
+    const openPage = async () => {
+      const page = await browser.newPage();
+      await page.evaluateOnNewDocument(() => {
+        const w = window as unknown as { __csp: string[] };
+        w.__csp = [];
+        document.addEventListener('securitypolicyviolation', (e) => {
+          w.__csp.push(`${e.violatedDirective} blocked ${e.blockedURI}`);
+        });
+      });
+      return page;
+    };
+    const warm = await openPage();
+    const auditAll = async (list: readonly string[]) => {
+      for (const url of list) {
+        await warm.goto(BASE + url, { waitUntil: 'networkidle0' });
+      }
+      for (const p of list) {
+        const url = BASE + p;
+        await overflowSweep(warm, url);
+        // A new page per device view, so the image check sees what a first-time visitor at that device gets.
+        for (const d of DEVICES) {
+          const page = await openPage();
+          try {
+            await auditView(page, url, d, axeSource);
+          } finally {
+            await page.close();
+          }
+        }
+      }
+    };
+    await auditAll(PAGES);
+    await warm.close();
+    return version;
+  } finally {
+    await browser.close();
+  }
+}
+
+const RUNS = 3;
+const MAX_RETRIES = 2;
+const warnings: string[] = [];
+
+async function lighthouseChecks(leg: 'mobile' | 'desktop'): Promise<string> {
+  const executablePath = findChrome(process.env, process.platform, existsSync);
+  if (!executablePath) throw new Error('Chrome not found; set CHROME_PATH');
+  const thresholds = JSON.parse(readFileSync(new URL('./thresholds.json', import.meta.url), 'utf8')) as Thresholds;
+  const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
+  try {
+    const version = await browser.version();
+    const warm = await browser.newPage();
+    for (const p of PAGES) await warm.goto(BASE + p, { waitUntil: 'networkidle0' });
+    await warm.close();
+    const summary: Record<string, unknown> = {};
+    for (const p of PAGES) {
+      const slug = p.slice(1).replaceAll('/', '-');
+      const runs: LhrLike[] = [];
+      let attempts = 0;
+      let step = nextStep(0, 0, RUNS, MAX_RETRIES);
+      while (step === 'retry') {
+        attempts++;
+        const page = await browser.newPage();
+        let lhr: LhrLike | undefined;
+        let reason: string | null;
+        try {
+          const result = await lighthouse(
+            BASE + p,
+            { logLevel: 'error', output: ['json', 'html'] },
+            leg === 'desktop' ? desktopConfig : undefined,
+            page,
+          );
+          if (!result || !Array.isArray(result.report)) throw new Error(`Lighthouse returned no report for ${p}`);
+          const [json, html] = result.report;
+          writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${attempts}.json`), json!);
+          writeFileSync(path.join(REPORT_DIR, `${slug}-${leg}-${attempts}.html`), html!);
+          lhr = result.lhr as unknown as LhrLike;
+          reason = discardReason(lhr);
+        } catch (err) {
+          reason = `Lighthouse threw: ${(err as Error).message}`;
+        } finally {
+          await page.close();
+        }
+        if (reason === null && lhr) runs.push(lhr);
+        else console.log(`${leg} ${p}: discarded run ${attempts} (${reason})`);
+        step = nextStep(runs.length, attempts, RUNS, MAX_RETRIES);
+      }
+      if (step === 'failed') {
+        fail(
+          `${leg} ${p}`,
+          `measurement failed: only ${runs.length} of ${RUNS} valid Lighthouse runs after ${attempts} attempts`,
+        );
+        continue;
+      }
+      const scores = medianScores(runs);
+      const run = medianRun(runs);
+      const transfer = transferOf(run);
+      const verdict = judge(`${leg} ${p}`, scores, transfer, agenticFailures(run), thresholds);
+      failures.push(...verdict.failures);
+      warnings.push(...verdict.warnings);
+      summary[p] = { scores, transfer };
+      console.log(`${leg} ${p}: ${JSON.stringify(scores)} ${JSON.stringify(transfer)}`);
+    }
+    writeFileSync(path.join(REPORT_DIR, `median-${leg}.json`), JSON.stringify(summary, null, 2));
+    return version;
+  } finally {
+    await browser.close();
+  }
+}
+
+function reportWarnings(): void {
+  for (const w of warnings) console.log(`::warning title=site-audit::${w}`);
+  const file = process.env.GITHUB_STEP_SUMMARY;
+  if (file && warnings.length > 0) appendFileSync(file, warnings.map((w) => `- ${w}\n`).join(''));
+}
+
+async function main(): Promise<number> {
+  const { values } = parseArgs({ options: { leg: { type: 'string' } }, strict: true });
+  const leg = values.leg;
+  if (leg !== 'pages' && leg !== 'mobile' && leg !== 'desktop') {
+    console.error('usage: node tooling/site-audit/run.ts --leg pages|mobile|desktop');
+    return 2;
+  }
+  const started = Date.now();
+  rmSync(REPORT_DIR, { recursive: true, force: true });
+  mkdirSync(path.join(REPORT_DIR, 'screenshots'), { recursive: true });
+
+  let server: ChildProcess | undefined;
+  let chrome = 'unknown';
+  try {
+    server = await startServer();
+    if (leg === 'pages') {
+      await httpChecks();
+      chrome = await browserChecks();
+    } else {
+      chrome = await lighthouseChecks(leg);
+    }
+  } catch (err) {
+    console.error(`site-audit: ${(err as Error).stack ?? String(err)}`);
+    return 2;
+  } finally {
+    if (server) stopServer(server);
+  }
+
+  const seconds = Math.round((Date.now() - started) / 1000);
+  writeFileSync(
+    path.join(REPORT_DIR, 'report.json'),
+    JSON.stringify({ leg, chrome, pages: PAGES, seconds, failures, warnings }, null, 2),
+  );
+  for (const f of failures) console.error(`FAIL ${f}`);
+  reportWarnings();
+  console.log(
+    `site-audit (${leg}): ${failures.length} failure(s), ${warnings.length} warning(s), ${seconds} s, ${chrome}`,
+  );
+  return failures.length === 0 ? 0 : 1;
+}
+
+process.exitCode = await main();

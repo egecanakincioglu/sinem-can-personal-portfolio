@@ -17,7 +17,7 @@ The site contains calculations (resultant force, beam reactions, bending moment)
 
 ## Decision
 
-The project uses Vitest with Testing Library and jsdom. Browser-level checks are done by the `site-audit` jobs.
+The project uses Vitest with Testing Library and jsdom. Browser-level checks are done by the `site-audit` jobs ([ADR 0006](0006-quality-targets-and-thresholds.md)).
 
 Rules:
 

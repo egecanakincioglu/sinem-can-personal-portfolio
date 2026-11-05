@@ -4,7 +4,7 @@ Thank you for looking at this project. The rules below are short on purpose. The
 
 ## Issues
 
-Issues are welcome: bug reports, questions about the architecture and ideas for the roadmap. Do not report security problems in a public issue.
+Issues are welcome: bug reports, questions about the architecture and ideas for the roadmap. Use the issue tracker for anything that is not a security problem. For security problems, follow [SECURITY.md](SECURITY.md) instead.
 
 ## Language
 

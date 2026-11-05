@@ -1,0 +1,44 @@
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    # New versions wait 7 days; security updates ignore the cooldown.
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    commit-message:
+      prefix: 'ci'
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      # The next TypeScript major waits until typescript-eslint and Next.js support it; major moves are deliberate PRs.
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
+      # @types/node follows the Node runtime major (24, see .node-version); the major moves together with the runtime in a deliberate PR.
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
+    commit-message:
+      prefix: 'build'

@@ -1,0 +1,35 @@
+name: pr-text
+
+# Checks of the pull request title and description. Kept apart from the `ci` workflow so that editing the
+# description re-runs only these checks and not the whole pipeline.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-text-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pr-text:
+    name: pr-text
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Dependabot titles are not ours to word (length, language).
+      - name: Validate pull request title
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | tooling/scripts/check-commit-msg.sh --header-only -

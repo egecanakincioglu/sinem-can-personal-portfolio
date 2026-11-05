@@ -64,6 +64,10 @@ Every pull request to `main` runs these checks:
 | `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage thresholds only go up; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
 | `pr-text` | Pull request title (Conventional Commits) and text |
 | `tooling (linux)`, `tooling (windows)` | Tests of the repository tools on both operating systems |
+| `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, dependency audit, production licenses, unused code and dependencies |
+| `semgrep-registry` | Community Semgrep rule sets. The rules are fetched at run time and are not pinned, so a new upstream rule can fail this job without a change in the repository |
+| `zizmor` | Security audit of the workflow files |
+| `test` | Vitest tests with the coverage gate |
 
 The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. A newer push to a pull request cancels the older CI run of that pull request.
 

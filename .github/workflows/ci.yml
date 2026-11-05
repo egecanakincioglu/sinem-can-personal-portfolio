@@ -1,0 +1,144 @@
+name: ci
+
+# Pull request title/description checks live in pr-text.yml (they also run on `edited`).
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+# The container images of the scanners, pinned by digest. A new version is a deliberate change of these values.
+env:
+  GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+
+jobs:
+  # All merge-rule checks in one job. Every step runs even when an earlier one failed, so a single run reports
+  # every violation. Dependabot commits can not follow our branch/message conventions, so those steps are
+  # skipped for it; the rest runs for everyone.
+  policy:
+    name: policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Branch name
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        run: tooling/scripts/check-branch-name.sh "$HEAD_REF"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+      - name: Validate every commit message in the pull request
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          status=0
+          for sha in $(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA"); do
+            msg="$(git log -1 --format=%B "$sha")"
+            if ! printf '%s\n' "$msg" | tooling/scripts/check-commit-msg.sh -; then
+              echo "::error::invalid commit message in $sha"
+              status=1
+            fi
+          done
+          exit $status
+      # A stolen device or token can not forge the owner's commits. Runs for everyone, including Dependabot
+      # (GitHub signs those commits itself).
+      - name: Every commit in the pull request is verified by GitHub
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-signed-commits.ts
+      - name: Source changes come with tests
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-untested-code.ts --base "$BASE_SHA" --head "$HEAD_SHA"
+      - name: Coverage thresholds only go up
+        if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/scripts/check-coverage-thresholds.ts --base "$BASE_SHA" --head "$HEAD_SHA"
+      - name: Doc links
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-doc-links.ts
+      - name: Commands quoted in the docs exist
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-doc-commands.ts
+      - name: Docs are English and have ASCII kebab-case names
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-docs-language.ts
+      - name: packageManager is pinned to an exact version with a hash
+        if: ${{ !cancelled() }}
+        run: node tooling/scripts/check-package-manager.ts
+      - name: Scan tracked paths for forbidden files
+        if: ${{ !cancelled() }}
+        run: tooling/scripts/check-forbidden-paths.sh --all
+      - name: Scan full history for leaked secrets
+        if: ${{ !cancelled() }}
+        run: |
+          docker run --rm -v "$PWD:/repo" "$GITLEAKS_IMAGE" git /repo --redact --verbose
+
+  tooling-linux:
+    name: tooling (linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Some tooling checks parse sources with the TypeScript compiler.
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Unit tests of the tooling
+        run: node --test "tooling/**/*.test.ts"
+      # Syntax check of every shell script.
+      - name: Shell syntax
+        run: |
+          set -euo pipefail
+          find tooling -name '*.sh' | while IFS= read -r f; do
+            bash -n "$f"
+          done
+
+  tooling-windows:
+    name: tooling (windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Git Bash on the runner, the same shell the tooling targets on a developer's Windows machine.
+      - name: Install dependencies
+        shell: bash
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Unit tests of the tooling
+        shell: bash
+        run: node --test "tooling/**/*.test.ts"

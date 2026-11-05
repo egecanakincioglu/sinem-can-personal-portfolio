@@ -40,6 +40,7 @@ List published notes by date with a topic filter.
 
 - A pull request that touches the user interface is checked in a browser at 360, 390, 768, 1024, 1440 and 1920 pixels wide.
 - The "Visual check" section of the pull request template is filled in.
+- Overflow, touch target size, accessibility, image sizes and console errors are checked automatically by the `site-audit` jobs ([ADR 0006](../adr/0006-quality-targets-and-thresholds.md)).
 
 ## Documentation
 
@@ -61,13 +62,17 @@ Every pull request to `main` runs these checks:
 
 | Check | What it verifies |
 |---|---|
-| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage thresholds only go up; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
+| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
 | `pr-text` | Pull request title (Conventional Commits) and text |
 | `tooling (linux)`, `tooling (windows)` | Tests of the repository tools on both operating systems |
 | `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, dependency audit, production licenses, unused code and dependencies |
 | `semgrep-registry` | Community Semgrep rule sets. The rules are fetched at run time and are not pinned, so a new upstream rule can fail this job without a change in the repository |
 | `zizmor` | Security audit of the workflow files |
 | `test` | Vitest tests with the coverage gate |
+| `build` | `pnpm build` |
+| `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | Page audit: overflow, axe, console errors, and Lighthouse on mobile and desktop |
+
+The `build` and `site-audit` jobs skip themselves while the site is not in the repository.
 
 The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. A newer push to a pull request cancels the older CI run of that pull request.
 

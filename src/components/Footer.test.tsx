@@ -59,4 +59,14 @@ describe('Footer', () => {
     );
     expect(within(nav).getByRole('link', { name: content.dict.nav.contact.en }).getAttribute('href')).toBe('#contact');
   });
+
+  it('gives every navigation link a 44px hit area without moving its text', () => {
+    render(<Footer locale="tr" content={getSiteContent()} />);
+    const nav = screen.getByRole('navigation', { name: content.dict.nav.label.tr });
+    for (const a of within(nav).getAllByRole('link')) {
+      expect(a.className, a.textContent ?? '').toContain('min-h-11');
+      expect(a.className).toContain('px-2');
+      expect(a.className).toContain('-mx-2');
+    }
+  });
 });

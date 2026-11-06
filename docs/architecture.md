@@ -40,6 +40,10 @@ Tailwind CSS 4 with design tokens defined in `src/app/globals.css` ([ADR 0002](a
 
 Interactive links and footnote marks have a 44 px hit area on small screens without changing the layout. The sticky header uses the solid paper colour.
 
+Buttons get their 44 px hit area from `min-w-11` and `min-h-11`. The unlayered `button{padding:0}` reset beats padding utilities, so padding cannot size a button. Links use padding with a negative margin instead.
+
+Figure and footnote text has a 12 px rendered minimum on phones. CSS floors apply to `sub` and `sup`, footnote marks and MathML scripts. A plain sidenote mark stays on the line of its word.
+
 ## Content layer
 
 Components receive content only as typed props. Pages read content through accessors in `src/lib` (for example `projects.ts` and `notes.ts`). Data lives in `src/content` ([ADR 0003](adr/0003-content-layer-and-visibility-rule.md)).
@@ -62,6 +66,8 @@ The calculations are pure functions in `src/lib/physics.ts` and `src/lib/math.ts
 
 The resultant angle is shown with one decimal. The hero and the force figure use one shared helper in `src/lib/format.ts`. The hero keeps the month and year of the graduation date on one line.
 
+The closing direction angle uses `angleText`, with the same rounding as the hero figure. The direction list stays stacked at 768-1279 px because it does not fit on one line (358 px available, about 421 px needed at 1024).
+
 ## 3D viewer
 
 Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model.
@@ -69,6 +75,8 @@ Project pages can show a 3D model with three.js. The viewer is optional and load
 ## Notes
 
 Note pages render formulas as MathML, code blocks and figures. Figures come from a registry of components chosen by `figureId` ([ADR 0009](adr/0009-svg-boundary.md)). A table of contents is built from the headings.
+
+A registry entry may have an optional `compact` composition. It renders below 768 px instead of the wide drawing.
 
 `src/lib/note-blocks.ts` pairs the Turkish and English block lists of a note into one list for editing and splits it back. Language-neutral fields must match in both languages: ids, TeX, code and its language, figure id, image file and size, table alignment and callout kind. The file name of a code block is translated. List items, paragraphs and table rows must have the same count in both languages. An empty string marks an absent optional field, and a note may have one language only. A validation step reports missing heading ids, bad or duplicate ids, unknown figure ids, missing image alt text, table limits (8 columns, 30 rows) and ragged rows. It warns on pull quotes.
 

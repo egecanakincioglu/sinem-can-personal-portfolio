@@ -15,6 +15,7 @@ type Layout = {
   pad: number;
   fs: number;
   sub: number;
+  thetaSub: number;
   rFs: number;
   arc: number;
   axis: number;
@@ -22,8 +23,19 @@ type Layout = {
 };
 // Two compositions, not one scaled: the compact one re-fits the polygon to a narrow box
 // and sizes labels so they render at ≥12px on a 360px screen.
-const WIDE: Layout = { W: 560, H: 340, pad: 52, fs: 20, sub: 14, rFs: 28, arc: 58, axis: 150, label: 18 };
-const COMPACT: Layout = { W: 360, H: 250, pad: 30, fs: 15, sub: 11, rFs: 22, arc: 40, axis: 100, label: 15 };
+const WIDE: Layout = { W: 560, H: 340, pad: 52, fs: 20, sub: 14, thetaSub: 12, rFs: 28, arc: 58, axis: 150, label: 18 };
+const COMPACT: Layout = {
+  W: 360,
+  H: 250,
+  pad: 30,
+  fs: 16,
+  sub: 14,
+  thetaSub: 14,
+  rFs: 22,
+  arc: 40,
+  axis: 100,
+  label: 15,
+};
 
 const penMs = (px: number) => Math.min(900, Math.max(300, px / 1.2)); // constant pen speed ≈1.2 px/ms
 
@@ -116,7 +128,7 @@ function Polygon({ records, locale, L, alt, reversed, count, animate, focusId, d
       )}
       <text x={ox + L.axis * 0.72} y={oy + L.fs + 2} fontSize={L.fs - 2} className="svg-text">
         θ
-        <tspan fontSize={L.sub - 2} dy={3} fontStyle="normal">
+        <tspan fontSize={L.thetaSub} dy={3} fontStyle="normal">
           R
         </tspan>
       </text>

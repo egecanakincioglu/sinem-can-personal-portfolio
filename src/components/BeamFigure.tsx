@@ -14,10 +14,10 @@ const SAMPLES = 64;
 const RULER = [0, 0.25, 0.5, 0.75, 1];
 const THUMB = 44; // touch target of the native range input
 
-type Layout = { W: number; H: number; x0: number; span: number; fs: number; bmd: number };
+type Layout = { W: number; H: number; x0: number; span: number; fs: number; sub: number; bmd: number };
 // One composition per breakpoint; the compact one is re-laid out, not scaled.
-const DESKTOP: Layout = { W: 800, H: 450, x0: 80, span: 640, fs: 16, bmd: beam.deflectionScale.desktop };
-const COMPACT: Layout = { W: 360, H: 466, x0: 40, span: 280, fs: 15, bmd: beam.deflectionScale.compact };
+const DESKTOP: Layout = { W: 800, H: 450, x0: 80, span: 640, fs: 16, sub: 13, bmd: beam.deflectionScale.desktop };
+const COMPACT: Layout = { W: 360, H: 466, x0: 40, span: 280, fs: 16, sub: 14, bmd: beam.deflectionScale.compact };
 
 const beamY = 128;
 const pLen = 56;
@@ -65,7 +65,7 @@ type StageProps = {
 };
 
 function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, copy }: StageProps) {
-  const { W, H, x0, span, fs } = L;
+  const { W, H, x0, span, fs, sub } = L;
   const x1 = x0 + span;
   const px = (x: number) => x0 + x * span;
   const m = beamMetrics(shown);
@@ -231,7 +231,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
         )}
         <text x={x0} y={rBase + 22} fontSize={fs} textAnchor="middle" className="svg-text">
           R
-          <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
+          <tspan fontSize={sub} dy={4} fontStyle="normal">
             A
           </tspan>
         </text>
@@ -243,7 +243,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
         )}
         <text x={x1} y={rBase + 22} fontSize={fs} textAnchor="middle" className="svg-text">
           R
-          <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
+          <tspan fontSize={sub} dy={4} fontStyle="normal">
             B
           </tspan>
         </text>
@@ -255,7 +255,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
             <path d={`M${xm - 4} ${yAt(m.xm)} H${xm + 4}`} className="svg-thin" />
             <text x={xm} y={yAt(m.xm) + 20} fontSize={fs} textAnchor="middle" className="svg-text">
               δ
-              <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
+              <tspan fontSize={sub} dy={4} fontStyle="normal">
                 {copy.maxSub[locale]}
               </tspan>
             </text>
@@ -275,7 +275,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
             className="svg-text"
           >
             M
-            <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
+            <tspan fontSize={sub} dy={4} fontStyle="normal">
               {copy.maxSub[locale]}
             </tspan>
           </text>

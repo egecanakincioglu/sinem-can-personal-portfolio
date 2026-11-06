@@ -117,4 +117,11 @@ describe('Header', () => {
     fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
     expect(document.activeElement).toBe(last);
   });
+
+  it('gives the menu button a hit area at least 44px wide', () => {
+    render(<Header locale="en" />);
+    expect(menuButton().className).toContain('min-w-11');
+    expect(menuButton().className).toContain('justify-center');
+    expect(menuButton().className).toContain('min-h-11');
+  });
 });

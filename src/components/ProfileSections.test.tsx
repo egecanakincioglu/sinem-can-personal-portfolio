@@ -55,4 +55,17 @@ describe('ProfileLayout', () => {
     expect(content.cvPdf).toBeNull();
     expect(container.querySelector('a[href$=".pdf"]')).toBeNull();
   });
+
+  it('shows the portrait full width on phones', () => {
+    const { container } = render(<ProfileLayout locale="en" content={getSiteContent()} />);
+    const portrait = container.querySelector('#intro figure') as HTMLElement;
+    expect(portrait.className).toContain('w-full');
+    expect(portrait.className).not.toContain('w-[88%]');
+  });
+
+  it('pads the current-activity row like the records below it', () => {
+    const { container } = render(<ProfileLayout locale="en" content={getSiteContent()} />);
+    const now = container.querySelector('#intro dl.hair') as HTMLElement;
+    expect(now.className).toContain('py-6');
+  });
 });

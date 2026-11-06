@@ -232,7 +232,7 @@ export function Header({
           <button
             ref={menuBtn}
             type="button"
-            className="ml-auto inline-flex min-h-11 items-center px-1 text-[15px] font-medium md:hidden"
+            className="-mr-0.5 ml-auto inline-flex min-h-11 min-w-11 items-center justify-center text-[15px] font-medium md:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen(true)}
@@ -257,7 +257,7 @@ export function Header({
             <button
               type="button"
               onClick={close}
-              className="inline-flex min-h-11 items-center px-1 text-[15px] font-medium"
+              className="-mr-0.5 inline-flex min-h-11 min-w-11 items-center justify-center text-[15px] font-medium"
             >
               <span className="ulink">{D.nav.close[locale]}</span>
             </button>

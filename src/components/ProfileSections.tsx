@@ -64,8 +64,8 @@ function ProfileIntro({ locale, content }: P) {
         locale={locale}
         source={content.portrait}
         priority
-        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 55vw, 88vw"
-        className="mt-8 w-[88%] md:w-[55%] lg:col-[7/11] lg:row-[1/3] lg:mt-3 lg:w-full"
+        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 55vw, 100vw"
+        className="mt-8 w-full md:w-[55%] lg:col-[7/11] lg:row-[1/3] lg:mt-3 lg:w-full"
       />
 
       <div className="lg:col-[1/7] lg:row-start-2">
@@ -73,7 +73,7 @@ function ProfileIntro({ locale, content }: P) {
         <p className="max-w-[58ch] pt-6 text-[17px] leading-[1.6] lg:pt-8">{draft.profileBody[locale]}</p>
 
         <div className="mt-10">
-          <dl className="hair grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-4 py-4">
+          <dl className="hair grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-4 py-6">
             <dt className="t-meta pt-0.5">{p.now[locale]}</dt>
             <dd className="leading-snug">{p.nowValue[locale]}</dd>
           </dl>

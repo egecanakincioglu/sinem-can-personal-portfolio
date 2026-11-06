@@ -43,4 +43,25 @@ describe('figure registry', () => {
       }
     }
   });
+
+  it('keeps every label of a phone composition at 12px or more on a 360px screen', () => {
+    // narrowest figure box: 360 - 2 x 20 page padding - 2 x 16 figure padding
+    const box = 288;
+    for (const id of figureIds) {
+      const f = getFigure(id)!;
+      if (!f.compact) continue;
+      const width = Number(f.compact.viewBox.split(' ')[2]);
+      const { container } = render(
+        <svg viewBox={f.compact.viewBox}>
+          <f.compact.Component />
+        </svg>,
+      );
+      const sizes = Array.from(container.querySelectorAll('text, tspan'))
+        .map((t) => Number(t.getAttribute('font-size')))
+        .filter(Boolean);
+      expect(sizes.length).toBeGreaterThan(0);
+      for (const s of sizes) expect((s * box) / width, id).toBeGreaterThanOrEqual(12);
+      expect(container.querySelector('.svg-heavy')).not.toBeNull();
+    }
+  });
 });

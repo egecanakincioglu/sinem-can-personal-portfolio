@@ -138,7 +138,22 @@ function renderBlock(
       return (
         <figure key={i} id={b.id ? `fig-${b.id}` : undefined} className="art-wide art-fig">
           <div className="art-fig-media art-fig-svg">
-            <svg viewBox={f.viewBox} role="img" aria-label={b.alt ?? f.alt[locale]} className="block h-auto w-full">
+            {f.compact && (
+              <svg
+                viewBox={f.compact.viewBox}
+                role="img"
+                aria-label={b.alt ?? f.alt[locale]}
+                className="block h-auto w-full md:hidden"
+              >
+                <f.compact.Component />
+              </svg>
+            )}
+            <svg
+              viewBox={f.viewBox}
+              role="img"
+              aria-label={b.alt ?? f.alt[locale]}
+              className={`h-auto w-full ${f.compact ? 'hidden md:block' : 'block'}`}
+            >
               <f.Component />
             </svg>
           </div>

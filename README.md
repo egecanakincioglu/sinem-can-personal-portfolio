@@ -4,13 +4,14 @@ The bilingual (Turkish and English) portfolio site of Sinem CAN, a senior mechan
 
 ## Status
 
-The repository is being set up. The home page is in place; the other pages follow in the next changes.
+The public site is in place: home, profile, projects and notes pages in Turkish and English. Where no approved content exists, the pages show a designed empty state. The admin panel and the backend follow in later changes.
 
 ## Stack
 
 - Next.js 16 (App Router), React 19, TypeScript in strict mode
 - Tailwind CSS 4 with design tokens
 - Own `[locale]` routing with localized slugs and a typed dictionary; no i18n library
+- three.js for an optional 3D viewer that loads only on click
 - Vitest and Testing Library for tests
 - GitHub Actions for CI; Vercel deploys by version tag
 

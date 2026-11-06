@@ -43,7 +43,7 @@ Only if you plan to commit:
 | `corepack pnpm site-audit` | Page audit: overflow, accessibility, console errors, Lighthouse |
 | `corepack pnpm release:prepare` | Prepare a release (see the [release runbook](../runbooks/release-and-rollback.md)) |
 
-The `site-audit` command is optional locally. The audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`.
+The `site-audit` command is optional locally. The audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`. The audit loads every page with the browser cache off, so each page is measured as a first visit.
 
 Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check` and `corepack pnpm test` before you open a pull request. CI runs the full set of checks.
 

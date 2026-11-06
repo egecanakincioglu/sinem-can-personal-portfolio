@@ -83,6 +83,8 @@ The Medya screen (`/admin/medya`) lists the real image files from `src/content/m
 
 The Projeler screen (`/admin/projeler`) lists project records with counts, the work-section layout, status chips and marks for missing languages. In development, sample records can be loaded and removed. The "Yeni proje" button stays disabled until the editor exists.
 
+The interface strings screen (`/admin/metinler`) lists every dictionary string by group. Search covers both languages and the key path, and a filter shows missing translations. Each string is editable, derived from records, locked with a reason, or owned by another screen (then it links there). A string shared by several places is one value: editing it on any screen changes every place. An edit that drops a required placeholder is rejected.
+
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 
 ### Guards

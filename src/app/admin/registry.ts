@@ -9,6 +9,7 @@ import {
   forceFieldId,
   identityFields,
   interestsField,
+  interfaceStrings,
   portraitFields,
   summaryLabelField,
   topicsField,
@@ -31,7 +32,7 @@ import { screens } from './screens';
    ------------------------------------------------------------------------------------------------ */
 
 /** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
-export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'metinler', 'yayin'] as const;
+export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
 export const partlyBuiltScreens = ['medya', 'projeler'] as const;
@@ -278,72 +279,40 @@ planned(
   'Özgeçmiş PDF’i',
 );
 
-/** Interface strings no editor reaches yet; the Arayüz metinleri screen will list every dictionary key. */
-const textsPlanned = (group: string, keys: string[], page: string, section: string) => {
-  for (const k of keys)
-    planned(`metinler.${group}.${k}`, `dict.${group}.${k}`, { page, section, screen: 'metinler' }, 'text', 'bilingual');
+/** Every other dictionary leaf is edited from Arayüz metinleri. Keys already in `copyFields` keep their entry above;
+ *  array elements share one entry (`legend[0..3]` -> `legend[]`), like the public leaf paths. */
+const stringPage: Record<string, string> = {
+  hero: 'Ana sayfa',
+  intro: 'Ana sayfa',
+  forces: 'Ana sayfa',
+  workshop: 'Ana sayfa',
+  approach: 'Ana sayfa',
+  work: 'Ana sayfa',
+  direction: 'Ana sayfa',
+  contact: 'Ana sayfa',
+  profile: 'Profil',
+  projects: 'Projeler',
+  notes: 'Notlar',
+  notFound: 'Bulunamadı sayfası',
 };
-textsPlanned(
-  'hero',
-  ['meta1', 'meta2', 'programValue', 'universityValue', 'graduationValue', 'internshipValue', 'resultantLabel'],
-  'Ana sayfa',
-  'Hero',
-);
-textsPlanned(
-  'forces',
-  ['figure', 'caption', 'figAlt', 'resultText', 'angle', 'reverseLabel', 'reversedNote', 'note'],
-  'Ana sayfa',
-  'Kuvvetler',
-);
-textsPlanned('workshop', ['role', 'duration', 'place'], 'Ana sayfa', 'Atölye');
-textsPlanned(
-  'approach',
-  ['exaggeration', 'readouts', 'assumptionsTitle', 'assumptions', 'load', 'maxSub'],
-  'Ana sayfa',
-  'Yaklaşım',
-);
-textsPlanned('direction', ['figure'], 'Ana sayfa', 'Yönelim');
-textsPlanned('footer', ['rights'], ALL, 'Alt bilgi');
-textsPlanned('profile', ['cv'], 'Profil', 'Giriş ve durum');
-textsPlanned('sections', ['intro'], 'Profil', 'Giriş ve durum');
-textsPlanned(
-  'sections',
-  ['archive', 'project', 'note', 'footnotes', 'references', 'note-end'],
-  'Projeler ve notlar',
-  'Bölüm adları',
-);
-planned('metinler.skip', 'dict.skip', { page: ALL, section: 'Üst bilgi', screen: 'metinler' }, 'text', 'bilingual');
-planned(
-  'metinler.langNames',
-  'dict.langNames',
-  { page: ALL, section: 'Dil seçici', screen: 'metinler' },
-  'text',
-  'bilingual',
-);
-planned(
-  'metinler.notFound',
-  'dict.notFound.*',
-  { page: 'Bulunamadı sayfası', section: 'Bulunamadı', screen: 'metinler' },
-  'text',
-  'bilingual',
-  'Bulunamadı sayfası metinleri',
-);
-planned(
-  'metinler.projects',
-  'dict.projects.*',
-  { page: 'Projeler', section: 'Arayüz metinleri', screen: 'metinler' },
-  'text',
-  'bilingual',
-  'Proje sayfaları arayüz metinleri',
-);
-planned(
-  'metinler.notes',
-  'dict.notes.*',
-  { page: 'Notlar', section: 'Arayüz metinleri', screen: 'metinler' },
-  'text',
-  'bilingual',
-  'Not sayfaları arayüz metinleri',
-);
+for (const d of interfaceStrings()) {
+  if (d.owner && !d.aliasOf) continue;
+  const path = `dict.${d.path.replace(/\[\d+\]/g, '[]')}`;
+  if (entries.some((e) => e.path === path)) continue;
+  ready(
+    d.path === path.slice(5) ? d.id : d.id.replace(/\[\d+\]/g, ''),
+    path,
+    {
+      page: stringPage[d.group] ?? ALL,
+      section: sectionLabel('metinler', d.group),
+      screen: d.owner ?? 'metinler',
+      ...(d.owner ? {} : { editorSection: d.group }),
+    },
+    'text',
+    'bilingual',
+    { derived: d.kind === 'derived' || d.kind === 'locked' },
+  );
+}
 
 /* ---- 6. project and note records ---- */
 

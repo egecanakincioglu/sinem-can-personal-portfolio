@@ -7,8 +7,8 @@ This document describes how the application is built today. It grows with the si
 The project is one Next.js 16 application (App Router) with React 19 and TypeScript in strict mode. It serves a public portfolio site in Turkish and English. The admin panel and the backend come later. All source code is under `src/`.
 
 ```text
-src/app/          layout, global styles, routes under [locale], the 404 page
-src/components/   presentational components (header, footer, hero, figures, sections)
+src/app/          layout, global styles, routes under [locale], the 404 page, a development-only model route
+src/components/   presentational components (figures, sections, projects, notes)
 src/content/      typed content, the dictionary and development fixtures
 src/lib/          pure functions: routes, physics, formatting, content accessors
 tooling/          repository tools, site audit and Semgrep rules
@@ -21,13 +21,19 @@ The project has its own `[locale]` routing. It uses no i18n library ([ADR 0001](
 | Page | Turkish | English |
 |---|---|---|
 | Home | `/tr` | `/en` |
+| Profile | `/tr/profil` | `/en/profile` |
+| Projects | `/tr/projeler` | `/en/projects` |
+| Project detail | `/tr/projeler/[slug]` | `/en/projects/[slug]` |
+| Notes | `/tr/notlar` | `/en/notes` |
+| Note detail | `/tr/notlar/[slug]` | `/en/notes/[slug]` |
 
 - The page slugs live in one table in `src/lib/routes.ts`. Path helpers build every link, so no component writes a path by hand.
 - Interface text comes from a typed dictionary in `src/content/dictionary.ts`.
+- The language switch goes to the same record in the other language when the record exists in both.
 - The root path redirects to `/tr` (set in `next.config.ts`).
 - There is no separate contact page. Every page ends with a contact block, and the navigation link scrolls to it.
 - Unknown paths show a designed 404 page.
-- The other sections add their routes in later changes.
+- The section pages are served by one route, `src/app/[locale]/[slug]`, and the detail pages by `[slug]/[project]`.
 
 ## Styling
 
@@ -39,6 +45,10 @@ Components receive content only as typed props. Pages read content through acces
 
 A record is public when it is published, approved, and either not a fixture or the app runs in development. Fixtures are example data for testing components. They are marked `fixture: true`, never carry the name or portrait of Sinem CAN, and never reach a production build.
 
+When a project or note list is empty, the pages show a designed empty state. In production only published and approved records show, so these sections show the empty state until such records exist.
+
+In development, sample records from `src/content/fixtures` fill the lists. Preview pages under `/tr/dev-preview/` show them. They exist only in development.
+
 ## Home figures
 
 - **Free-body hero:** a body with force vectors. The resultant is computed from the vectors.
@@ -47,9 +57,17 @@ A record is public when it is published, approved, and either not a fixture or t
 
 The calculations are pure functions in `src/lib/physics.ts` and `src/lib/math.ts`, so they are unit tested without a browser. Animation respects the reduced motion setting.
 
+## 3D viewer
+
+Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model. A development-only route (`src/app/dev-model`) serves a sample model.
+
+## Notes
+
+Note pages render formulas as MathML, code blocks and figures. Figures are SVG written in the notes themselves; a registry of figures is planned. A table of contents is built from the headings.
+
 ## Planned
 
-The profile, projects and notes pages, the 3D viewer, the admin panel and the backend come in later changes.
+The admin panel and the backend come in later changes.
 
 ## Quality and delivery
 

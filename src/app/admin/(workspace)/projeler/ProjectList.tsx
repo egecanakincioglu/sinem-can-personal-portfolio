@@ -12,7 +12,7 @@ import { TextField } from '../../ui/controls';
 import { Dialog, EmptyState, Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('projeler')!;
 
@@ -90,7 +90,7 @@ export function ProjectList({ samples, noteSamples = [] }: { samples: ProjectRec
   return (
     <>
       <PageHeader
-        kicker="Pafta 03"
+        kicker={sheetLabel('projeler')}
         title={screen.title}
         lede={screen.lede}
         aside={

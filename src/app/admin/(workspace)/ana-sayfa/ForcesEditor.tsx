@@ -283,7 +283,7 @@ export function ForcesEditor({ seed }: { seed: ForcesSeed }) {
         )}
         {dTheta >= 5 && (
           <p className="a-warn">
-            Uyarı: θR son kayıttan {tr1(dTheta)}° saptı. Yönelim metni, Hero erişilebilirlik metni ve figür alt metni
+            Uyarı: θR son kayıttan {tr1(dTheta)}° saptı. Yönelim metni, Hero alternatif metni ve figür alternatif metni
             hâlâ doğru mu?
           </p>
         )}

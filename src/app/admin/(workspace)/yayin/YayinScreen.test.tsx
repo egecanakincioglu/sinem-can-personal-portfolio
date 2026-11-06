@@ -59,7 +59,7 @@ describe('Yayın screen', () => {
   it('starts empty, with the simulation notice and the numbered kicker', () => {
     setup();
     expect(screen.getByRole('heading', { level: 1, name: 'Yayın' })).toBeTruthy();
-    expect(screen.getByText('Pafta 09')).toBeTruthy();
+    expect(screen.getByText('Pafta 10')).toBeTruthy();
     expect(screen.getByText('Gerçek site bu işlemden etkilenmez.')).toBeTruthy();
     expect(section('Bekleyen değişiklikler').getByText('Değişiklik yok.')).toBeTruthy();
     expect(section('Denetimler').getByText('Denetim sorunu yok.')).toBeTruthy();

@@ -235,7 +235,7 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
         />
 
         {labels.demo && (
-          <p className="pointer-events-none absolute left-3 top-3 border-[1.5px] border-kirmizi bg-white px-2 py-1 text-[13px] font-medium text-kirmizi">
+          <p className="pointer-events-none absolute left-3 top-3 border border-grafit bg-white px-2 py-1 text-[13px] font-medium text-grafit">
             {labels.demo}
           </p>
         )}

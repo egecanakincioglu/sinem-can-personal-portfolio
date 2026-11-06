@@ -32,7 +32,7 @@ export default async function DevPreview({
       <main id="main">
         <p
           role="note"
-          className="fixed inset-x-0 bottom-0 z-30 bg-kirmizi px-4 py-2 text-center text-[14px] font-medium text-kagit"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-grafit bg-kagit px-4 py-2 text-center text-[14px] font-medium text-grafit"
         >
           {dict.projects.fixtureLabel[l]} · /dev-preview
         </p>

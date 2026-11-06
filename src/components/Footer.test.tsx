@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getSiteContent } from '@/content/site-content.ts';
 import { Footer } from './Footer.tsx';
@@ -13,13 +13,23 @@ describe('Footer', () => {
     const mail = screen.getByRole('link', { name: content.contact.email });
     expect(mail.getAttribute('href')).toBe(`mailto:${content.contact.email}`);
 
-    const en = screen.getByRole('link', { name: content.dict.langNames.en });
-    const tr = screen.getByRole('link', { name: content.dict.langNames.tr });
+    const en = screen.getByRole('link', { name: `EN, ${content.dict.langNames.en}` });
+    const tr = screen.getByRole('link', { name: `TR, ${content.dict.langNames.tr}` });
     expect(tr.getAttribute('aria-current')).toBe('true');
     expect(en.getAttribute('aria-current')).toBeNull();
     expect(en.getAttribute('hreflang')).toBe('en');
     expect(en.getAttribute('lang')).toBe('en');
     expect(en.getAttribute('href')).toBe('/en/profile');
+  });
+
+  it('keeps the current hash when switching language', () => {
+    window.location.hash = '#iletisim';
+    render(<Footer locale="tr" page="profile" />);
+    const en = screen.getByRole('link', { name: `EN, ${content.dict.langNames.en}` }) as HTMLAnchorElement;
+    en.addEventListener('click', (e) => e.preventDefault());
+    fireEvent.click(en);
+    expect(en.getAttribute('href')).toBe('/en/profile#iletisim');
+    window.location.hash = '';
   });
 
   it('opens external profile links safely', () => {

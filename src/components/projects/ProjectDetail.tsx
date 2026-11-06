@@ -146,10 +146,7 @@ export function ProjectDetail({ project: p, locale }: { project: PublicProject; 
           ← {d.back[locale]}
         </a>
         {p.fixture && (
-          <p
-            role="note"
-            className="mt-4 border-[1.5px] border-kirmizi px-3 py-2 text-[15px] font-medium text-kirmizi md:w-fit"
-          >
+          <p role="note" className="mt-4 border border-grafit px-3 py-2 text-[15px] font-medium text-grafit md:w-fit">
             {d.fixtureLabel[locale]}
           </p>
         )}

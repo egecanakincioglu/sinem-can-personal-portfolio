@@ -45,7 +45,7 @@ export default async function HomeHarness({
     <>
       <p
         role="note"
-        className="fixed inset-x-0 bottom-0 z-50 bg-kirmizi px-4 py-1 text-center text-[13px] font-medium text-kagit"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-grafit bg-kagit px-4 py-1 text-center text-[13px] font-medium text-grafit"
       >
         DEV HARNESS · override={q.override ?? '0'} · a0={content.beam.defaultLoad} · projects={list.length}
       </p>

@@ -44,15 +44,17 @@ export function Intro({ locale, content = getSiteContent() }: P) {
           </p>
         </div>
 
-        <dl className="col-[1/-1] mt-14 grid grid-cols-1 gap-x-[calc(var(--g)*2)] md:grid-cols-2 lg:col-[2/11] lg:mt-20">
-          <dt className="t-meta col-span-full mb-3">{dict.intro.summary[locale]}</dt>
-          {summaryRows.map((r) => (
-            <div key={r.label.en} className="hair grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-4 py-3.5">
-              <dt className="t-meta pt-0.5">{r.label[locale]}</dt>
-              <dd className="leading-snug">{r.value[locale]}</dd>
-            </div>
-          ))}
-        </dl>
+        <div className="col-[1/-1] lg:col-[2/11]">
+          <p className="t-meta pb-3">{dict.intro.summary[locale]}</p>
+          <dl className="grid grid-cols-1 gap-x-[calc(var(--g)*2)] md:grid-cols-2">
+            {summaryRows.map((r) => (
+              <div key={r.label.en} className="hair grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-4 py-3.5">
+                <dt className="t-meta pt-0.5">{r.label[locale]}</dt>
+                <dd className="leading-snug">{r.value[locale]}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
 
         <div className="col-[1/-1] mt-10 lg:col-[2/-1]">
           <Cta href={pagePath('profile', locale)}>{dict.intro.fullProfile[locale]}</Cta>

@@ -26,8 +26,8 @@ describe('Header', () => {
   it('marks the language links with hreflang, lang and aria-current on the active one', () => {
     render(<Header locale="en" page="profile" ownerName="Test Owner" email="a@example.test" />);
     const group = screen.getAllByRole('group', { name: dict.nav.language.en })[0];
-    const tr = within(group).getByRole('link', { name: dict.langNames.tr });
-    const en = within(group).getByRole('link', { name: dict.langNames.en });
+    const tr = within(group).getByRole('link', { name: `TR, ${dict.langNames.tr}` });
+    const en = within(group).getByRole('link', { name: `EN, ${dict.langNames.en}` });
 
     expect(tr.getAttribute('hreflang')).toBe('tr');
     expect(tr.getAttribute('lang')).toBe('tr');
@@ -49,7 +49,25 @@ describe('Header', () => {
       />,
     );
     const group = screen.getAllByRole('group', { name: dict.nav.language.tr })[0];
-    expect(within(group).getByRole('link', { name: dict.langNames.en }).getAttribute('href')).toBe('/en/notes/one');
+    expect(
+      within(group)
+        .getByRole('link', { name: `EN, ${dict.langNames.en}` })
+        .getAttribute('href'),
+    ).toBe('/en/notes/one');
+  });
+
+  it('keeps the visible language code inside the accessible name of each switch link', () => {
+    render(<Header locale="en" ownerName="Test Owner" email="a@example.test" />);
+    const group = screen.getAllByRole('group', { name: dict.nav.language.en })[0];
+    for (const link of within(group).getAllByRole('link')) {
+      expect(link.getAttribute('aria-label')).toContain(link.textContent);
+    }
+  });
+
+  it('names the desktop navigation apart from the footer navigation', () => {
+    render(<Header locale="en" ownerName="Test Owner" email="a@example.test" />);
+    expect(screen.getByRole('navigation', { name: dict.nav.menu.en })).toBeTruthy();
+    expect(screen.queryByRole('navigation', { name: dict.nav.label.en })).toBeNull();
   });
 
   it('opens the mobile menu as a modal dialog with focus inside, and locks scrolling', () => {

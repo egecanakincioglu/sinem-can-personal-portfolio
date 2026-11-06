@@ -68,8 +68,8 @@ export function Hero({ locale, content = getSiteContent() }: { locale: Locale; c
 
         {/* aside: recruiter glance + the note on the boundary */}
         <aside className="i-meta rail-aside col-[1/-1] mt-14 lg:col-[10/13] lg:row-[1/4] lg:mt-0 lg:self-start lg:pl-7">
+          <p className="t-meta hidden lg:block">{h.briefly[locale]}</p>
           <dl className="grid grid-cols-2 gap-x-[var(--g)] gap-y-5 lg:grid-cols-1 lg:gap-y-0">
-            <dt className="t-meta col-span-full hidden lg:block">{h.briefly[locale]}</dt>
             {brief.map((b, i) => (
               <div key={i} className="hair pt-3 lg:py-3">
                 <dt className="t-meta">{b.k[locale]}</dt>

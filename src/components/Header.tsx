@@ -45,7 +45,7 @@ function LangSwitch({
             href={switchPath(page, l, paths)}
             hrefLang={l}
             lang={l}
-            aria-label={D.langNames[l]}
+            aria-label={full ? D.langNames[l] : `${l.toUpperCase()}, ${D.langNames[l]}`}
             aria-current={l === locale ? 'true' : undefined}
             // Keep the reader's place: the equivalent page gets the current #hash (ids are language-neutral).
             onClick={(e) => {
@@ -195,8 +195,9 @@ export function Header({
             — {headLabel}
           </span>
 
+          {/* The footer carries the same navigation under the main label; landmarks of one kind need distinct names. */}
           <nav
-            aria-label={D.nav.label[locale]}
+            aria-label={D.nav.menu[locale]}
             className="ml-auto hidden items-center gap-5 text-[15px] font-medium md:flex lg:gap-8"
           >
             {navKeys.map((key) => {

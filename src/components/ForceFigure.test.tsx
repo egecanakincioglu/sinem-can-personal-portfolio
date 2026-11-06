@@ -51,7 +51,7 @@ describe('ForcesInteractive', () => {
   it('reverse order changes the diagram but leaves R unchanged', () => {
     render(<ForcesInteractive records={records} locale="en" />);
     const before = angle();
-    const toggle = screen.getByRole('button', { name: F.reverseLabel.en });
+    const toggle = screen.getByRole('button', { name: `${F.reverse.en}. ${F.reverseLabel.en}` });
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
 
     fireEvent.click(toggle);

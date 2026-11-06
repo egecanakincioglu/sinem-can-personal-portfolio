@@ -62,7 +62,9 @@ export function ProjectRow({ card, locale }: { card: ProjectCard; locale: Locale
           </span>
         )}
         {card.fixture && (
-          <span className="t-meta col-[1/-1] mt-2 text-kirmizi">{dict.projects.fixtureShort[locale]}</span>
+          <span className="t-meta col-[1/-1] mt-2 justify-self-start border border-grafit px-2 py-1 text-grafit">
+            {dict.projects.fixtureShort[locale]}
+          </span>
         )}
       </a>
     </li>

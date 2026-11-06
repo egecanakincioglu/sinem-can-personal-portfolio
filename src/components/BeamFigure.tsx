@@ -182,7 +182,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
             b
           </text>
         )}
-        <path d={`M${ax} ${dimY + 6} V${loadTip - pLen - 6}`} className="svg-thin" strokeDasharray="2 3" />
+        <path d={`M${ax} ${dimY + 6} V${loadTip - pLen - 6}`} className="svg-thin" />
 
         {/* hover preview (mouse only): pencil-grey ghost load, no deflection */}
         {hover !== null && (
@@ -265,7 +265,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
         {/* bending moment diagram, tension side, pale pencil */}
         <path d={`M${x0} ${bmdY} H${x1}`} className="svg-thin" />
         <path d={`M${x0} ${bmdY} L${ax} ${apexY} L${x1} ${bmdY}`} className="svg-thin" strokeWidth={1.25} />
-        <path d={`M${ax} ${bmdY} V${apexY}`} className="svg-thin" strokeDasharray="2 3" />
+        <path d={`M${ax} ${bmdY} V${apexY}`} className="svg-thin" />
         {m.mmax > 0.03 && (
           <text
             x={flipM ? ax - 10 : ax + 10}
@@ -436,15 +436,15 @@ export function BeamFigure({
           type="button"
           onClick={() => setA(a0)}
           disabled={a === a0}
-          aria-label={A.resetLabel[locale].replace('{a0}', n(a0))}
+          aria-label={`${A.reset[locale]}. ${A.resetLabel[locale].replace('{a0}', n(a0))}`}
           className="ulink inline-flex min-h-11 items-center px-1 text-[15px] font-medium disabled:cursor-default disabled:text-kursun disabled:no-underline"
         >
           {A.reset[locale]}
         </button>
       </p>
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-[var(--g)] md:grid-cols-3">
-        <dt className="t-meta tnum col-span-full mb-1">{A.readoutsAt[locale].replace('{a}', n(a))}</dt>
+      <p className="t-meta tnum pb-1">{A.readoutsAt[locale].replace('{a}', n(a))}</p>
+      <dl className="grid grid-cols-2 gap-x-[var(--g)] md:grid-cols-3">
         {rows.map((r, i) => (
           <div key={i} className="hair flex items-baseline justify-between gap-3 py-3">
             <dt className="font-serif text-[17px]">{r.label}</dt>

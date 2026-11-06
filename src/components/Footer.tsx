@@ -2,6 +2,7 @@ import { getSiteContent, type SiteContent } from '@/content/site-content';
 import { navKeys, sheetKeys } from '@/content/structure';
 import { locales, type Copy, type Locale } from '@/content/types';
 import { fullDate } from '@/lib/format';
+import { HashLink } from './HashLink';
 import { navHref, switchPath, type AltPaths, type PageKey } from '@/lib/routes';
 
 /** Footer = the site's title block (antet). Every cell holds real information. */
@@ -44,16 +45,16 @@ export function Footer({
                   ·
                 </span>
               )}
-              <a
+              <HashLink
                 href={switchPath(page, l, paths)}
                 hrefLang={l}
                 lang={l}
-                aria-label={dict.langNames[l]}
+                aria-label={`${l.toUpperCase()}, ${dict.langNames[l]}`}
                 aria-current={l === locale ? 'true' : undefined}
                 className={l === locale ? '' : 'ulink text-kursun'}
               >
                 {l.toUpperCase()}
-              </a>
+              </HashLink>
             </span>
           ))}
         </span>
@@ -67,7 +68,7 @@ export function Footer({
           {platforms
             .filter((p) => p.id === 'linkedin' || p.show.footer)
             .map((p) => (
-              <a key={p.id} href={p.url} {...ext} className="ulink">
+              <a key={p.id} href={p.url} {...ext} className="ulink inline-flex min-h-6 items-center">
                 {p.name}
               </a>
             ))}

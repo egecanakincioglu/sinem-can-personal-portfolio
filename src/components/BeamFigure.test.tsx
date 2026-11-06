@@ -62,7 +62,9 @@ describe('BeamFigure', () => {
 
   it('resets to the default load, and the reset is disabled while already there', () => {
     render(<BeamFigure locale="en" defaultLoad={0.4} />);
-    const reset = screen.getByRole('button', { name: A.resetLabel.en.replace('{a0}', '0.40') }) as HTMLButtonElement;
+    const reset = screen.getByRole('button', {
+      name: `${A.reset.en}. ${A.resetLabel.en.replace('{a0}', '0.40')}`,
+    }) as HTMLButtonElement;
     expect(reset.disabled).toBe(true);
     fireEvent.change(sliders()[0], { target: { value: '0.9' } });
     expect(reset.disabled).toBe(false);
@@ -86,5 +88,14 @@ describe('BeamFigure', () => {
   it('shows "maks" in Turkish', () => {
     const { container } = render(<BeamFigure locale="tr" />);
     expect(container.textContent).toContain('maks');
+  });
+  it('keeps only dt/dd groups directly inside the definition list', () => {
+    const { container } = render(<BeamFigure locale="en" />);
+    for (const dl of container.querySelectorAll('dl')) {
+      for (const child of Array.from(dl.children)) {
+        expect(child.tagName).toBe('DIV');
+        expect(Array.from(child.children).map((c) => c.tagName)).toEqual(['DT', 'DD']);
+      }
+    }
   });
 });

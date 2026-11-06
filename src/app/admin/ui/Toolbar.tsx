@@ -34,7 +34,7 @@ export function Toolbar({
           className="a-btn"
           onClick={discard}
           disabled={!state.dirty}
-          aria-label="Değişiklikleri at"
+          aria-label="Vazgeç: değişiklikleri at"
           title="Değişiklikleri at: son kaydedilen değerlere dön"
         >
           Vazgeç

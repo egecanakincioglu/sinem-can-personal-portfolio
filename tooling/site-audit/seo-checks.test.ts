@@ -1,6 +1,33 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { pageSeoProblems, readPageSeo, reciprocalProblems, robotsProblems, sitemapUrls } from './checks.ts';
+import {
+  devOnlyProblem,
+  pageSeoProblems,
+  readPageSeo,
+  reciprocalProblems,
+  robotsProblems,
+  sitemapLeaks,
+  sitemapUrls,
+} from './checks.ts';
+
+test('sitemapLeaks flags panel, preview and model addresses only', () => {
+  const urls = [
+    'http://a/tr',
+    'http://a/en/projects',
+    'http://a/admin',
+    'http://a/tr/dev-preview/live',
+    'http://a/dev-model/x.glb',
+  ];
+  assert.deepEqual(sitemapLeaks(urls), urls.slice(2));
+  assert.deepEqual(sitemapLeaks(urls.slice(0, 2)), []);
+});
+
+test('devOnlyProblem requires 404 and a body free of prototype text', () => {
+  const markers = ['Prototip', '(sim.)'];
+  assert.equal(devOnlyProblem(404, 'Not found', markers), null);
+  assert.match(devOnlyProblem(200, '', markers)!, /expected 404/);
+  assert.match(devOnlyProblem(404, 'a Prototip page', markers)!, /"Prototip"/);
+});
 
 const own = 'http://localhost:3000/en/about';
 

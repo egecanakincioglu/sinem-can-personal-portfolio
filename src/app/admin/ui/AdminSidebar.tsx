@@ -27,6 +27,8 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
+  const isRecord = path.split('/').filter(Boolean).length > 2;
+  const sections = (!isRecord && screen.listSections) || screen.sections;
   const { issues } = useAdmin();
   // The same issue list as the title block count and the task queue.
   const open = (section: string) =>
@@ -39,7 +41,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   // Highlight the section nearest the top of the editor while scrolling.
   useEffect(() => {
-    const ids = screen.sections.map((s) => `bolum-${s.id}`);
+    const ids = sections.map((s) => `bolum-${s.id}`);
     const els = ids.map((i) => document.getElementById(i)).filter(Boolean) as HTMLElement[];
     if (!els.length) return;
     const io = new IntersectionObserver(
@@ -53,7 +55,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
     );
     els.forEach((e) => io.observe(e));
     return () => io.disconnect();
-  }, [screen]);
+  }, [sections]);
 
   const rovingKeys = (e: React.KeyboardEvent<HTMLElement>) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
@@ -99,9 +101,9 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
       <nav aria-label="Bölüm dizini" className="a-index" onKeyDown={rovingKeys}>
         <p className="a-panel-k">Bölüm dizini · {screen.title}</p>
-        {screen.sections.length ? (
+        {sections.length ? (
           <ul className="a-nav-list">
-            {screen.sections.map((s) => (
+            {sections.map((s) => (
               <li key={s.id}>
                 <a
                   href={`#bolum-${s.id}`}

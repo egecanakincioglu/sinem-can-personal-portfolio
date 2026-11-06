@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getSiteContent } from '../content/site-content';
+import { getSiteContent, mergeSiteContent } from '../content/site-content';
 import {
   FORCE_IDS,
   PREVIEW_PROTOCOL,
@@ -26,6 +26,7 @@ import {
   parseStateMessage,
   platformFieldId,
   portraitFields,
+  portraitSlotFields,
   sanitizeOverride,
   workViewFields,
   workshopField,
@@ -317,6 +318,15 @@ describe('portrait', () => {
     expect(o.portrait?.focalY).toBe(base.focalY);
     expect(o.portrait?.zoom).toBe(2);
     expect(o.portrait?.alt).toEqual({ tr: 'yeni', en: 'new' });
+  });
+  it('turns the portrait off only with the show switch, never with the consent box', () => {
+    expect(buildOverride({ [portraitSlotFields.show]: '0' }).portrait).toBeNull();
+    expect(mergeSiteContent(buildOverride({ [portraitSlotFields.show]: '0' })).portrait).toBeNull();
+    expect(buildOverride({ [portraitSlotFields.show]: '1' }).portrait).toBeUndefined();
+    expect(buildOverride({ [portraitSlotFields.consent]: '0' }).portrait).toBeUndefined();
+    expect(buildOverride({}).portrait).toBeUndefined();
+    expect(sanitizeOverride({ portrait: null }).portrait).toBeNull();
+    expect(sanitizeOverride({ portrait: 'x' }).portrait).toBeUndefined();
   });
 });
 

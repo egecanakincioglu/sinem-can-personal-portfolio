@@ -33,6 +33,8 @@ import { screens } from './screens';
 /** Screens that exist only as placeholders; an entry pointing here is `planned`. */
 export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'metinler', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
+/** Screens that are built but still have planned fields (images other than the portrait). */
+export const partlyBuiltScreens = ['medya'] as const;
 
 const ALL = 'Tüm sayfalar';
 const sectionLabel = (screen: string, id: string) =>
@@ -236,12 +238,14 @@ const profilePath = {
 for (const [key, sec, label] of profileRecords) {
   ready(profileIds[key], `${profilePath[key]}[].*`, profile(sec), 'record', 'bilingual', { label });
 }
+// The portrait editor lives in Medya; the field ids keep their `profil.` prefix so saved values still apply.
+const portraitWhere: Where = { page: 'Profil', section: 'Portre', screen: 'medya' };
 for (const part of ['focalX', 'focalY', 'zoom'] as const) {
-  ready(portraitFields[part].id, `portrait.${part}`, profile('portre'), 'number', 'shared', {
+  ready(portraitFields[part].id, `portrait.${part}`, portraitWhere, 'number', 'shared', {
     label: portraitFields[part].label,
   });
 }
-ready(portraitFields.alt.id, 'portrait.alt', profile('portre'), 'text', 'bilingual', {
+ready(portraitFields.alt.id, 'portrait.alt', portraitWhere, 'text', 'bilingual', {
   label: 'Portre alternatif metni',
 });
 

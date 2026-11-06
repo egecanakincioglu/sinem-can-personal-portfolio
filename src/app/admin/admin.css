@@ -1512,3 +1512,143 @@ html[data-locked] body {
   color: var(--a-kursun);
   overflow-wrap: anywhere;
 }
+
+/* Medya screen -------------------------------------------------------------------------------------------------- */
+.admin-root .a-media-slot {
+  display: grid;
+  gap: 24px;
+}
+@media (min-width: 900px) {
+  .admin-root .a-media-slot {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+}
+.admin-root .a-media-preview {
+  width: 100%;
+  max-width: 240px;
+}
+.admin-root .a-media-mini {
+  width: 96px;
+  margin-bottom: 8px;
+}
+/* The public Portrait relies on utility classes the panel does not load: frame it here (4:5, clipped). */
+.admin-root .a-media-preview figure,
+.admin-root .a-media-mini figure {
+  margin: 0;
+}
+.admin-root .a-media-preview figure > div,
+.admin-root .a-media-mini figure > div {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1.5px solid var(--a-grafit);
+}
+.admin-root .a-media-preview figure img,
+.admin-root .a-media-mini figure img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+/* Typographic fallback (portrait hidden): same construction lines and initials as the public frame. */
+.admin-root .a-media-preview figure > div,
+.admin-root .a-media-mini figure > div {
+  background: var(--a-pafta);
+}
+.admin-root .a-media-preview figure svg,
+.admin-root .a-media-mini figure svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.admin-root .a-media-preview figure .svg-axis,
+.admin-root .a-media-mini figure .svg-axis,
+.admin-root .a-media-preview figure .svg-ghost,
+.admin-root .a-media-mini figure .svg-ghost {
+  fill: none;
+  stroke: var(--a-kalem);
+  stroke-width: 1;
+  stroke-dasharray: 16 4 2 4;
+}
+.admin-root .a-media-preview figure .svg-ghost,
+.admin-root .a-media-mini figure .svg-ghost {
+  stroke-dasharray: 18 4 2 4 2 4;
+}
+.admin-root .a-media-preview figure span,
+.admin-root .a-media-mini figure span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--a-serif);
+  font-style: italic;
+  font-weight: 360;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--a-grafit);
+}
+.admin-root .a-media-preview figure span {
+  font-size: 64px;
+}
+.admin-root .a-media-mini figure span {
+  font-size: 28px;
+}
+.admin-root .a-media-form {
+  display: grid;
+  gap: 20px;
+}
+.admin-root .a-media-status {
+  margin: 0;
+}
+.admin-root .a-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 15px;
+}
+.admin-root .a-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--a-grafit);
+}
+.admin-root .a-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.admin-root .a-media-card {
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--a-cizgi);
+}
+.admin-root .a-media-thumb {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  object-position: left top;
+}
+.admin-root .a-media-id {
+  margin: 8px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-media-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+}
+.admin-root .a-media-tasks {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}

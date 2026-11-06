@@ -8,17 +8,12 @@ import { useAdmin } from './store';
 
 /** Right panel: same-origin iframe at true device width, scaled to fit. State goes in by postMessage. */
 export function PreviewPanel({ route, title, onClose }: { route: string; title: string; onClose: () => void }) {
-  const { state, setDevice, setPreviewLang } = useAdmin();
+  const { state, snapshot, setDevice, setPreviewLang } = useAdmin();
   const wrap = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [ready, setReady] = useState(false);
   const [hello, setHello] = useState(0);
-  const [fx, setFx] = useState(false); // dev harness: /admin/ana-sayfa?fixtures=1 previews the sample (published + approved) projects
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the query string is only readable in the browser; reading it during render would break hydration
-    setFx(new URLSearchParams(window.location.search).get('fixtures') === '1');
-  }, []);
 
   useEffect(() => {
     const el = wrap.current;
@@ -53,15 +48,24 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
   // The editor values become a validated SiteContentOverride (lib/preview-bridge.ts); the frame validates it again.
   const override = useMemo(() => buildOverride(state.values), [state.values]);
 
+  // Record ids only: the frame resolves them against its own server-side pool, so no record crosses the bridge.
+  const projectIds = snapshot.publicIds;
+
   // Debounced snapshot to the iframe (120 ms), exact same-origin target.
   useEffect(() => {
     if (!ready) return;
     const t = window.setTimeout(() => {
-      const msg: StateMessage = { type: 'state', v: PREVIEW_PROTOCOL, lang: state.previewLang, override };
+      const msg: StateMessage = {
+        type: 'state',
+        v: PREVIEW_PROTOCOL,
+        lang: state.previewLang,
+        override,
+        projects: projectIds,
+      };
       frame.current?.contentWindow?.postMessage(msg, window.location.origin);
     }, 120);
     return () => window.clearTimeout(t);
-  }, [ready, hello, override, state.previewLang]);
+  }, [ready, hello, override, projectIds, state.previewLang]);
 
   const dev = state.device;
   const PAD = 24,
@@ -110,10 +114,12 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
             title={`Canlı önizleme: ${title}, ${state.previewLang.toUpperCase()}, ${dev} piksel`}
             src={
               route === 'ana-sayfa'
-                ? `/${state.previewLang}/dev-preview/live${fx ? '?fx=1' : ''}`
+                ? `/${state.previewLang}/dev-preview/live`
                 : route === 'profil'
                   ? `/${state.previewLang}/dev-preview/live-profile`
-                  : `/admin/onizleme/${route}?lang=${state.previewLang}`
+                  : route === 'projeler'
+                    ? `/${state.previewLang}/dev-preview/live-project`
+                    : `/admin/onizleme/${route}?lang=${state.previewLang}`
             }
             style={{ width: dev, height: Math.min((frameH - 2) / k, vh), transform: `scale(${k})` }}
           />

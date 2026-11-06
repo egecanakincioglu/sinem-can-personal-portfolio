@@ -8,7 +8,7 @@ import type { ProjectCard } from '@/lib/projects';
 import { ProjectRow } from './ProjectRow';
 
 /** The type filter appears only from six published records upward. */
-const FILTER_THRESHOLD = 6;
+export const FILTER_THRESHOLD = 6;
 
 /** Text tabs — the active one is set in italics, like the running head. */
 function Tabs<T extends string>({

@@ -1,63 +1,48 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { HomePage } from '@/components/HomePage';
 import { ProfileLayout } from '@/components/ProfileSections';
 import { Contact } from '@/components/Sections';
-import { getSiteContent, mergeSiteContent, type SiteContentOverride } from '@/content/site-content';
+import type { PublicProject } from '@/content/projects/types';
+import { getSiteContent, mergeSiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import type { NoteItem } from '@/lib/notes';
-import { PREVIEW_PROTOCOL, parseStateMessage, type ReadyMessage } from '@/lib/preview-bridge';
-import type { ProjectCard } from '@/lib/projects';
+import { homeProjectCards, type ProjectCard } from '@/lib/projects';
+import { resolveProjects } from '@/lib/public-snapshot';
+import { useParentState } from './useParentState';
 
 /**
  * The real Homepage tree, rendered in the browser so a draft can re-render it without a reload. The Homepage
  * components carry no server-only code (the project/notes inputs arrive as serialisable props), so the same
  * `HomePage` the public route renders runs here with `content` = mergeSiteContent(validated override).
- * Messages are accepted only from the embedding parent window on the same origin. Nothing is persisted.
+ * Nothing is persisted.
  */
 export function LiveHome({
   locale,
   projects,
+  pool = [],
   notes,
   page = 'home',
 }: {
   locale: Locale;
   projects: ProjectCard[];
+  /** Every record the Admin may ask for by id (real published records and development samples, already public-safe). */
+  pool?: PublicProject[];
   notes: NoteItem[];
   page?: 'home' | 'profile';
 }) {
-  const [override, setOverride] = useState<SiteContentOverride | undefined>();
-
-  useEffect(() => {
-    if (window.parent === window) return; // opened directly: authoritative baseline, nothing to listen to
-    let answered = false;
-    const on = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin || e.source !== window.parent) return;
-      const msg = parseStateMessage(e.data);
-      if (!msg || msg.lang !== locale) return;
-      answered = true;
-      setOverride(Object.keys(msg.override).length ? msg.override : undefined);
-    };
-    window.addEventListener('message', on);
-    // The parent may still be hydrating (page refresh) and miss the first "ready": repeat until it answers with a state.
-    const ready: ReadyMessage = { type: 'ready', v: PREVIEW_PROTOCOL };
-    let tries = 0;
-    const ping = () => window.parent.postMessage(ready, window.location.origin);
-    ping();
-    const timer = window.setInterval(() => {
-      if (answered || ++tries > 25) window.clearInterval(timer);
-      else ping();
-    }, 400);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener('message', on);
-    };
-  }, [locale]);
-
+  const message = useParentState(locale);
+  const override = message && Object.keys(message.override).length ? message.override : undefined;
   const content = useMemo(() => (override ? mergeSiteContent(override) : undefined), [override]);
+  // Ids from the Admin resolve against the server-side pool; without a list the real published records stay.
+  const ids = message?.projects;
+  const shownProjects = useMemo(
+    () => (ids ? homeProjectCards(resolveProjects(pool, ids), locale) : projects),
+    [ids, pool, projects, locale],
+  );
   const shown = content ?? getSiteContent();
   if (page === 'profile') {
     // The real Profile page tree (same composition as app/[locale]/[slug]/page.tsx), fed by the same merged content.
@@ -78,5 +63,5 @@ export function LiveHome({
       </>
     );
   }
-  return <HomePage locale={locale} content={shown} projects={projects} notes={notes} preview />;
+  return <HomePage locale={locale} content={shown} projects={shownProjects} notes={notes} preview />;
 }

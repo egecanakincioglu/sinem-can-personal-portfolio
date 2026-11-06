@@ -72,7 +72,7 @@ Every pull request to `main` runs these checks:
 | `build` | `pnpm build` |
 | `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | Page audit: overflow, axe, console errors, and Lighthouse on mobile and desktop, including its browsing audits |
 
-The `build` and `site-audit` jobs skip themselves while the site is not in the repository.
+The `build` job skips itself while the site is not in the repository. The `site-audit` jobs also stay off until `enabled` is `true` in `tooling/site-audit/thresholds.json`; the `policy` job rejects turning it off again.
 
 The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. A newer push to a pull request cancels the older CI run of that pull request.
 

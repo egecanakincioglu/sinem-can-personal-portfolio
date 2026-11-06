@@ -527,9 +527,7 @@ html[data-locked] body {
   color: var(--a-kursun);
   flex: 1;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .admin-root .a-bar-actions .a-btn,
 .admin-root .a-bar-discard {
@@ -2262,4 +2260,78 @@ html[data-locked] body {
   padding: 4px;
   border: 1px solid var(--a-cizgi);
   vertical-align: top;
+}
+
+/* Compact labels: the full label is the accessible name; the short one only swaps in where room is tight. */
+.admin-root .a-seg-s {
+  display: none;
+}
+
+/* Hit areas below 1024: padding grown and cancelled by an equal negative margin, so the layout does not move. */
+@media (max-width: 1023.98px) {
+  .admin-root .a-tb-brand .a-tb-v {
+    padding-block: 11px;
+    margin-block: -11px;
+  }
+  .admin-root .a-rec-link {
+    padding-block: 7px;
+    margin-block: -7px;
+  }
+  .admin-root .a-matrix td a {
+    display: inline-block;
+    padding-block: 13px;
+    margin-block: -13px;
+  }
+  .admin-root .a-chip .a-link {
+    min-width: 44px;
+    justify-content: center;
+    margin-left: -20px;
+    margin-right: -8px;
+  }
+}
+
+/* iOS zooms into a field below 16px. */
+@media (max-width: 767.98px) {
+  .admin-root input:not([type='checkbox'], [type='radio'], [type='range']),
+  .admin-root textarea,
+  .admin-root select,
+  .admin-root .a-mono textarea {
+    font-size: 16px;
+  }
+}
+
+/* One row of preview controls beside the rail: no captions, short labels, tighter gaps. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .admin-root .a-prev-bar {
+    gap: 8px 6px;
+    padding-inline: 12px;
+  }
+  .admin-root .a-prev-title .a-panel-k {
+    flex-basis: 100%;
+  }
+  .admin-root .a-prev-ctl .a-label {
+    display: none;
+  }
+  .admin-root .a-prev-ctl .a-seg-s {
+    display: inline;
+  }
+  .admin-root .a-prev-ctl .a-seg-l {
+    display: none;
+  }
+  .admin-root .a-prev-ctl .a-seg-btn {
+    min-width: 40px;
+    padding: 0 6px;
+  }
+  .admin-root .a-prev-ctl .a-seg-btn.is-active {
+    font-size: 16px;
+  }
+  .admin-root .a-prev-dev {
+    order: 2;
+  }
+  .admin-root .a-prev-src {
+    order: 3;
+  }
+  .admin-root .a-prev-lang {
+    order: 4;
+  }
 }

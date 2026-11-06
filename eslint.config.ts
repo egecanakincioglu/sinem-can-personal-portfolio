@@ -4,7 +4,17 @@ import nextTypescript from 'eslint-config-next/typescript';
 
 // The panel and its development preview are separate surfaces: public code must not reach into them, nor into
 // the libraries that exist only for them. A new panel-only library is added to this list.
-const panelOnlyLibs = ['preview-bridge', 'field-registry', 'public-snapshot', 'profile-fields'];
+const panelOnlyLibs = [
+  'preview-bridge',
+  'field-registry',
+  'public-snapshot',
+  'profile-fields',
+  'interface-strings',
+  'glb',
+  'project-edit',
+  'publish',
+  'admin-issues',
+];
 
 export default defineConfig([
   globalIgnores(['.next/**', 'coverage/**', 'docs/old-source-code/**', 'next-env.d.ts', 'tooling/semgrep/**']),

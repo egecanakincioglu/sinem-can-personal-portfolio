@@ -38,6 +38,18 @@ describe('ProfileLayout', () => {
     }
   });
 
+  it('keeps month and year of a record period together, breaking only after the dash', () => {
+    const { container } = render(<ProfileLayout locale="tr" content={getSiteContent()} />);
+    const text = container.querySelector('section#education')?.textContent ?? '';
+    const nb = String.fromCodePoint(0xa0);
+    expect(text).toContain(`Ekim${nb}2022${nb}– Temmuz${nb}2027`);
+  });
+
+  it('keeps the first record of a section clear of the hairline above it', () => {
+    const { container } = render(<ProfileLayout locale="en" content={getSiteContent()} />);
+    for (const row of container.querySelectorAll('section .hair')) expect(row.className).not.toContain('first:');
+  });
+
   it('does not offer a CV download while no file is supplied', () => {
     const { container } = render(<ProfileLayout locale="en" content={getSiteContent()} />);
     expect(content.cvPdf).toBeNull();

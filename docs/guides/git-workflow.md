@@ -62,7 +62,7 @@ Every pull request to `main` runs these checks:
 
 | Check | What it verifies |
 |---|---|
-| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
+| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
 | `pr-text` | Pull request title (Conventional Commits) and text |
 | `tooling (linux)`, `tooling (windows)` | Tests of the repository tools on both operating systems |
 | `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, dependency audit, production licenses, unused code and dependencies |
@@ -81,6 +81,16 @@ The checks are strict, commits must be signed, force pushes and branch deletion 
 - For a failure of the infrastructure (a lost runner, a network timeout or a GitHub outage), run `gh run rerun <id> --failed` at most once per pull request.
 - A real test, lint or build failure is not rerun; fix the code instead.
 
+## Releases
+
+The project decides when to release; merging into `main` does not deploy by itself. The details are in [ADR 0007](../adr/0007-versioning-and-releases.md) and the [release runbook](../runbooks/release-and-rollback.md). The steps are:
+
+1. Open the release branch as `chore/release-vX-Y-Z`. Dashes replace the dots because dots do not fit the branch name rule.
+2. Run `pnpm release:prepare`. It suggests the next version; `--version X.Y.Z` sets another one and `--dry-run` only prints the result. The command writes `package.json` and `CHANGELOG.md` and creates a draft of the release note as `releases/vX.Y.Z.md`. Fill in the note in English: the first line is `# vX.Y.Z — <theme>`, followed by a summary, topic sections and a `## Technical notes` section. Fill in every `<!-- fill in` comment of the draft; the `policy` check and the `release` workflow reject a note that still has one. Commit with the header `chore(release): vX.Y.Z` and open the pull request.
+3. Rehearse: `gh workflow run release-rehearsal.yml -f ref=chore/release-vX-Y-Z`. Check the preview address and the build log.
+4. Merge the pull request with `--auto`. Then create a signed tag on the merge commit on `main` and push it: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. Push exactly one full `vX.Y.Z` tag. Do not delete or force tags, and do not create the GitHub release by hand: the workflow creates it.
+5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It deploys the tagged commit to production and creates the GitHub release from the note.
+6. Check the live site. If something is wrong, roll back to the previous production deployment. The fix ships as a new PATCH release.
 ## Parallel pull requests
 
 - If a branch falls behind (the checks are strict), update it with `git merge origin/main`.

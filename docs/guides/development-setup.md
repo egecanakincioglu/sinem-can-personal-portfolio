@@ -37,6 +37,7 @@ Only if you plan to commit:
 | `corepack pnpm test`                                  | Vitest with the coverage gate               |
 | `corepack pnpm format` / `corepack pnpm format:check` | Write or check formatting with Prettier     |
 | `corepack pnpm knip`                                  | Find unused files, exports and dependencies |
+| `corepack pnpm release:prepare` | Prepare a release (see the [release runbook](../runbooks/release-and-rollback.md)) |
 
 Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check` and `corepack pnpm test` before you open a pull request. CI runs the full set of checks.
 

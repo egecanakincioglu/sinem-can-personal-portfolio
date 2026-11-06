@@ -90,6 +90,18 @@ export function sitemapUrls(xml: string): string[] {
   return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]!.trim());
 }
 
+/** Sitemap addresses that point at the panel or a development preview. */
+export function sitemapLeaks(urls: readonly string[]): string[] {
+  return urls.filter((url) => /^\/(admin|dev-model)(\/|$)|\/dev-preview(\/|$)/.test(new URL(url).pathname));
+}
+
+/** A development-only route must answer 404 and its body must not carry prototype text. */
+export function devOnlyProblem(status: number, body: string, markers: readonly string[]): string | null {
+  if (status !== 404) return `status ${status}, expected 404`;
+  const found = markers.filter((m) => body.includes(m));
+  return found.length > 0 ? `body contains ${found.map((m) => `"${m}"`).join(', ')}` : null;
+}
+
 /** One rule for every crawler (a single `User-agent: *` group, no names) that names the sitemap and closes the API. */
 export function robotsProblems(text: string, sitemapUrl: string): string[] {
   const lines = text.split(/\r?\n/).map((line) => line.trim());

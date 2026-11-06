@@ -15,6 +15,7 @@
     "lint": "eslint src tooling \"*.ts\" --max-warnings 0",
     "knip": "knip",
     "release:prepare": "node tooling/scripts/release-prepare.ts",
+    "admin-audit": "node tooling/admin-audit/run.ts",
     "site-audit": "node tooling/site-audit/run.ts",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p tsconfig.tooling.json",
     "test": "vitest run --coverage",

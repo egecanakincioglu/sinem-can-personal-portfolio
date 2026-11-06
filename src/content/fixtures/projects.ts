@@ -17,8 +17,8 @@ function sampleSvg(w: number, h: number, label: string, variant: 'plate' | 'grap
       : `<path d="M160 ${h - 160}H${w - 160}M160 ${h - 160}V160" stroke="#262624" stroke-width="2"/>
          <path d="M160 ${h - 200}C${w * 0.35} ${h - 220} ${w * 0.45} 260 ${w - 200} 220" fill="none" stroke="#262624" stroke-width="3"/>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
-<rect width="${w}" height="${h}" fill="#ffffff"/>${body}
-<text x="${w / 2}" y="${h - 50}" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="30" fill="#c42b1f">${label}</text></svg>`;
+<rect width="${w}" height="${h}" fill="#f6f7f2"/>${body}
+<text x="${w / 2}" y="${h - 50}" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="30" fill="#262624">${label}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 

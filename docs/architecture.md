@@ -103,6 +103,7 @@ The preview bridge carries project ids only: at most 50, made of letters, digits
 - Lint stops public code from importing the panel, the development preview and the panel-only libraries. The list is in `eslint.config.ts`. A new panel-only library is added there.
 - A style test (`src/app/admin/style-rules.test.ts`) checks the panel styles. It fails on the brand red, shadows, rounded corners, gradients, backdrop filters and file inputs.
 - The `build` job scans the production build output for sample data: the sample label, fixture ids and titles. It runs `node tooling/scripts/check-build-output.ts` and fails on a hit.
+- The site audit (switched off in CI for now) also checks that development-only paths return 404 without prototype text, and that the sitemap lists no panel path.
 
 ## Backend (planned)
 

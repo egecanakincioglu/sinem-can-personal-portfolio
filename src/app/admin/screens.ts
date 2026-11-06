@@ -130,7 +130,12 @@ export const screens: ScreenDef[] = [
     group: 'meta',
     preview: null,
     stage: 7,
-    sections: [],
+    sections: [
+      { id: 'bekleyen', label: 'Bekleyen değişiklikler', status: 'ok' },
+      { id: 'denetimler', label: 'Denetimler', status: 'ok' },
+      { id: 'revizyonlar', label: 'Revizyonlar', status: 'ok' },
+      { id: 'demo', label: 'Demo', status: 'ok' },
+    ],
   },
   {
     slug: 'kapsam',
@@ -154,15 +159,4 @@ export const devices = [
 ] as const;
 export type DeviceId = (typeof devices)[number]['id'];
 
-/** Turkish-folded lowercase for plain substring search. */
-export const fold = (s: string) =>
-  s
-    .replace(/İ/g, 'i')
-    .replace(/I/g, 'ı')
-    .toLowerCase()
-    .replace(/ı/g, 'i')
-    .replace(/ğ/g, 'g')
-    .replace(/ş/g, 's')
-    .replace(/ç/g, 'c')
-    .replace(/ö/g, 'o')
-    .replace(/ü/g, 'u');
+export { fold } from '@/lib/fold';

@@ -1657,3 +1657,61 @@ html[data-locked] body {
   margin: 12px 0 0;
   padding-left: 18px;
 }
+
+.admin-root .a-diff {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.admin-root .a-diff-row {
+  padding: 12px 0;
+  border-top: 1px solid var(--a-cizgi);
+}
+.admin-root .a-diff-path {
+  margin: 0;
+  font-size: 15px;
+}
+.admin-root .a-diff-side {
+  margin: 4px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-diff-tag {
+  display: inline-block;
+  min-width: 2.5em;
+  color: var(--a-kursun);
+  font-size: 12px;
+}
+.admin-root .a-diff-before {
+  color: var(--a-kursun);
+}
+.admin-root .a-diff-after {
+  text-decoration: none;
+  font-weight: 600;
+}
+.admin-root .a-pub-group {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-root .a-pub-group li {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-pub-summary {
+  padding: 12px;
+  border: 1.5px solid var(--a-grafit);
+}
+.admin-root .a-pub-summary:focus-visible {
+  outline: 2px solid var(--a-grafit);
+  outline-offset: 2px;
+}
+.admin-root .a-rev-row {
+  display: grid;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--a-cizgi);
+}
+.admin-root .a-rev-title {
+  margin: 0;
+}

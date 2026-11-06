@@ -7,9 +7,10 @@ import { AdminHeader } from './AdminHeader';
 import { AdminSidebar } from './AdminSidebar';
 import { CommandPalette } from './CommandPalette';
 import { PreviewPanel } from './PreviewPanel';
+import { PublishDialog } from './PublishDialog';
 import { Toolbar } from './Toolbar';
 import { ConfirmDialog, Dialog, EmptyState, Toasts } from './feedback';
-import { AdminProvider, revLetter, useAdmin } from './store';
+import { AdminProvider, useAdmin } from './store';
 
 export function AdminShell({ children }: { children: ReactNode }) {
   return (
@@ -24,7 +25,7 @@ function Frame({ children }: { children: ReactNode }) {
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
-  const { state, publish, reset, dismiss } = useAdmin();
+  const { state, reset, dismiss } = useAdmin();
   const [navOpen, setNavOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false); // overlay/drawer below 1024
   const [previewHidden, setPreviewHidden] = useState(false); // collapsed on wide screens
@@ -153,18 +154,7 @@ function Frame({ children }: { children: ReactNode }) {
         </EmptyState>
       </Dialog>
 
-      <ConfirmDialog
-        open={pub}
-        onClose={() => setPub(false)}
-        title="Yayınla (simülasyon)"
-        confirmLabel="Yayını simüle et"
-        onConfirm={publish}
-      >
-        <p>
-          Rev. {revLetter(state.rev)} → Rev. {revLetter(state.rev + 1)} olarak simüle edilecek.
-        </p>
-        <p className="a-help">Gerçek site bu işlemden etkilenmez. Hiçbir şey sunucuya gönderilmez.</p>
-      </ConfirmDialog>
+      <PublishDialog open={pub} onClose={() => setPub(false)} />
 
       <ConfirmDialog
         open={rst}

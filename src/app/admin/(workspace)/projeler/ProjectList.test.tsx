@@ -113,7 +113,7 @@ describe('Projeler screen', () => {
 
   it('restores stored records and marks a missing language', () => {
     const noEn = { ...fixtureProjects[0], id: 'no-en', title: { tr: 'Yalnız Türkçe', en: '' } };
-    sessionStorage.setItem('antet-admin', JSON.stringify({ projects: [noEn], seeded: true }));
+    sessionStorage.setItem('antet-admin', JSON.stringify({ schema: 1, projects: [noEn], seeded: true }));
     setup();
     const row = screen.getByRole('link', { name: 'Yalnız Türkçe' }).closest('li')!;
     expect(within(row).getByText('EN eksik')).toBeTruthy();
@@ -122,7 +122,7 @@ describe('Projeler screen', () => {
   });
 
   it('ignores a stored project list that is not a list', () => {
-    sessionStorage.setItem('antet-admin', JSON.stringify({ projects: 'x', seeded: 'yes' }));
+    sessionStorage.setItem('antet-admin', JSON.stringify({ schema: 1, projects: 'x', seeded: 'yes' }));
     setup();
     expect(screen.getByText('Pafta hazırlanıyor. — İlk projeyi ekleyin')).toBeTruthy();
     expect(button('Örnekleri kaldır').disabled).toBe(true);

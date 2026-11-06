@@ -115,6 +115,8 @@ On small screens the toolbar is one row with save, preview and publish. Discard 
 
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 
+Typing stays off the render path. Editors read a content view of the store (`useAdminContent`) that ignores preview, toast and recent-command state. Text fields commit through a transition, so counters and errors may trail the typing briefly. The preview updates 250 ms after typing pauses. `src/lib/format.ts` offers cached formatters with the same output as the plain ones.
+
 ### Guards
 
 - Every admin page, the admin layout and the route checks that the app runs in development. A test (`src/app/admin/gating.test.ts`) reads these sources and fails when one lacks the check.

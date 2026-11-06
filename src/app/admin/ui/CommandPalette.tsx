@@ -15,6 +15,7 @@ type Cmd = Searchable & { id: string; group: Group; run: () => void };
 
 const GROUPS: readonly Group[] = ['Eylemler', 'Ekranlar', 'Alanlar', 'Kayıtlar'];
 const RECENT = 'Son kullanılanlar';
+const QUICK = ['new-project', 'new-note'];
 
 /** Ctrl/⌘+K palette: actions, screens, registry fields and records. Combobox + listbox, Turkish-folded matching. */
 export function CommandPalette({
@@ -80,7 +81,7 @@ export function CommandPalette({
       {
         id: 'ps-published',
         group: 'Eylemler',
-        label: 'Önizleme: Yayınlanan',
+        label: 'Önizleme: Yayınlanan (sim.)',
         run: () => setPreviewSource('published'),
       },
       { id: 'pl-tr', group: 'Eylemler', label: 'Önizleme dili: TR', run: () => setPreviewLang('tr') },
@@ -98,6 +99,9 @@ export function CommandPalette({
             ]
           : []),
       { id: 'reset', group: 'Eylemler', label: 'Demoyu sıfırla', run: onReset },
+      // Both land on the list, where the new record asks for its title (and kind) first.
+      { id: QUICK[0], group: 'Eylemler', label: 'Yeni proje', run: go('/admin/projeler') },
+      { id: QUICK[1], group: 'Eylemler', label: 'Yeni not', run: go('/admin/notlar') },
     ];
     const links = [...fieldCommands(registry, values), ...recordCommands(projects, notes)].map((c) => ({
       ...c,
@@ -130,15 +134,23 @@ export function CommandPalette({
     notes,
   ]);
 
-  // An empty query lists the last commands used; before any, the actions and screens.
-  const showRecent = !q.trim() && recent.length > 0;
-  const results = useMemo(() => {
-    if (q.trim()) return searchCommands(all, q);
-    if (recent.length) return recent.flatMap((id) => all.filter((c) => c.id === id));
-    return all.filter((c) => c.group === 'Eylemler' || c.group === 'Ekranlar');
+  // An empty query lists the two creation shortcuts and the last commands used; before any, the actions and screens.
+  const sections = useMemo<{ title: string; items: Cmd[] }[]>(() => {
+    if (q.trim()) {
+      const found = searchCommands(all, q);
+      return GROUPS.map((g) => ({ title: g, items: found.filter((c) => c.group === g) }));
+    }
+    const quick = all.filter((c) => QUICK.includes(c.id));
+    const rest = all.filter((c) => !QUICK.includes(c.id));
+    const used = recent.flatMap((id) => rest.filter((c) => c.id === id));
+    return [
+      { title: 'Yeni', items: quick },
+      ...(used.length
+        ? [{ title: RECENT, items: used }]
+        : GROUPS.slice(0, 2).map((g) => ({ title: g, items: rest.filter((c) => c.group === g) }))),
+    ];
   }, [q, all, recent]);
-  const listed = showRecent ? [RECENT] : GROUPS;
-  const inGroup = (g: string) => (showRecent ? results : results.filter((r) => r.group === g));
+  const results = useMemo(() => sections.flatMap((s) => s.items), [sections]);
 
   const run = (c?: Cmd) => {
     if (!c) return;
@@ -153,41 +165,45 @@ export function CommandPalette({
         <label htmlFor={`${lid}-i`} className="a-vh">
           Komut ara
         </label>
-        <input
-          ref={input}
-          id={`${lid}-i`}
-          className="a-input a-pal-input"
-          role="combobox"
-          aria-expanded="true"
-          aria-controls={`${lid}-l`}
-          aria-autocomplete="list"
-          aria-activedescendant={results[cur] ? `${lid}-o-${results[cur].id}` : undefined}
-          placeholder="Ekran, alan, kayıt ya da eylem ara…"
-          value={q}
-          autoComplete="off"
-          onChange={(e) => {
-            setQ(e.target.value);
-            setCur(0);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown') {
-              e.preventDefault();
-              setCur((c) => Math.min(results.length - 1, c + 1));
-            } else if (e.key === 'ArrowUp') {
-              e.preventDefault();
-              setCur((c) => Math.max(0, c - 1));
-            } else if (e.key === 'Enter') {
-              e.preventDefault();
-              run(results[cur]);
-            }
-          }}
-        />
-        <p className="a-help a-pal-count" role="status">
+        <div className="a-pal-top">
+          <input
+            ref={input}
+            id={`${lid}-i`}
+            className="a-input a-pal-input"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls={`${lid}-l`}
+            aria-autocomplete="list"
+            aria-activedescendant={results[cur] ? `${lid}-o-${results[cur].id}` : undefined}
+            placeholder="Ekran, alan, kayıt ya da eylem ara…"
+            value={q}
+            autoComplete="off"
+            onChange={(e) => {
+              setQ(e.target.value);
+              setCur(0);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setCur((c) => Math.min(results.length - 1, c + 1));
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setCur((c) => Math.max(0, c - 1));
+              } else if (e.key === 'Enter') {
+                e.preventDefault();
+                run(results[cur]);
+              }
+            }}
+          />
+          <button type="button" className="a-btn a-pal-close" onClick={onClose}>
+            Kapat
+          </button>
+        </div>
+        <p className="a-help a-pal-count" role="status" aria-live="polite" aria-atomic="true">
           {results.length ? `${results.length} sonuç` : 'Sonuç yok'}
         </p>
         <ul id={`${lid}-l`} role="listbox" aria-label="Sonuçlar" className="a-pal-list">
-          {listed.map((g) => {
-            const items = inGroup(g);
+          {sections.map(({ title: g, items }) => {
             if (!items.length) return null;
             return (
               <li key={g} role="presentation">

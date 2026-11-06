@@ -125,7 +125,60 @@ describe('CommandPalette', () => {
     type('onizleme');
     const labels = options().map((o) => o.textContent);
     expect(labels).toContain('Önizleme: Taslak');
-    expect(labels).toContain('Önizleme: Yayınlanan');
+    expect(labels).toContain('Önizleme: Yayınlanan (sim.)');
+  });
+
+  it('lists the two creation shortcuts first on an empty query, and they open the lists', () => {
+    setup();
+    open();
+    const labels = options().map((o) => o.textContent);
+    expect(labels.slice(0, 2)).toEqual(['Yeni proje', 'Yeni not']);
+    fireEvent.click(options()[1]);
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(push).toHaveBeenCalledWith('/admin/notlar');
+  });
+
+  it('has a visible close button that closes it and returns focus', () => {
+    setup();
+    const opener = open();
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Kapat' }));
+    expect(screen.queryByRole('dialog', { name: 'Komut paleti' })).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('announces the result count in a polite live region', () => {
+    setup();
+    open();
+    type('hero');
+    const count = within(dialog()).getByRole('status');
+    expect(count.getAttribute('aria-live')).toBe('polite');
+    expect(count.textContent).toBe(`${options().length} sonuç`);
+  });
+
+  it('keeps at most the last five commands, without repeating the creation shortcuts', () => {
+    setup();
+    for (const q of [
+      'kaydet',
+      'dil: tr',
+      'onizleme: masaustu',
+      'onizleme: taslak',
+      'onizleme: mobil',
+      'onizleme: tablet',
+    ]) {
+      open();
+      type(q);
+      fireEvent.keyDown(within(dialog()).getByRole('combobox'), { key: 'Enter' });
+      act(() => {
+        vi.runAllTimers();
+      });
+    }
+    open();
+    const labels = options().map((o) => o.textContent);
+    expect(labels).toHaveLength(2 + 5);
+    expect(labels.filter((l) => l === 'Yeni proje')).toHaveLength(1);
+    expect(labels).not.toContain('Kaydet (sim.)');
   });
 
   it('shows the recent commands on an empty query', () => {
@@ -139,6 +192,6 @@ describe('CommandPalette', () => {
     });
     open();
     expect(within(dialog()).getByText('Son kullanılanlar')).toBeTruthy();
-    expect(options().map((o) => o.textContent)).toEqual(['Kaydet (sim.)']);
+    expect(options().map((o) => o.textContent)).toEqual(['Yeni proje', 'Yeni not', 'Kaydet (sim.)']);
   });
 });

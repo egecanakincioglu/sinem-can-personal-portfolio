@@ -516,7 +516,7 @@ html:not([data-js]) .sn-body {
   animation: draw 0.3s 1.1s var(--ease) both;
 }
 [data-intro='play'] .i-r-head {
-  animation: fade 0.1s 1.38s both;
+  animation: fade 0.1s 1.3s both;
 }
 [data-intro='play'] .i-r-label {
   animation: fade 0.3s 1.1s both;

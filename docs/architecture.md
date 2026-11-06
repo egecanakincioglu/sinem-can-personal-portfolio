@@ -87,6 +87,8 @@ The Projeler screen (`/admin/projeler`) lists project records with counts, the w
 
 The interface strings screen (`/admin/metinler`) lists every dictionary string by group. Search covers both languages and the key path, and a filter shows missing translations. Each string is editable, derived from records, locked with a reason, or owned by another screen (then it links there). A string shared by several places is one value: editing it on any screen changes every place. An edit that drops a required placeholder is rejected.
 
+The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private originals. The size gauge counts 1 MB as 1,000,000 bytes and shows the byte count. Up to 5 MB is fine, up to 15 MB is a warning, and above that is an error, shown without the brand red. Only `.glb` and `.gltf` models can be selected, and the portrait cannot be a poster. In development, the model library holds a generated sample model and three labelled size samples without files. The test button opens the project preview at the 3D section. The bridge carries only the project id, a library model id and the approval flag. Private originals are metadata only, with no link or file field, and never reach the public site.
+
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 
 ## Backend (planned)

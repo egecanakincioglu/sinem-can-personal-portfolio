@@ -1,15 +1,25 @@
-import { dict } from '@/content/dictionary';
 import { getFigure } from '@/content/figures/registry';
 import type { Block, NoteContent } from '@/content/notes/types';
+import type { SiteContent } from '@/content/site-content';
 import { Inline, buildCtx, plain, type Ctx } from '@/lib/inline';
 import { texToMathML } from '@/lib/math';
 import type { Locale } from '@/content/types';
 import { CodeBlock } from './CodeBlock';
 
-const d = dict.notes;
+type NotesDict = SiteContent['dict']['notes'];
 
 /** Heading with an anchor link (language-neutral ids keep #hash across a language switch). */
-function Heading({ b, ctx, locale }: { b: Extract<Block, { type: 'h2' | 'h3' | 'h4' }>; ctx: Ctx; locale: Locale }) {
+function Heading({
+  b,
+  ctx,
+  locale,
+  d,
+}: {
+  b: Extract<Block, { type: 'h2' | 'h3' | 'h4' }>;
+  ctx: Ctx;
+  locale: Locale;
+  d: NotesDict;
+}) {
   const Tag = b.type;
   const id = 'id' in b ? b.id : undefined;
   return (
@@ -29,6 +39,7 @@ function renderBlock(
   i: number,
   ctx: Ctx,
   counters: { fig: number; tab: number; eq: number },
+  d: NotesDict,
 ): React.ReactNode {
   const { locale } = ctx;
   const inl = (t: string) => <Inline text={t} ctx={ctx} keyPrefix={`b${i}`} />;
@@ -51,7 +62,7 @@ function renderBlock(
     case 'h2':
     case 'h3':
     case 'h4':
-      return <Heading key={i} b={b} ctx={ctx} locale={locale} />;
+      return <Heading key={i} b={b} ctx={ctx} locale={locale} d={d} />;
     case 'ul':
     case 'ol': {
       const L = b.type;
@@ -203,14 +214,23 @@ function renderBlock(
 }
 
 /** The article body: blocks in a 9-column working grid; prose takes six columns, figures and tables the lot. */
-export function ArticleBody({ content, locale }: { content: NoteContent; locale: Locale }) {
+export function ArticleBody({
+  content,
+  locale,
+  dict,
+}: {
+  content: NoteContent;
+  locale: Locale;
+  dict: SiteContent['dict'];
+}) {
+  const d = dict.notes;
   const ctx = buildCtx(content, locale);
   const counters = { fig: 0, tab: 0, eq: 0 };
   const inl = (t: string, k: string) => <Inline text={t} ctx={ctx} keyPrefix={k} />;
 
   return (
     <div className="art-body">
-      {content.blocks.map((b, i) => renderBlock(b, i, ctx, counters))}
+      {content.blocks.map((b, i) => renderBlock(b, i, ctx, counters, d))}
 
       {content.footnotes && content.footnotes.length > 0 && (
         <section aria-labelledby="footnotes" className="art-prose art-end">

@@ -22,7 +22,7 @@ function sampleSvg(w: number, h: number, label: string, variant: 'plate' | 'grap
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-const SAMPLE = 'SAMPLE — NOT A REAL DRAWING';
+const SAMPLE = 'Sample — not a real drawing';
 
 const plate = (id: string, w = 1200, h = 800): ImageMedia => ({
   id,
@@ -113,8 +113,8 @@ export const fixtureProjects: ProjectRecord[] = [
       // Development-only route (app/dev-model): a synthetic flange, 404 outside `next dev`.
       modelSrc: '/dev-model/flange.glb',
       caption: {
-        tr: "GELİŞTİRME ÖRNEĞİ: yazılım tarafından üretilmiş yapay bir flanş; gerçek bir parça değildir ve Sinem CAN'a ait değildir.",
-        en: 'DEVELOPMENT DEMO: a synthetic flange generated in code — not a real part and not by Sinem CAN.',
+        tr: "Geliştirme örneği: yazılım tarafından üretilmiş yapay bir flanş; gerçek bir parça değildir ve Sinem CAN'a ait değildir.",
+        en: 'Development demo: a synthetic flange generated in code — not a real part and not by Sinem CAN.',
       },
     },
     calculations: [

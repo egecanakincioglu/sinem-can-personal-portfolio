@@ -105,7 +105,7 @@ export function Gallery({ items, labels }: { items: GalleryItem[]; labels: Galle
             : ''
       }
     >
-      <div className="border border-cizgi bg-white">
+      <div className="border border-cizgi bg-kagit">
         {it.externalUrl ? (
           <a href={it.externalUrl} target="_blank" rel="noopener noreferrer" className="block">
             <Img it={it} />
@@ -197,7 +197,7 @@ export function Gallery({ items, labels }: { items: GalleryItem[]; labels: Galle
               alt={cur.alt}
               width={cur.width}
               height={cur.height}
-              className="max-h-full max-w-full bg-white object-contain"
+              className="max-h-full max-w-full bg-kagit object-contain"
             />
           </div>
           <div className="shell flex w-full items-start justify-between gap-6 pb-6 pt-4">

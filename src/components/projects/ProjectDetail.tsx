@@ -81,7 +81,7 @@ function HeroFigure({ m, locale, tone }: { m: ImageMedia; locale: Locale; tone: 
           width={m.width}
           height={m.height}
           decoding="async"
-          className={`mx-auto block h-auto w-full ${tone === 'band' ? 'max-w-[60rem] bg-white' : ''}`}
+          className={`mx-auto block h-auto w-full ${tone === 'band' ? 'max-w-[60rem] bg-kagit' : ''}`}
         />
       </div>
       {m.caption && (
@@ -129,8 +129,9 @@ export function ProjectDetail({
   return (
     <article id="project">
       <div className={`shell ${TOP}`}>
-        <a href={pagePath('projects', locale)} className="ulink t-meta inline-flex min-h-11 items-center">
-          ← {d.back[locale]}
+        <a href={pagePath('projects', locale)} className="cta cta-back">
+          <span aria-hidden className="arrow" />
+          <span className="label">{d.back[locale]}</span>
         </a>
         {p.fixture && (
           <p role="note" className="mt-4 border border-grafit px-3 py-2 text-[15px] font-medium text-grafit md:w-fit">

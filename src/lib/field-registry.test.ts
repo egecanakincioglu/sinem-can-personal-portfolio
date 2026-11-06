@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkCoverage, publicLeaves, summarize, type RegistryEntry } from './field-registry';
+import { checkCoverage, entryFor, publicLeaves, summarize, type RegistryEntry } from './field-registry';
 
 const entry = (path: string, over: Partial<RegistryEntry> = {}): RegistryEntry => ({
   id: over.id ?? path,
@@ -61,5 +61,17 @@ describe('summarize', () => {
     const s = summarize([entry('a.*', { status: 'planned' }), entry('b')], ['a.one', 'a.two', 'b']);
     expect(s).toMatchObject({ total: 3, ready: 1, planned: 2 });
     expect(s.rows.map((r) => r.fields)).toEqual([2, 1]);
+  });
+});
+
+describe('entryFor', () => {
+  it('prefers the exact entry over a group and reads array indices as []', () => {
+    const group = entry('a.*', { id: 'group' });
+    const exact = entry('a.one', { id: 'exact' });
+    const list = entry('items[].name', { id: 'list' });
+    expect(entryFor([group, exact], 'a.one')).toBe(exact);
+    expect(entryFor([group, exact], 'a.two')).toBe(group);
+    expect(entryFor([list], 'items[3].name')).toBe(list);
+    expect(entryFor([group], 'b')).toBeUndefined();
   });
 });

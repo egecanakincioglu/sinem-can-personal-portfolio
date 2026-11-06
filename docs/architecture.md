@@ -89,7 +89,18 @@ The interface strings screen (`/admin/metinler`) lists every dictionary string b
 
 The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private originals. The size gauge counts 1 MB as 1,000,000 bytes and shows the byte count. Up to 5 MB is fine, up to 15 MB is a warning, and above that is an error, shown without the brand red. Only `.glb` and `.gltf` models can be selected, and the portrait cannot be a poster. In development, the model library holds a generated sample model and three labelled size samples without files. The test button opens the project preview at the 3D section. The bridge carries only the project id, a library model id and the approval flag. Private originals are metadata only, with no link or file field, and never reach the public site.
 
+`src/lib/project-edit.ts` holds the checks the project editor will use. Slugs fold Turkish letters, use lowercase letters, digits and dashes, are unique per language and avoid reserved words. A measurement or result is accepted only when it is marked verified. Decimals accept a comma or a point. The issue list covers required fields in both languages, image alt text and library references. `src/lib/project-view.ts` builds the title block cells that the public detail page shares.
+
+Publishing in the panel is a simulation. The publish dialog lists the changes, blocks on errors and asks for one acknowledgement per warning group. The boxes are unticked each time the dialog opens. Each publish stores a revision, at most ten, with its change list and a snapshot. A revision can be restored behind a confirmation. The demo reset clears the session. The preview can show the draft or the last simulated publish. The footer date comes from the publish date. A text check flags self-praise, language levels, percentages next to skills and mixed-up applied and observed wording. Change and issue lists always show field labels, never content paths.
+
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
+
+### Guards
+
+- Every admin page, the admin layout and the route checks that the app runs in development. A test (`src/app/admin/gating.test.ts`) reads these sources and fails when one lacks the check.
+- Lint stops public code from importing the panel, the development preview and the panel-only libraries. The list is in `eslint.config.ts`. A new panel-only library is added there.
+- A style test (`src/app/admin/style-rules.test.ts`) checks the panel styles. It fails on the brand red, shadows, rounded corners, gradients, backdrop filters and file inputs.
+- The `build` job scans the production build output for sample data: the sample label, fixture ids and titles. It runs `node tooling/scripts/check-build-output.ts` and fails on a hit.
 
 ## Backend (planned)
 

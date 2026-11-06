@@ -9,7 +9,7 @@ import { useAdmin } from './store';
 
 /** Right panel: same-origin iframe at true device width, scaled to fit. State goes in by postMessage. */
 export function PreviewPanel({ route, title, onClose }: { route: string; title: string; onClose: () => void }) {
-  const { state, snapshot, setDevice, setPreviewLang } = useAdmin();
+  const { state, previewValues, previewSnapshot, setDevice, setPreviewLang, setPreviewSource } = useAdmin();
   const wrap = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
@@ -47,10 +47,15 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
   }
 
   // The editor values become a validated SiteContentOverride (lib/preview-bridge.ts); the frame validates it again.
-  const override = useMemo(() => buildOverride(state.values), [state.values]);
+  // The footer date is the simulated publish date, never a typed value.
+  const published = state.published?.at.slice(0, 10);
+  const override = useMemo(
+    () => ({ ...buildOverride(previewValues), ...(published ? { lastRevision: published } : {}) }),
+    [previewValues, published],
+  );
 
   // Record ids only: the frame resolves them against its own server-side pool, so no record crosses the bridge.
-  const projectIds = snapshot.publicIds;
+  const projectIds = previewSnapshot.publicIds;
 
   // A 3D preview being tried: the record id, the library id of its model and the approval flag, nothing else.
   const probe = useMemo<ModelProbe | undefined>(() => {
@@ -105,6 +110,15 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
             options={devices.map((d) => ({ value: d.id, label: d.label }))}
           />
           <Segmented
+            label="Önizleme kaynağı"
+            value={state.previewSource}
+            onChange={setPreviewSource}
+            options={[
+              { value: 'draft', label: 'Taslak' },
+              { value: 'published', label: 'Yayınlanan (sim.)' },
+            ]}
+          />
+          <Segmented
             label="Önizleme dili"
             value={state.previewLang}
             onChange={setPreviewLang}
@@ -133,7 +147,14 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
           />
         </div>
         <p className="a-prev-cap">
-          {label} · {dev} px{state.dirty ? ' · Önizleme · kaydedilmemiş mock veri' : ''}
+          {label} · {dev} px
+          {state.previewSource === 'published'
+            ? state.published
+              ? ' · Yayınlanan (sim.) revizyon'
+              : ' · Henüz yayın simüle edilmedi; taslak gösteriliyor'
+            : state.dirty
+              ? ' · Önizleme · kaydedilmemiş mock veri'
+              : ''}
         </p>
       </div>
     </div>

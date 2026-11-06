@@ -64,6 +64,14 @@ export function imageProblem(img: ImageFacts): string | null {
   return null;
 }
 
+/**
+ * An audited page must be fetched from the server every time. The browser profile is shared, so a cached copy would
+ * be revalidated and answered with 304, which says nothing about the page itself.
+ */
+export async function bypassCache(page: { setCacheEnabled(enabled: boolean): Promise<void> }): Promise<void> {
+  await page.setCacheEnabled(false);
+}
+
 export interface Redirect {
   status: number;
   /** Pathname of the Location header, or null when absent. */

@@ -1,14 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { Portrait } from '@/components/Portrait';
 import { getSiteContent } from '@/content/site-content';
 import { checkPortraitAsset, type MediaAsset } from '@/lib/media';
 import { checkPortraitNumber, portraitFields, portraitSlotFields } from '@/lib/preview-bridge';
 import { BilingualField, Segmented, TextField } from '../../ui/controls';
 import { StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { useAdmin } from '../../ui/store';
+import { PreviewPortrait } from '../../ui/PreviewPortrait';
+import { useAdminContent } from '../../ui/store';
 import { screenBySlug } from '../../screens';
 
 const screen = screenBySlug('medya')!;
@@ -33,7 +33,7 @@ export function Thumb({ a }: { a: MediaAsset }) {
 }
 
 function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue } = useAdminContent();
   const base = getSiteContent().portrait;
   const v = state.values;
   const eligible = assets.filter((a) => checkPortraitAsset(a).ok);
@@ -72,7 +72,7 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
   return (
     <div className="a-media-slot">
       <div className="a-media-preview">
-        <Portrait locale={state.previewLang} sizes="240px" source={derived.portrait} />
+        <PreviewPortrait sizes="240px" />
         <p className="a-help">
           {show ? 'Önizleme: sitedeki 4:5 çerçeve.' : 'Portre gizli; sitede yazısal çerçeve görünür.'}
         </p>

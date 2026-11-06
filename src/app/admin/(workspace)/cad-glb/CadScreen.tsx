@@ -5,7 +5,7 @@ import { cadRows, formatSize, posterCandidates, type GlbEntry } from '@/lib/glb'
 import type { MediaAsset } from '@/lib/media';
 import { EmptyState } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { screenBySlug } from '../../screens';
 import { OriginalsList } from './OriginalsList';
 import { Gauge, Preview3DPanel } from './Preview3DPanel';
@@ -24,7 +24,7 @@ export function CadScreen({
   library: GlbEntry[];
   projectCount: number;
 }) {
-  const { state, probeProject } = useAdmin();
+  const { state, probeProject } = useAdminContent();
   const [openId, setOpenId] = useState<string | null>(null);
   const rows = cadRows(state.projects);
   const open = rows.some((r) => r.id === openId) ? state.projects.find((p) => p.id === openId) : undefined;

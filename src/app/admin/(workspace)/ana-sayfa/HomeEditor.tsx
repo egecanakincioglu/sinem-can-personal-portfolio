@@ -15,7 +15,7 @@ import {
 } from './SectionEditors';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { screenBySlug } from '../../screens';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 
 type Pair = { tr: string; en: string };
 type Seed = {
@@ -31,7 +31,7 @@ const screen = screenBySlug('ana-sayfa')!;
 /** Ana sayfa editor, first slice: proves the field controls, bilingual pair, list editor and index wiring.
  *  The full registry-driven editor arrives in the next stage. */
 export function HomeEditor({ seed }: { seed: Seed }) {
-  const { state, setValue } = useAdmin();
+  const { state, setValue } = useAdminContent();
   const v = (id: string, fallback: string) => state.values[id] ?? fallback;
 
   let list: Pair[] = seed.interests;

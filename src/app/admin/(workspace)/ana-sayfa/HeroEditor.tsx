@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { checkCopy, copyFields, identityFields, type CopyKey } from '@/lib/preview-bridge';
 import { BilingualField, Disclosure, TextField } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 
 export type Pair = { tr: string; en: string };
 export type HeroSeed = {
@@ -65,7 +65,7 @@ const both = (p: Pair): ReactNode => (
 
 /** Ana sayfa › Hero. Every control here is read by lib/preview-bridge.ts and changes the real Hero in the preview. */
 export function HeroEditor({ seed }: { seed: HeroSeed }) {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue, derived } = useAdminContent();
   const val = (id: string, fallback: string) => state.values[id] ?? fallback;
   // Read-only glance values follow the canonical Profile records as currently edited (one derivation, no copy).
   const h = derived.dict.hero;

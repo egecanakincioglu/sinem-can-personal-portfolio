@@ -6,7 +6,7 @@ import { pagePath } from '@/lib/routes';
 import { TextField } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { revLetter, useAdmin } from '../../ui/store';
+import { revLetter, useAdminContent } from '../../ui/store';
 import { screenBySlug } from '../../screens';
 import { ContactEditor, CopyGroup, CopyStatus, GlobalEditor } from '../ana-sayfa/SectionEditors';
 
@@ -24,7 +24,7 @@ const SEO_KEYS: CopyKey[] = [
 ];
 
 function IdentityEditor() {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue, derived } = useAdminContent();
   const field = (k: 'firstName' | 'lastName', label: string, helper: string) => {
     const f = identityFields[k];
     const v = state.values[f.id] ?? derived.identity[k];
@@ -91,7 +91,7 @@ function NavigationDestinations() {
 }
 
 function PublicationInfo() {
-  const { state, derived } = useAdmin();
+  const { state, derived } = useAdminContent();
   return (
     <>
       <dl className="a-readouts">

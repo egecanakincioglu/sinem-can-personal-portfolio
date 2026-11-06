@@ -11,7 +11,7 @@ import { listRow, projectCounts, workLayout } from '@/lib/public-snapshot';
 import { TextField } from '../../ui/controls';
 import { Dialog, EmptyState, Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { screenBySlug } from '../../screens';
 
 const screen = screenBySlug('projeler')!;
@@ -81,7 +81,7 @@ function NewProjectDialog({
 
 /** Project list ("pafta listesi"): hairline records, header counts, the Homepage Work state, development samples. */
 export function ProjectList({ samples, noteSamples = [] }: { samples: ProjectRecord[]; noteSamples?: NoteRecord[] }) {
-  const { state, snapshot, seedSamples, clearSamples, createProject } = useAdmin();
+  const { state, snapshot, seedSamples, clearSamples, createProject } = useAdminContent();
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const closeCreate = useCallback(() => setCreating(false), []);

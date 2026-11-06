@@ -8,7 +8,7 @@ import type { MockNote, NoteIssue } from '@/lib/note-record';
 import type { MediaAsset } from '@/lib/media';
 import { BilingualField, ListEditor, RecordRow, TextField } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { PairText, linkError, useGuarded, type Ctxs } from './PairText';
 import { blockLabel, blockPalette, type BlockType } from './palette';
 
@@ -663,7 +663,7 @@ export function BlockList({
   figureIds: readonly string[];
   assets: readonly MediaAsset[];
 }) {
-  const { addBlock, moveBlock, removeBlock, patchBlock } = useAdmin();
+  const { addBlock, moveBlock, removeBlock, patchBlock } = useAdminContent();
   const last = note.blocks.length - 1;
   return (
     <div className="a-blocks">

@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { fullDate, num } from '@/lib/format';
+import { cachedFullDate as fullDate, cachedNum as num } from '@/lib/format';
 import { resultant } from '@/lib/physics';
 import { revLetter } from '@/lib/publish';
 import { groupIssues } from '@/lib/task-queue';
 import { PageHeader, Section } from '../ui/PageHeader';
 import { EmptyState, Readout, StatusChip } from '../ui/feedback';
-import { useAdmin } from '../ui/store';
+import { useAdminContent } from '../ui/store';
 import { screenBySlug, screenHref, screens } from '../screens';
 
 const screen = screenBySlug('')!;
@@ -26,7 +26,7 @@ function emptyAlt(value: unknown): number {
 
 /** Overview: hairline records read from the mock state. Every figure is derived, none is typed. */
 export function Overview() {
-  const { state, derived, snapshot, issues } = useAdmin();
+  const { state, derived, snapshot, issues } = useAdminContent();
   const groups = groupIssues(issues);
   const unapproved = groups.find((g) => g.group === 'Onay bekleyen metinler')?.issues.length ?? 0;
   const altGaps = emptyAlt(derived.portrait) + emptyAlt(state.projects);

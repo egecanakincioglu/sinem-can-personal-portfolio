@@ -5,7 +5,7 @@ import type { ProjectRecord } from '@/content/projects/types';
 import type { Copy } from '@/content/types';
 import { newRecordId, toMeasurement, toResult, type ProjectIssue, type QuantityForm } from '@/lib/project-edit';
 import { BilingualField, Disclosure, ListEditor, RecordRow } from '../../../ui/controls';
-import { useAdmin } from '../../../ui/store';
+import { useAdminContent } from '../../../ui/store';
 import {
   CopyList,
   MAX_ITEMS,
@@ -38,7 +38,7 @@ const textModules: Record<TextModule, { label: string; item: string }> = {
 const meta = (n: number) => <span className="a-sfx">{n === 0 ? EMPTY : `${n} öğe`}</span>;
 
 function TextModuleEditor({ project, which }: { project: ProjectRecord; which: TextModule }) {
-  const { patchProject } = useAdmin();
+  const { patchProject } = useAdminContent();
   const def = textModules[which];
   const items = project[which] ?? [];
   return (
@@ -254,7 +254,7 @@ function DecisionEditor({
 
 /** The body modules in the order the public page renders them. */
 export function ProjectBody({ project, issues }: { project: ProjectRecord; issues: readonly ProjectIssue[] }) {
-  const { patchProject } = useAdmin();
+  const { patchProject } = useAdminContent();
   const patch = (p: Parameters<typeof patchProject>[1]) => patchProject(project.id, p);
   const measurements = project.measurements ?? [];
   const calculations = project.calculations ?? [];

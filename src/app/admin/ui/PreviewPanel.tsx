@@ -7,6 +7,8 @@ import { devices } from '../screens';
 import { Segmented } from './controls';
 import { useAdmin } from './store';
 
+const PREVIEW_DEBOUNCE_MS = 250;
+
 /** Right panel: same-origin iframe at true device width, scaled to fit. State goes in by postMessage. */
 export function PreviewPanel({ route, title, onClose }: { route: string; title: string; onClose: () => void }) {
   const { state, previewValues, previewSnapshot, setDevice, setPreviewLang, setPreviewSource } = useAdmin();
@@ -63,7 +65,8 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
     return p ? { id: p.id, glb: glbIdOf(p.preview3d?.modelSrc), approved: p.preview3d?.approved === true } : undefined;
   }, [state.probe, state.projects]);
 
-  // Debounced snapshot to the iframe (120 ms), exact same-origin target.
+  // Debounced snapshot to the iframe, exact same-origin target. The frame shares the editor's main thread, so it is
+  // updated once typing pauses instead of between keystrokes.
   useEffect(() => {
     if (!ready) return;
     const t = window.setTimeout(() => {
@@ -76,7 +79,7 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
         ...(probe ? { probe } : {}),
       };
       frame.current?.contentWindow?.postMessage(msg, window.location.origin);
-    }, 120);
+    }, PREVIEW_DEBOUNCE_MS);
     return () => window.clearTimeout(t);
   }, [ready, hello, override, projectIds, probe, state.previewLang]);
 

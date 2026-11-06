@@ -2,7 +2,7 @@
 
 import { useId, type ReactNode } from 'react';
 import { getSiteContent } from '@/content/site-content';
-import { num } from '@/lib/format';
+import { cachedNum as num } from '@/lib/format';
 import { BEAM_REFERENCE_A, beamMetrics } from '@/lib/physics';
 import {
   beamLoadField,
@@ -15,7 +15,7 @@ import {
 } from '@/lib/preview-bridge';
 import { BilingualField, Disclosure, Field } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import type { Pair } from './HeroEditor';
 
 const BEAM_KEYS = [
@@ -67,7 +67,7 @@ const PRESETS = [
 
 /** Ana sayfa › Yaklaşım. Every control feeds lib/preview-bridge.ts → the real Approach section and BeamFigure. */
 export function BeamEditor({ seed }: { seed: BeamSeed }) {
-  const { state, setValue } = useAdmin();
+  const { state, setValue } = useAdminContent();
   const val = (id: string, fallback: string) => state.values[id] ?? fallback;
   const sval = (id: string, fallback: string) => state.savedValues[id] ?? fallback;
   const sliderId = useId();

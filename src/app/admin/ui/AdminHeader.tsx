@@ -18,7 +18,7 @@ export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPal
     <header className="a-tb" aria-label="Antet">
       <div className="a-tb-cell a-tb-brand">
         <span className="a-tb-k">Çizen</span>
-        <Link href="/admin" className="a-tb-v a-serif" aria-label="ANTET, Genel bakış">
+        <Link href="/admin" className="a-tb-v a-serif" aria-label="Admin · prototip: ANTET, genel bakış">
           Admin · prototip
         </Link>
       </div>
@@ -56,7 +56,12 @@ export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPal
         <button type="button" className="a-btn a-btn-quiet" onClick={onTasks}>
           <span className="a-num">{issues.length}</span> görev
         </button>
-        <button type="button" className="a-btn a-btn-quiet" onClick={onPalette} aria-label="Komut paletini aç (Ctrl+K)">
+        <button
+          type="button"
+          className="a-btn a-btn-quiet"
+          onClick={onPalette}
+          aria-label="⌘K: komut paletini aç (Ctrl+K)"
+        >
           <kbd className="a-kbd">⌘K</kbd>
         </button>
       </div>

@@ -11,13 +11,14 @@ vi.mock('next/navigation', () => ({
     throw new Error('NEXT_NOT_FOUND');
   },
   usePathname: () => '/admin/projeler',
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 // The sample module is loaded with a runtime require that cannot read TypeScript here, so the samples are supplied directly.
 vi.mock('@/content/media-manifest', async (orig) => {
   const actual = await orig<typeof import('@/content/media-manifest')>();
   const { fixtureProjects } = await import('@/content/fixtures/projects');
-  return { ...actual, devFixtureProjects: () => fixtureProjects };
+  return { ...actual, devFixtureProjects: () => fixtureProjects, devFixtureNotes: () => [] };
 });
 
 afterEach(() => {
@@ -45,14 +46,14 @@ const button = (name: string) => screen.getByRole('button', { name }) as HTMLBut
 const counts = (n: number, pub: number) => `${n} kayıt · ${pub} yayında · ${n - pub} taslak`;
 
 describe('Projeler screen', () => {
-  it('starts with the empty sheet, zero counts and a disabled new-project button', () => {
+  it('starts with the empty sheet, zero counts and an enabled new-project button', () => {
     setup();
     expect(screen.getByRole('heading', { level: 1, name: 'Projeler' })).toBeTruthy();
     expect(screen.getByText(counts(0, 0))).toBeTruthy();
     expect(screen.getByText('Pafta hazırlanıyor. — İlk projeyi ekleyin')).toBeTruthy();
     expect(screen.queryByRole('list', { name: 'Projeler' })).toBeNull();
-    expect(button('Yeni proje').disabled).toBe(true);
-    expect(screen.getByText(/Proje düzenleyicisi sonraki aşamada gelir/)).toBeTruthy();
+    expect(button('Yeni proje').disabled).toBe(false);
+    expect(screen.getByText(/Yeni proje taslak olarak açılır/)).toBeTruthy();
     expect(screen.getByText('Filtre 6+ projede görünür.')).toBeTruthy();
     expect(screen.getByText(/Düzen: tek boş çerçeve/)).toBeTruthy();
     expect(button('Örnekleri kaldır').disabled).toBe(true);

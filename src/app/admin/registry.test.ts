@@ -97,7 +97,17 @@ describe('field registry entries', () => {
     const flag = registry.filter((e) => e.path === 'project.fixture');
     expect(flag).toHaveLength(1);
     expect(flag[0]).toMatchObject({ screen: 'projeler', status: 'ready', derived: true });
-    expect(registry.filter((e) => e.screen === 'projeler' && e.status === 'ready')).toHaveLength(1);
+  });
+
+  it('edit every project field from a section of the project editor', () => {
+    const fields = registry.filter((e) => e.screen === 'projeler');
+    expect(fields.filter((e) => e.status !== 'ready')).toEqual([]);
+    const sections = screens.find((s) => s.slug === 'projeler')!.sections.map((s) => s.id);
+    for (const e of fields.filter((f) => f.path !== 'project.fixture')) {
+      expect(sections, e.path).toContain(e.editorSection);
+    }
+    expect(fields.find((e) => e.path === 'project.cover')?.editorSection).toBe('gorsel');
+    expect(fields.find((e) => e.path === 'project.visibility')?.editorSection).toBe('yayin');
   });
 
   it('edit the 3D preview and the private originals from the built 3B ve CAD screen', () => {

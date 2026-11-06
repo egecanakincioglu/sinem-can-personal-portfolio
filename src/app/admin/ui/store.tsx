@@ -1,12 +1,18 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
-import type { ProjectRecord } from '@/content/projects/types';
+import type { NoteRecord } from '@/content/notes/types';
+import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
 import { collectIssues, type Issue } from '@/lib/admin-issues';
+import { fold } from '@/lib/fold';
+import type { PairedBlock } from '@/lib/note-blocks';
+import { pairNote, type MockNote } from '@/lib/note-record';
 import { sharedFieldIds } from '@/lib/preview-bridge';
+import { applyFeatured, newRecordId } from '@/lib/project-edit';
 import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import { changesBetween, pushRevision, stamp, type Change, type Revision, type WorkSnapshot } from '@/lib/publish';
+import { blankBlock, type BlockType } from '../(workspace)/notlar/palette';
 import { registry } from '../registry';
 import type { DeviceId } from '../screens';
 
@@ -23,7 +29,10 @@ export type AdminState = {
   device: DeviceId;
   values: Record<string, string>; // edited field values, keyed by field id
   savedValues: Record<string, string>; // snapshot of the last mock Save: what "Discard" returns to
-  projects: ProjectRecord[]; // mock project records; only development samples can be added for now
+  projects: ProjectRecord[]; // mock project records: development samples and projects created here
+  savedProjects: ProjectRecord[]; // snapshot of the last mock Save, like savedValues
+  notes: MockNote[]; // mock note records, both languages side by side
+  savedNotes: MockNote[]; // snapshot of the last mock Save, like savedValues
   seeded: boolean; // development samples loaded
   probe: string | null; // project id whose 3D preview is being tried in the live preview; never stored
   dirty: boolean;
@@ -46,6 +55,9 @@ export const initialState: AdminState = {
   values: {},
   savedValues: {},
   projects: [],
+  savedProjects: [],
+  notes: [],
+  savedNotes: [],
   seeded: false,
   probe: null,
   dirty: false,
@@ -63,8 +75,69 @@ const initial = initialState;
 const KEY = 'antet-admin';
 const PRISTINE = JSON.stringify({ ...initial, ready: undefined, toasts: undefined });
 
-/** The only record fields a screen may change through the store for now: the 3D preview and the private originals. */
-type ProjectPatch = Partial<Pick<ProjectRecord, 'preview3d' | 'privateOriginals'>>;
+/** Any field of a project record except its id; `undefined` removes an optional field. `approved` exists only while published. */
+export type ProjectPatch = Partial<Omit<Extract<ProjectRecord, { visibility: 'published' }>, 'id' | 'visibility'>> & {
+  visibility?: ProjectRecord['visibility'];
+};
+
+/** A new draft: only what the creator chose is set; the rest stays empty. */
+function draftProject(id: string, title: string, kind: ProjectKind): ProjectRecord {
+  return {
+    id,
+    slug: { tr: '', en: '' },
+    title: { tr: title, en: '' },
+    kind,
+    disciplines: [],
+    status: 'in-progress',
+    visibility: 'draft',
+  };
+}
+
+function applyPatch(p: ProjectRecord, patch: ProjectPatch): ProjectRecord {
+  const merged: Record<string, unknown> = { ...p, ...patch };
+  for (const k of Object.keys(merged)) if (merged[k] === undefined) delete merged[k];
+  if (merged.visibility === 'draft') delete merged.approved;
+  return merged as ProjectRecord;
+}
+
+/** Everything of a note a screen may change except its id and body blocks (those have their own actions). */
+type NotePatch = Partial<Omit<MockNote, 'id' | 'blocks'>>;
+
+/** The simulated "today" a new note is dated with. */
+const SIM_TODAY = '2026-11-01';
+
+/** A free, ASCII, kebab-case id for a new note, derived from its title. */
+function newNoteId(title: string, taken: readonly string[]): string {
+  const base =
+    fold(title)
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'not';
+  let id = base;
+  for (let n = 2; taken.includes(id); n++) id = `${base}-${n}`;
+  return id;
+}
+
+function newNote(id: string, title: string): MockNote {
+  const none = { tr: '', en: '' };
+  return {
+    id,
+    status: 'draft',
+    approved: false,
+    published: SIM_TODAY,
+    langs: { tr: 'on', en: 'off' },
+    slug: { tr: id, en: '' },
+    title: { tr: title, en: '' },
+    subtitle: none,
+    summary: none,
+    category: none,
+    tags: [],
+    coverAlt: none,
+    blocks: [],
+    footnotes: [],
+    references: [],
+    revisions: [],
+  };
+}
 
 type Action =
   | { type: 'hydrate'; state: Partial<AdminState> }
@@ -79,9 +152,19 @@ type Action =
   | { type: 'previewSource'; source: PreviewSource }
   | { type: 'recent'; id: string }
   | { type: 'reset' }
-  | { type: 'seedSamples'; records: ProjectRecord[] }
+  | { type: 'seedSamples'; records: ProjectRecord[]; notes: NoteRecord[] }
   | { type: 'clearSamples' }
   | { type: 'patchProject'; id: string; patch: ProjectPatch }
+  | { type: 'createNote'; note: MockNote }
+  | { type: 'patchNote'; id: string; patch: NotePatch }
+  | { type: 'removeNote'; id: string }
+  | { type: 'addBlock'; id: string; block: PairedBlock; at: number }
+  | { type: 'moveBlock'; id: string; index: number; by: -1 | 1 }
+  | { type: 'removeBlock'; id: string; index: number }
+  | { type: 'patchBlock'; id: string; index: number; block: PairedBlock }
+  | { type: 'createProject'; record: ProjectRecord }
+  | { type: 'removeProject'; id: string }
+  | { type: 'setFeatured'; id: string | null }
   | { type: 'probe'; id: string | null }
   | { type: 'toast'; id: number; text: string; quiet?: boolean }
   | { type: 'dismiss'; id: number };
@@ -90,9 +173,22 @@ const RECENT_MAX = 5;
 
 const withLog = (s: AdminState, text: string) => ({ ...s, log: [text, ...s.log].slice(0, 10) });
 
+const editNote = (s: AdminState, id: string, change: (n: MockNote) => MockNote): AdminState => ({
+  ...s,
+  notes: s.notes.map((n) => (n.id === id ? change(n) : n)),
+  dirty: true,
+});
+
+/** Sample records that can be shown in the editor; one that does not pair is skipped. */
+const pairSamples = (records: readonly NoteRecord[]): MockNote[] =>
+  records.flatMap((record) => {
+    const paired = pairNote(record);
+    return paired.ok ? [paired.note] : [];
+  });
+
 /** What the last simulated publish contained, or the empty initial state before any. */
 const baseline = (s: Pick<AdminState, 'published' | 'revisions'>): WorkSnapshot =>
-  s.revisions.find((r) => r.rev === s.published?.rev)?.state ?? { values: {}, projects: [] };
+  s.revisions.find((r) => r.rev === s.published?.rev)?.state ?? { values: {}, projects: [], notes: [] };
 
 export function reducer(s: AdminState, a: Action): AdminState {
   switch (a.type) {
@@ -100,12 +196,20 @@ export function reducer(s: AdminState, a: Action): AdminState {
       if (Object.keys(a.state).length > 0 && a.state.schema !== initial.schema)
         return { ...s, ready: true, toasts: [] };
       const st = a.state;
+      const projects = Array.isArray(st.projects) ? st.projects : [];
+      const notes = Array.isArray(st.notes) ? st.notes : [];
       return {
         ...s,
         ...st,
-        projects: Array.isArray(st.projects) ? st.projects : [],
+        projects,
+        savedProjects: Array.isArray(st.savedProjects) ? st.savedProjects : projects,
+        notes,
+        savedNotes: Array.isArray(st.savedNotes) ? st.savedNotes : notes,
         seeded: st.seeded === true,
-        revisions: Array.isArray(st.revisions) ? st.revisions : [],
+        // A revision stored before notes were part of the snapshot has none.
+        revisions: Array.isArray(st.revisions)
+          ? st.revisions.map((r) => ({ ...r, state: { ...r.state, notes: r.state.notes ?? [] } }))
+          : [],
         published: st.published && typeof st.published.rev === 'number' ? st.published : null,
         previewSource: st.previewSource === 'published' ? 'published' : 'draft',
         recent: Array.isArray(st.recent)
@@ -130,16 +234,25 @@ export function reducer(s: AdminState, a: Action): AdminState {
         dirty: true,
       };
     case 'save':
-      return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
+      return {
+        ...s,
+        savedValues: s.values,
+        savedProjects: s.projects,
+        savedNotes: s.notes,
+        dirty: false,
+        saveCount: s.saveCount + 1,
+      };
     case 'discard':
-      return { ...s, values: s.savedValues, dirty: false };
+      return { ...s, values: s.savedValues, projects: s.savedProjects, notes: s.savedNotes, dirty: false };
     case 'publish': {
       const rev = s.rev + 1;
-      const state = { values: s.values, projects: s.projects };
+      const state = { values: s.values, projects: s.projects, notes: s.notes };
       const revision: Revision = { rev, at: a.at, changes: changesBetween(baseline(s), state), state };
       return {
         ...s,
         savedValues: s.values,
+        savedProjects: s.projects,
+        savedNotes: s.notes,
         dirty: false,
         saveCount: s.saveCount + 1,
         rev,
@@ -156,7 +269,10 @@ export function reducer(s: AdminState, a: Action): AdminState {
         values: r.state.values,
         savedValues: r.state.values,
         projects: r.state.projects,
-        seeded: r.state.projects.some((p) => p.fixture),
+        savedProjects: r.state.projects,
+        notes: r.state.notes,
+        savedNotes: r.state.notes,
+        seeded: r.state.projects.some((p) => p.fixture) || r.state.notes.some((n) => n.fixture),
         dirty: false,
         saveCount: s.saveCount + 1,
       };
@@ -168,22 +284,65 @@ export function reducer(s: AdminState, a: Action): AdminState {
     case 'reset':
       return { ...initial, ready: true, toasts: s.toasts };
     case 'seedSamples':
-      return { ...s, projects: [...s.projects.filter((p) => !p.fixture), ...a.records], seeded: true };
+      return {
+        ...s,
+        projects: [...s.projects.filter((p) => !p.fixture), ...a.records],
+        savedProjects: [...s.savedProjects.filter((p) => !p.fixture), ...a.records],
+        notes: [...s.notes.filter((n) => !n.fixture), ...pairSamples(a.notes)],
+        savedNotes: [...s.savedNotes.filter((n) => !n.fixture), ...pairSamples(a.notes)],
+        seeded: true,
+      };
     case 'clearSamples':
-      return { ...s, projects: s.projects.filter((p) => !p.fixture), seeded: false };
+      return {
+        ...s,
+        projects: s.projects.filter((p) => !p.fixture),
+        savedProjects: s.savedProjects.filter((p) => !p.fixture),
+        notes: s.notes.filter((n) => !n.fixture),
+        savedNotes: s.savedNotes.filter((n) => !n.fixture),
+        seeded: false,
+      };
+    case 'createNote':
+      return { ...s, notes: [...s.notes, a.note], dirty: true };
+    case 'patchNote':
+      return editNote(s, a.id, (n) => ({ ...n, ...a.patch }));
+    case 'removeNote':
+      return { ...s, notes: s.notes.filter((n) => n.id !== a.id), dirty: true };
+    case 'addBlock':
+      return editNote(s, a.id, (n) => ({ ...n, blocks: n.blocks.toSpliced(a.at, 0, a.block) }));
+    case 'moveBlock':
+      return editNote(s, a.id, (n) => {
+        const to = a.index + a.by;
+        if (to < 0 || to >= n.blocks.length || a.index < 0 || a.index >= n.blocks.length) return n;
+        const blocks = [...n.blocks];
+        [blocks[a.index], blocks[to]] = [blocks[to], blocks[a.index]];
+        return { ...n, blocks };
+      });
+    case 'removeBlock':
+      return editNote(s, a.id, (n) => ({ ...n, blocks: n.blocks.filter((_, i) => i !== a.index) }));
+    case 'patchBlock':
+      return editNote(s, a.id, (n) => ({ ...n, blocks: n.blocks.map((b, i) => (i === a.index ? a.block : b)) }));
     case 'patchProject':
       return {
         ...s,
-        projects: s.projects.map((p) =>
-          p.id === a.id
-            ? {
-                ...p,
-                ...('preview3d' in a.patch ? { preview3d: a.patch.preview3d } : {}),
-                ...('privateOriginals' in a.patch ? { privateOriginals: a.patch.privateOriginals } : {}),
-              }
-            : p,
-        ),
+        projects: s.projects.map((p) => (p.id === a.id ? applyPatch(p, a.patch) : p)),
+        dirty: true,
       };
+    case 'createProject':
+      return { ...s, projects: [...s.projects, a.record], dirty: true };
+    case 'removeProject':
+      return {
+        ...s,
+        projects: s.projects
+          .filter((p) => p.id !== a.id)
+          .map((p) => {
+            if (!p.relatedIds?.includes(a.id)) return p;
+            const rest = p.relatedIds.filter((x) => x !== a.id);
+            return applyPatch(p, { relatedIds: rest.length ? rest : undefined });
+          }),
+        dirty: true,
+      };
+    case 'setFeatured':
+      return { ...s, projects: applyFeatured(s.projects, a.id), dirty: true };
     case 'probe':
       return { ...s, probe: a.id };
     case 'toast':
@@ -223,9 +382,24 @@ type Ctx = {
   setPreviewSource: (s: PreviewSource) => void;
   reset: () => void;
   pushRecent: (id: string) => void;
-  seedSamples: (records: ProjectRecord[]) => void;
+  seedSamples: (records: ProjectRecord[], notes?: NoteRecord[]) => void;
   clearSamples: () => void;
   patchProject: (id: string, patch: ProjectPatch) => void;
+  /** Adds a draft note with this title (Turkish side only) and returns its id. */
+  createNote: (title: string) => string;
+  patchNote: (id: string, patch: NotePatch) => void;
+  removeNote: (id: string) => void;
+  addBlock: (id: string, type: BlockType, at: number) => void;
+  moveBlock: (id: string, index: number, by: -1 | 1) => void;
+  removeBlock: (id: string, index: number) => void;
+  patchBlock: (id: string, index: number, block: PairedBlock) => void;
+  setLang: (id: string, lang: Lang, to: 'on' | 'off') => void;
+  setNoteFeatured: (id: string, featured: boolean) => void;
+  /** Adds a draft with only the title (Turkish) and kind set; returns its new id. */
+  createProject: (input: { title: string; kind: ProjectKind }) => string;
+  removeProject: (id: string) => void;
+  /** At most one featured project: `null` clears it. */
+  setFeatured: (id: string | null) => void;
   probeProject: (id: string | null) => void;
   toast: (text: string) => void;
   dismiss: (id: number) => void;
@@ -296,11 +470,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const publishedState = useMemo(() => (published ? baseline({ published, revisions }) : null), [published, revisions]);
   const pending = useMemo(
     () =>
-      changesBetween(publishedState ?? { values: {}, projects: [] }, {
+      changesBetween(publishedState ?? { values: {}, projects: [], notes: [] }, {
         values: state.values,
         projects: state.projects,
+        notes: state.notes,
       }),
-    [publishedState, state.values, state.projects],
+    [publishedState, state.values, state.projects, state.notes],
   );
   const issues = useMemo(() => collectIssues(state.values, snapshot, registry), [state.values, snapshot]);
   const showPublished = state.previewSource === 'published' && publishedState !== null;
@@ -352,8 +527,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'reset' });
         toast('Demo sıfırlandı (simülasyon).', true);
       },
-      seedSamples: (records) => {
-        dispatch({ type: 'seedSamples', records });
+      seedSamples: (records, notes = []) => {
+        dispatch({ type: 'seedSamples', records, notes });
         toast('Örnek veriler yüklendi (simülasyon). Geliştirme örneği olarak işaretlidir.');
       },
       clearSamples: () => {
@@ -361,6 +536,36 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         toast('Örnekler kaldırıldı (simülasyon).');
       },
       patchProject: (id, patch) => dispatch({ type: 'patchProject', id, patch }),
+      createNote: (title) => {
+        const id = newNoteId(
+          title,
+          state.notes.map((n) => n.id),
+        );
+        dispatch({ type: 'createNote', note: newNote(id, title) });
+        return id;
+      },
+      patchNote: (id, patch) => dispatch({ type: 'patchNote', id, patch }),
+      removeNote: (id) => dispatch({ type: 'removeNote', id }),
+      addBlock: (id, type, at) => dispatch({ type: 'addBlock', id, block: blankBlock(type), at }),
+      moveBlock: (id, index, by) => dispatch({ type: 'moveBlock', id, index, by }),
+      removeBlock: (id, index) => dispatch({ type: 'removeBlock', id, index }),
+      patchBlock: (id, index, block) => dispatch({ type: 'patchBlock', id, index, block }),
+      setLang: (id, lang, to) => {
+        const note = state.notes.find((n) => n.id === id);
+        if (note) dispatch({ type: 'patchNote', id, patch: { langs: { ...note.langs, [lang]: to } } });
+      },
+      setNoteFeatured: (id, featured) => dispatch({ type: 'patchNote', id, patch: { featured } }),
+      createProject: ({ title, kind }) => {
+        const id = newRecordId(
+          'proje',
+          state.projects.map((p) => p.id),
+          Math.random,
+        );
+        dispatch({ type: 'createProject', record: draftProject(id, title.trim(), kind) });
+        return id;
+      },
+      removeProject: (id) => dispatch({ type: 'removeProject', id }),
+      setFeatured: (id) => dispatch({ type: 'setFeatured', id }),
       probeProject: (id) => dispatch({ type: 'probe', id }),
       toast,
       dismiss: (id) => dispatch({ type: 'dismiss', id }),

@@ -85,11 +85,15 @@ The Medya screen (`/admin/medya`) lists the real image files from `src/content/m
 
 The Projeler screen (`/admin/projeler`) lists project records with counts, the work-section layout, status chips and marks for missing languages. In development, sample records can be loaded and removed. The "Yeni proje" button stays disabled until the editor exists.
 
+The note list (`/admin/notlar`) shows dates in long form, language marks and status. The note editor has sections for the header, body blocks, footnotes, references, revisions and publishing. Blocks can be added from a palette, moved and removed. Text shows a live preview through the real inline renderer, and equations render live. A block with a link or TeX error is held back until it is fixed. A language can be switched off without losing its text, but the last language cannot be switched off. Sample notes load together with the sample projects in development. Notes are part of the publish snapshot and of restore, and discard also covers notes. A preview of unsaved drafts is not part of this step.
+
 The interface strings screen (`/admin/metinler`) lists every dictionary string by group. Search covers both languages and the key path, and a filter shows missing translations. Each string is editable, derived from records, locked with a reason, or owned by another screen (then it links there). A string shared by several places is one value: editing it on any screen changes every place. An edit that drops a required placeholder is rejected.
 
 The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private originals. The size gauge counts 1 MB as 1,000,000 bytes and shows the byte count. Up to 5 MB is fine, up to 15 MB is a warning, and above that is an error, shown without the brand red. Only `.glb` and `.gltf` models can be selected, and the portrait cannot be a poster. In development, the model library holds a generated sample model and three labelled size samples without files. The test button opens the project preview at the 3D section. The bridge carries only the project id, a library model id and the approval flag. Private originals are metadata only, with no link or file field, and never reach the public site.
 
 `src/lib/project-edit.ts` holds the checks the project editor will use. Slugs fold Turkish letters, use lowercase letters, digits and dashes, are unique per language and avoid reserved words. A measurement or result is accepted only when it is marked verified. Decimals accept a comma or a point. The issue list covers required fields in both languages, image alt text and library references. `src/lib/project-view.ts` builds the title block cells that the public detail page shares.
+
+The project editor (`/admin/projeler/[id]`) has sections for identity, title block, images, body, figures, 3D and CAD, relations, revisions and publishing. Slugs are suggested from the title and checked inline. Measurements and results need the verified mark. Only one project is featured. Approval is a manual toggle. Removing a project asks for confirmation. Save and discard include project records. A preview of unsaved drafts is not part of this step.
 
 Publishing in the panel is a simulation. The publish dialog lists the changes, blocks on errors and asks for one acknowledgement per warning group. The boxes are unticked each time the dialog opens. Each publish stores a revision, at most ten, with its change list and a snapshot. A revision can be restored behind a confirmation. The demo reset clears the session. The preview can show the draft or the last simulated publish. The footer date comes from the publish date. A text check flags self-praise, language levels, percentages next to skills and mixed-up applied and observed wording. Change and issue lists always show field labels, never content paths.
 
@@ -101,6 +105,7 @@ The preview bridge carries project ids only: at most 50, made of letters, digits
 - Lint stops public code from importing the panel, the development preview and the panel-only libraries. The list is in `eslint.config.ts`. A new panel-only library is added there.
 - A style test (`src/app/admin/style-rules.test.ts`) checks the panel styles. It fails on the brand red, shadows, rounded corners, gradients, backdrop filters and file inputs.
 - The `build` job scans the production build output for sample data: the sample label, fixture ids and titles. It runs `node tooling/scripts/check-build-output.ts` and fails on a hit.
+- The site audit (switched off in CI for now) also checks that development-only paths return 404 without prototype text, and that the sitemap lists no panel path.
 
 ## Backend (planned)
 

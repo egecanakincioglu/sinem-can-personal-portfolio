@@ -193,7 +193,7 @@ export function BilingualField({
       aria-controls={`${name}-pane-${l}`}
       tabIndex={tab === l ? 0 : -1}
       className={`a-tab${tab === l ? ' is-active' : ''}${missing ? ' a-ghost' : ''}`}
-      aria-label={`${l === 'tr' ? 'Türkçe' : 'İngilizce'}${missing ? ', eksik' : ''}${errors?.[l] ? ', hata var' : ''}`}
+      aria-label={`${l.toUpperCase()}${missing ? ' eksik' : ''}${errors?.[l] ? ' hata' : ''}: ${l === 'tr' ? 'Türkçe' : 'İngilizce'}`}
       onClick={() => setTab(l)}
     >
       {l.toUpperCase()}

@@ -58,6 +58,7 @@ export function Overview() {
           <Readout derived label="Kuvvet kayıtları" value={derived.forceRecords.length} />
           <Readout derived label="Yönelim öğeleri" value={derived.interests.length} />
           <Readout derived label="Projeler" value={state.projects.length} />
+          <Readout derived label="Notlar" value={state.notes.length} />
           <Readout derived label="Yayında görünen projeler" value={snapshot.publicProjects.length} />
         </dl>
       </Section>

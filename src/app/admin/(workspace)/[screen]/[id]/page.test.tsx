@@ -36,9 +36,11 @@ describe('record route', () => {
     expect(container.textContent).toContain('“nope” kaydı bulunamadı.');
   });
 
-  it('keeps the not-found wording for a note id, even one equal to a sample id', async () => {
-    const { container } = await open('notlar', fixtureProjects[0].id);
-    expect(container.textContent).toContain('kaydı bulunamadı.');
+  it('no longer answers for note ids, which have their own editor route', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    await expect(RecordStub({ params: Promise.resolve({ screen: 'notlar', id: 'x' }) })).rejects.toThrow(
+      'NEXT_NOT_FOUND',
+    );
   });
 
   it('is a 404 for a screen without records and outside development', async () => {

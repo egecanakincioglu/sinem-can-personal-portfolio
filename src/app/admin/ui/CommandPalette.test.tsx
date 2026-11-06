@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { AdminShell } from './AdminShell';
 
@@ -20,9 +21,14 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const setup = (samples = fixtureProjects) => render(<AdminShell samples={samples}>{null}</AdminShell>);
+const setup = (samples = fixtureProjects) =>
+  render(
+    <AdminShell samples={samples} noteSamples={fixtureNotes}>
+      {null}
+    </AdminShell>,
+  );
 const open = () => {
-  const opener = screen.getByRole('button', { name: /Komut paletini aç/ });
+  const opener = screen.getByRole('button', { name: /komut paletini aç/ });
   opener.focus();
   fireEvent.keyDown(opener, { key: 'k', ctrlKey: true });
   return opener;
@@ -79,6 +85,24 @@ describe('CommandPalette', () => {
       vi.runAllTimers();
     });
     expect(push).toHaveBeenCalledWith(`/admin/projeler/${encodeURIComponent(fixtureProjects[0].id)}`);
+  });
+
+  it('finds a loaded note by its title and opens its editor', () => {
+    setup();
+    open();
+    fireEvent.click(within(dialog()).getByRole('option', { name: 'Örnek verileri yükle' }));
+    act(() => {
+      vi.runAllTimers();
+    });
+    open();
+    const title = fixtureNotes[0].tr!.title;
+    type(title);
+    expect(options()[0].textContent).toBe(`Not: ${title}`);
+    fireEvent.click(options()[0]);
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(push).toHaveBeenCalledWith(`/admin/notlar/${encodeURIComponent(fixtureNotes[0].id)}`);
   });
 
   it('offers loading samples only until they are loaded, then removing them', () => {

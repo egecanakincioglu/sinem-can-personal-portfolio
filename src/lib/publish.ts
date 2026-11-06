@@ -1,6 +1,7 @@
 import type { ProjectRecord } from '@/content/projects/types';
 import { mergeSiteContent, type SiteContent } from '@/content/site-content';
 import type { Issue } from './admin-issues';
+import type { MockNote } from './note-record';
 import { buildOverride } from './preview-bridge';
 
 /* ------------------------------------------------------------------------------------------------
@@ -10,8 +11,15 @@ import { buildOverride } from './preview-bridge';
 
 export type Delta = { before: string; after: string };
 /** One changed field: a bilingual text carries `tr` and/or `en`, everything else `shared`. */
-export type Change = { path: string; tr?: Delta; en?: Delta; shared?: Delta };
-export type WorkSnapshot = { values: Record<string, string>; projects: ProjectRecord[] };
+export type Change = {
+  path: string;
+  /** Admin wording for the row when the path alone is not readable (note fields name the note by title). */
+  label?: string;
+  tr?: Delta;
+  en?: Delta;
+  shared?: Delta;
+};
+export type WorkSnapshot = { values: Record<string, string>; projects: ProjectRecord[]; notes: MockNote[] };
 export type Revision = { rev: number; at: string; changes: Change[]; state: WorkSnapshot };
 
 type Leaf = { tr: string; en: string } | { shared: string };
@@ -73,10 +81,63 @@ export function diffRecords(a: readonly ProjectRecord[], b: readonly ProjectReco
   return changes;
 }
 
+const NOTE_FIELDS: Record<string, string> = {
+  blocks: 'Gövde, blok',
+  footnotes: 'Dipnot',
+  references: 'Kaynak',
+  revisions: 'Revizyon',
+  tags: 'Etiket',
+  slug: 'Adres parçası',
+  title: 'Başlık',
+  subtitle: 'Alt başlık',
+  summary: 'Özet',
+  category: 'Konu',
+  coverAlt: 'Kapak alternatif metni',
+  status: 'Durum',
+  approved: 'Onay',
+  featured: 'Öne çıkan',
+  published: 'Yayım tarihi',
+  updated: 'Güncelleme tarihi',
+  langs: 'Diller',
+  relatedIds: 'İlgili notlar',
+};
+
+/** "Not “Title” · Gövde, blok 3" for a flattened note path such as `blocks[2].text`. */
+function noteLabel(title: string, field: string): string {
+  const m = /^([A-Za-z]+)(?:\[(\d+)\])?/.exec(field);
+  const name = m ? (NOTE_FIELDS[m[1]] ?? m[1]) : field;
+  return `Not “${title}” · ${m?.[2] === undefined ? name : `${name} ${Number(m[2]) + 1}`}`;
+}
+
+/** Notes are matched by id like project records; changes are labelled with the note title. */
+export function diffNotes(a: readonly MockNote[], b: readonly MockNote[]): Change[] {
+  const changes: Change[] = [];
+  const before = new Map(a.map((n) => [n.id, n]));
+  const after = new Map(b.map((n) => [n.id, n]));
+  for (const id of [...new Set([...before.keys(), ...after.keys()])].sort()) {
+    const x = before.get(id);
+    const y = after.get(id);
+    const title = (y ?? x)!.title.tr || id;
+    if (!x || !y) {
+      changes.push({
+        path: `note.${id}`,
+        label: `Not “${title}”`,
+        shared: { before: x ? 'Vardı' : '—', after: x ? 'Kaldırıldı' : 'Eklendi' },
+      });
+      continue;
+    }
+    for (const c of diffLeaves(flattenContent(x), flattenContent(y), `note.${id}.`)) {
+      changes.push({ ...c, label: noteLabel(title, c.path.slice(`note.${id}.`.length)) });
+    }
+  }
+  return changes;
+}
+
 /** Everything that differs between two work states: the public content they would produce, and the records. */
 export const changesBetween = (a: WorkSnapshot, b: WorkSnapshot): Change[] => [
   ...diffContent(mergeSiteContent(buildOverride(a.values)), mergeSiteContent(buildOverride(b.values))),
   ...diffRecords(a.projects, b.projects),
+  ...diffNotes(a.notes, b.notes),
 ];
 
 /** Local clock as `YYYY-MM-DDTHH:MM`; the first ten characters are the date shown as the simulated revision date. */

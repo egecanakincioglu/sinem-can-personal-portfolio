@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useId, useMemo, useRef, useState } from 'react';
+import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { fieldCommands, recordCommands, searchCommands, type Searchable } from '@/lib/palette';
 import { registry } from '../registry';
@@ -23,6 +24,7 @@ export function CommandPalette({
   onPublish,
   onReset,
   samples = [],
+  noteSamples = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -30,6 +32,7 @@ export function CommandPalette({
   onPublish: () => void;
   onReset: () => void;
   samples?: ProjectRecord[];
+  noteSamples?: NoteRecord[];
 }) {
   const router = useRouter();
   const {
@@ -57,7 +60,7 @@ export function CommandPalette({
     }
   }
 
-  const { seeded, projects, values, recent } = state;
+  const { seeded, projects, notes, values, recent } = state;
 
   const all = useMemo<Cmd[]>(() => {
     const go = (href: string) => () => router.push(href);
@@ -90,13 +93,13 @@ export function CommandPalette({
                 id: 'seed-on',
                 group: 'Eylemler' as const,
                 label: 'Örnek verileri yükle',
-                run: () => seedSamples(samples),
+                run: () => seedSamples(samples, noteSamples),
               },
             ]
           : []),
       { id: 'reset', group: 'Eylemler', label: 'Demoyu sıfırla', run: onReset },
     ];
-    const links = [...fieldCommands(registry, values), ...recordCommands(projects)].map((c) => ({
+    const links = [...fieldCommands(registry, values), ...recordCommands(projects, notes)].map((c) => ({
       ...c,
       run: go(c.href),
     }));
@@ -119,10 +122,12 @@ export function CommandPalette({
     setPreviewSource,
     seeded,
     samples,
+    noteSamples,
     seedSamples,
     clearSamples,
     values,
     projects,
+    notes,
   ]);
 
   // An empty query lists the last commands used; before any, the actions and screens.

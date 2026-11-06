@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
+import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { screens } from '../screens';
 import { AdminHeader } from './AdminHeader';
@@ -20,17 +21,35 @@ function FieldFocus() {
   return null;
 }
 
-/** `samples` are the development sample projects the palette can load; the server passes them in. */
-export function AdminShell({ children, samples = [] }: { children: ReactNode; samples?: ProjectRecord[] }) {
+/** `samples` are the development sample projects and notes the palette can load; the server passes them in. */
+export function AdminShell({
+  children,
+  samples = [],
+  noteSamples = [],
+}: {
+  children: ReactNode;
+  samples?: ProjectRecord[];
+  noteSamples?: NoteRecord[];
+}) {
   return (
     <AdminProvider>
-      <Frame samples={samples}>{children}</Frame>
+      <Frame samples={samples} noteSamples={noteSamples}>
+        {children}
+      </Frame>
     </AdminProvider>
   );
 }
 
 /** Three-panel workspace: index · editor · preview. */
-function Frame({ children, samples }: { children: ReactNode; samples: ProjectRecord[] }) {
+function Frame({
+  children,
+  samples,
+  noteSamples,
+}: {
+  children: ReactNode;
+  samples: ProjectRecord[];
+  noteSamples: NoteRecord[];
+}) {
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
@@ -156,6 +175,7 @@ function Frame({ children, samples }: { children: ReactNode; samples: ProjectRec
         onPublish={openPublish}
         onReset={openReset}
         samples={samples}
+        noteSamples={noteSamples}
       />
 
       <TaskQueue open={tasks} onClose={() => setTasks(false)} />

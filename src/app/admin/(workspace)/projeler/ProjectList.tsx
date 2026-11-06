@@ -1,19 +1,90 @@
 'use client';
 
 import Link from 'next/link';
-import type { ProjectRecord } from '@/content/projects/types';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { dict } from '@/content/dictionary';
+import type { NoteRecord } from '@/content/notes/types';
+import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import { FILTER_THRESHOLD } from '@/components/projects/ArchiveList';
 import { listRow, projectCounts, workLayout } from '@/lib/public-snapshot';
-import { EmptyState, Readout, StatusChip } from '../../ui/feedback';
+import { TextField } from '../../ui/controls';
+import { Dialog, EmptyState, Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
 import { screenBySlug } from '../../screens';
 
 const screen = screenBySlug('projeler')!;
 
+const kinds = Object.keys(dict.projects.kinds) as ProjectKind[];
+
+/** Asks for the two things a new record needs: its title and its kind. Nothing is chosen for the user. */
+function NewProjectDialog({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (input: { title: string; kind: ProjectKind }) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [kind, setKind] = useState<ProjectKind | ''>('');
+  const ready = title.trim() !== '' && kind !== '';
+  return (
+    <Dialog open={open} onClose={onClose} label="Yeni proje">
+      <h2 className="a-dialog-title">Yeni proje</h2>
+      <div className="a-dialog-body">
+        <TextField
+          name="yeni-proje-baslik"
+          meta={{ label: 'Başlık (Türkçe)', required: true }}
+          value={title}
+          onChange={setTitle}
+        />
+        <div className="a-field">
+          <div className="a-field-head">
+            <label htmlFor="yeni-proje-tur" className="a-label">
+              Tür<span className="a-sfx"> · zorunlu</span>
+            </label>
+          </div>
+          <select
+            id="yeni-proje-tur"
+            className="a-input"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as ProjectKind | '')}
+          >
+            <option value="">Seçin</option>
+            {kinds.map((k) => (
+              <option key={k} value={k}>
+                {dict.projects.kinds[k].tr}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="a-dialog-actions">
+        <button type="button" className="a-btn" onClick={onClose}>
+          Vazgeç
+        </button>
+        <button
+          type="button"
+          className="a-btn a-btn-primary"
+          disabled={!ready}
+          onClick={() => kind && onCreate({ title, kind })}
+        >
+          Oluştur
+        </button>
+      </div>
+    </Dialog>
+  );
+}
+
 /** Project list ("pafta listesi"): hairline records, header counts, the Homepage Work state, development samples. */
-export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
-  const { state, snapshot, seedSamples, clearSamples } = useAdmin();
+export function ProjectList({ samples, noteSamples = [] }: { samples: ProjectRecord[]; noteSamples?: NoteRecord[] }) {
+  const { state, snapshot, seedSamples, clearSamples, createProject } = useAdmin();
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
+  const closeCreate = useCallback(() => setCreating(false), []);
   const records = state.projects;
   const publicCount = snapshot.publicProjects.length;
   return (
@@ -45,14 +116,19 @@ export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
       <Section id="kayitlar" title="Kayıtlar">
         <div className="a-field">
           <div className="a-proj-actions">
-            <button type="button" className="a-btn" disabled aria-describedby="proje-yeni-help">
+            <button
+              type="button"
+              className="a-btn"
+              aria-describedby="proje-yeni-help"
+              onClick={() => setCreating(true)}
+            >
               Yeni proje
             </button>
             <button
               type="button"
               className="a-btn"
               disabled={state.seeded || samples.length === 0}
-              onClick={() => seedSamples(samples)}
+              onClick={() => seedSamples(samples, noteSamples)}
             >
               Örnek verileri yükle
             </button>
@@ -61,8 +137,8 @@ export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
             </button>
           </div>
           <p className="a-help" id="proje-yeni-help">
-            Proje düzenleyicisi sonraki aşamada gelir. Örnek veriler yalnızca geliştirmede yüklenir ve “Geliştirme
-            örneği” olarak işaretlenir.
+            Yeni proje taslak olarak açılır. Örnek veriler yalnızca geliştirmede yüklenir ve “Geliştirme örneği” olarak
+            işaretlenir.
           </p>
         </div>
         {records.length === 0 ? (
@@ -98,6 +174,16 @@ export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
           </ul>
         )}
       </Section>
+      <NewProjectDialog
+        key={String(creating)}
+        open={creating}
+        onClose={closeCreate}
+        onCreate={(input) => {
+          const id = createProject(input);
+          setCreating(false);
+          router.push(`/admin/projeler/${encodeURIComponent(id)}`);
+        }}
+      />
     </>
   );
 }

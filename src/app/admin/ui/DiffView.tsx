@@ -31,7 +31,7 @@ export function DiffView({ changes, label }: { changes: readonly Change[]; label
     <ul className="a-diff" aria-label={label}>
       {changes.map((c) => (
         <li key={c.path} className="a-diff-row">
-          <p className="a-diff-path">{changeLabel(c.path)}</p>
+          <p className="a-diff-path">{c.label ?? changeLabel(c.path)}</p>
           {SIDES.map(([key, tag]) => {
             const d: Delta | undefined = c[key];
             return d ? (

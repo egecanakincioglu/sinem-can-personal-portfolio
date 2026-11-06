@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { checkCoverage, summarize } from '@/lib/field-registry';
-import { copyFields } from '@/lib/preview-bridge';
+import { copyFields, interfaceStrings } from '@/lib/preview-bridge';
 import { partlyBuiltScreens, plannedScreens, publicFieldPaths, recordFieldPaths, registry } from './registry';
 import { screens } from './screens';
 
@@ -73,11 +73,39 @@ describe('field registry entries', () => {
     }
   });
 
+  it('list every dictionary string on its own, with no group entry left', () => {
+    const dictEntries = registry.filter((e) => e.path.startsWith('dict.'));
+    expect(dictEntries.filter((e) => e.path.endsWith('.*'))).toEqual([]);
+    expect(dictEntries.filter((e) => e.screen === 'metinler' && e.status !== 'ready')).toEqual([]);
+    const own = new Map(dictEntries.map((e) => [e.path, e]));
+    for (const d of interfaceStrings()) {
+      const entry = own.get(`dict.${d.path.replace(/\[\d+\]/g, '[]')}`);
+      expect(entry, d.path).toBeDefined();
+      // the three honesty labels keep their read-only Ana sayfa entries
+      if (d.kind !== 'locked') expect(entry?.screen === 'metinler', d.path).toBe(!d.owner);
+    }
+  });
+
+  it('mark derived and locked strings as read-only', () => {
+    const byPath = new Map(registry.map((e) => [e.path, e]));
+    expect(byPath.get('dict.hero.programValue')?.derived).toBe(true);
+    expect(byPath.get('dict.forces.caption')?.derived).toBe(true);
+    expect(byPath.get('dict.hero.meta1')?.derived).toBeUndefined();
+  });
+
   it('mark the sample flag of a project as a ready, derived field of the Projeler screen', () => {
     const flag = registry.filter((e) => e.path === 'project.fixture');
     expect(flag).toHaveLength(1);
     expect(flag[0]).toMatchObject({ screen: 'projeler', status: 'ready', derived: true });
     expect(registry.filter((e) => e.screen === 'projeler' && e.status === 'ready')).toHaveLength(1);
+  });
+
+  it('edit the 3D preview and the private originals from the built 3B ve CAD screen', () => {
+    const cad = registry.filter((e) => e.screen === 'cad-glb');
+    expect(cad.map((e) => [e.path, e.status, e.editorSection])).toEqual([
+      ['project.preview3d', 'ready', 'onizleme'],
+      ['project.privateOriginals', 'ready', 'ozgunler'],
+    ]);
   });
 
   it('sum to the summary totals', () => {

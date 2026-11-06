@@ -26,7 +26,6 @@ export const fieldMeta: Partial<Record<CopyKey, FieldMeta>> = {
   forcesReverse: { label: 'Kuvvetler: Sırayı ters çevir düğmesi' },
   beamHeading: { label: 'Yaklaşım: Bölüm başlığı' },
   beamInterests: { label: 'Yaklaşım: Akademik ilgi listesi başlığı' },
-  beamFigure: { label: 'Yaklaşım: Şekil numarası' },
   beamHint: { label: 'Yaklaşım: Kısa davet cümlesi' },
   beamCaption: { label: 'Yaklaşım: Şekil açıklaması' },
   beamTeaching: { label: 'Yaklaşım: Kenar notu (en büyük çökme)' },
@@ -60,8 +59,6 @@ export const fieldMeta: Partial<Record<CopyKey, FieldMeta>> = {
     label: 'Staj etiketi',
     helper: 'Kurum adının üzerindeki küçük etiket. Kurum, süre ve yer Deneyim kaydından gelir.',
   },
-  workshopApplied: { label: '“Uyguladım” başlığı' },
-  workshopObserved: { label: '“Gözlemledim” başlığı' },
   workshopAppliedHint: { label: '“Uyguladım” alt açıklaması' },
   workshopObservedHint: { label: '“Gözlemledim” alt açıklaması' },
   // Çalışmalar

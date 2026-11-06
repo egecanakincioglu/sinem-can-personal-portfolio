@@ -115,7 +115,7 @@ function PublicationInfo() {
 export function SettingsEditor() {
   return (
     <>
-      <PageHeader kicker="Pafta 10" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker="Pafta 08" title={screen.title} lede={screen.lede} />
       <p className="a-help">
         Bu ekrandaki kimlik, iletişim ve etiket alanları Ana sayfa düzenleyicisindekilerle aynı alanlardır: birinde
         yapılan değişiklik diğerinde de görünür. Tüm işlemler simülasyondur.

@@ -34,6 +34,16 @@ function Frame({ children }: { children: ReactNode }) {
   const [pub, setPub] = useState(false);
   const [rst, setRst] = useState(false);
 
+  // Trying a 3D preview brings the live preview into view, on narrow and wide screens alike.
+  const [seenProbe, setSeenProbe] = useState(state.probe);
+  if (seenProbe !== state.probe) {
+    setSeenProbe(state.probe);
+    if (state.probe) {
+      setPreviewOpen(true);
+      setPreviewHidden(false);
+    }
+  }
+
   const [seenPath, setSeenPath] = useState(path);
   if (seenPath !== path) {
     setSeenPath(path);

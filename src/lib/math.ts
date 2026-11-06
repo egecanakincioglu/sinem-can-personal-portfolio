@@ -166,3 +166,23 @@ export function texToMathML(tex: string, locale: Locale, display = false): strin
   const c: Ctx = { src: tex, i: 0, locale };
   return `<math${display ? ' class="display" style="math-style:normal"' : ''}>${seq(c)}</math>`;
 }
+
+const COMMANDS = ['frac', 'sqrt', 'quad', 'left', 'right', 'text', 'mathrm'];
+
+/** Problems the converter would silently render as plain text: unknown commands and unbalanced braces. */
+export function texIssues(tex: string): { kind: 'command' | 'brace'; value: string }[] {
+  const issues: { kind: 'command' | 'brace'; value: string }[] = [];
+  for (const m of tex.matchAll(/\\([A-Za-z]+|[^A-Za-z,;: ]|$)/g)) {
+    if (!COMMANDS.includes(m[1]) && !Object.hasOwn(SYMBOLS, m[1])) issues.push({ kind: 'command', value: `\\${m[1]}` });
+  }
+  let depth = 0;
+  for (const ch of tex) {
+    if (ch === '{') depth++;
+    else if (ch === '}' && depth-- === 0) {
+      issues.push({ kind: 'brace', value: '}' });
+      depth = 0;
+    }
+  }
+  if (depth > 0) issues.push({ kind: 'brace', value: '{' });
+  return issues;
+}

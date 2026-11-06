@@ -18,7 +18,7 @@ Once per clone, to run the site.
 3. Install the dependencies from the lock file: `corepack pnpm install --frozen-lockfile`.
 4. Start the site with `corepack pnpm dev` and open http://localhost:3000. The root path redirects to `/tr`.
 
-The site needs no environment variables and no database today. The admin interface is at `/admin` and works on mock data in development only. In any other mode it answers 404.
+The site needs no environment variables and no database today. The admin interface is at `/admin` and works on mock data in development only. In any other mode it answers 404, because production builds do not contain the panel routes. Route files for the panel, the preview and the model route use the `.dev.tsx` or `.dev.ts` extension.
 
 Only if you plan to commit:
 

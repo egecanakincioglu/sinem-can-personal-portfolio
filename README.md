@@ -6,6 +6,12 @@ The bilingual (Turkish and English) portfolio site of Sinem CAN, a senior mechan
 
 The repository is being set up. Tooling, documentation and the site follow in the next changes.
 
+## Stack
+
+- React 19, TypeScript in strict mode
+- Vitest and Testing Library for tests
+- GitHub Actions for CI; Vercel deploys by version tag
+
 ## Run it
 
 Requirements: Git, Node 24 and pnpm. Corepack provides pnpm.

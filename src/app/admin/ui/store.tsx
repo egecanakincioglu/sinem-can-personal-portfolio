@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { mergeSiteContent, type SiteContent } from '@/content/site-content';
-import { buildOverride } from '@/lib/preview-bridge';
+import { buildOverride, sharedFieldIds } from '@/lib/preview-bridge';
 import type { DeviceId } from '../screens';
 
 /** Mock admin state. Lives in React + sessionStorage only: nothing in localStorage, cookies or network. */
@@ -63,7 +63,12 @@ function reducer(s: AdminState, a: Action): AdminState {
     case 'device':
       return { ...s, device: a.device };
     case 'value':
-      return { ...s, values: { ...s.values, [a.id]: a.value }, dirty: true };
+      // Editors that show one shared string (hero.briefly, intro.heading ...) hold one value.
+      return {
+        ...s,
+        values: { ...s.values, ...Object.fromEntries(sharedFieldIds(a.id).map((id) => [id, a.value])) },
+        dirty: true,
+      };
     case 'save':
       return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
     case 'discard':

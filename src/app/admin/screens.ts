@@ -8,6 +8,8 @@ export type ScreenDef = {
   group: 'work' | 'meta';
   preview: string | null; // preview route under /admin/onizleme, or null
   sections: SectionDef[];
+  /** Sections of the list page (/admin/<slug>) when it differs from the record pages that `sections` describes. */
+  listSections?: SectionDef[];
   stage: number;
 };
 
@@ -67,6 +69,7 @@ export const screens: ScreenDef[] = [
     group: 'work',
     preview: 'projeler',
     stage: 5,
+    listSections: [{ id: 'kayitlar', label: 'Kayıtlar', status: 'ok' }],
     sections: [
       { id: 'kimlik', label: 'Kimlik', status: 'ok' },
       { id: 'antet', label: 'Antet', status: 'ok' },
@@ -86,6 +89,7 @@ export const screens: ScreenDef[] = [
     group: 'work',
     preview: 'notlar',
     stage: 6,
+    listSections: [{ id: 'kayitlar', label: 'Kayıtlar', status: 'ok' }],
     sections: [
       { id: 'ustbilgi', label: 'Üstbilgi', status: 'ok' },
       { id: 'govde', label: 'Gövde', status: 'ok' },

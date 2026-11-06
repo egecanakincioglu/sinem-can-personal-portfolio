@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { texToMathML } from './math';
+import { texIssues, texToMathML } from './math';
 
 const ALLOWED = new Set([
   'math',
@@ -92,5 +92,23 @@ describe('texToMathML', () => {
   it('emits only known MathML tags for a broad input', () => {
     const html = texToMathML('\\frac{R_A}{P}=\\sqrt{x^2+y_i^2}\\;\\text{ok}\\mathrm{kN}\\alpha\\,<>&', 'tr', true);
     expect(tagNames(html).every((t) => ALLOWED.has(t))).toBe(true);
+  });
+});
+
+describe('texIssues', () => {
+  it('accepts the supported subset', () => {
+    expect(texIssues('F = m\\,a, \\frac{\\alpha}{\\sqrt{x_\\mathrm{A}}} \\left( y \\right) \\text{ok}')).toEqual([]);
+  });
+  it('finds unknown commands and prototype names', () => {
+    expect(texIssues('\\foo + \\constructor + \\%')).toEqual([
+      { kind: 'command', value: '\\foo' },
+      { kind: 'command', value: '\\constructor' },
+      { kind: 'command', value: '\\%' },
+    ]);
+  });
+  it('finds unbalanced braces', () => {
+    expect(texIssues('{a')).toEqual([{ kind: 'brace', value: '{' }]);
+    expect(texIssues('a}')).toEqual([{ kind: 'brace', value: '}' }]);
+    expect(texIssues('x\\')).toEqual([{ kind: 'command', value: '\\' }]);
   });
 });

@@ -19,6 +19,13 @@ describe('publish', () => {
     expect(s.revisions[0].state.values).toEqual({ 'hero.lead.tr': 'Yeni cümle' });
   });
 
+  it('keeps the samples out of the change list of a revision', () => {
+    const withSamples = reducer(ready, { type: 'seedSamples', records: fixtureProjects, notes: fixtureNotes });
+    const s = publish(edit(withSamples, 'hero.lead.tr', 'Yeni cümle'));
+    expect(s.revisions[0].changes.map((c) => c.path)).toEqual(['draft.heroLead']);
+    expect(s.revisions[0].state.projects).toHaveLength(fixtureProjects.length);
+  });
+
   it('lists only what changed since the previous publish', () => {
     const first = publish(edit(ready, 'hero.lead.tr', 'Yeni cümle'));
     const second = publish(edit(first, 'hero.lead.en', 'New sentence'), '2026-11-07T10:00');
@@ -61,7 +68,8 @@ describe('restore', () => {
   });
 
   it('brings an edited note back, and lists the note change under its title', () => {
-    const seeded = reducer(ready, { type: 'seedSamples', records: [], notes: fixtureNotes });
+    const sampled = reducer(ready, { type: 'seedSamples', records: [], notes: fixtureNotes });
+    const seeded = { ...sampled, notes: sampled.notes.map((n) => ({ ...n, fixture: false })) };
     const id = seeded.notes[0].id;
     const original = seeded.notes[0].title.tr;
     const a = publish(seeded);

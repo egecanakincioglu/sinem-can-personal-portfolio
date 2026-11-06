@@ -1,3 +1,4 @@
+import type { ProjectRecord } from '@/content/projects/types';
 import { getSiteContent } from '@/content/site-content';
 import { entryFor, entryLabel, type RegistryEntry } from './field-registry';
 import { lintText } from './honesty-lint';
@@ -15,11 +16,15 @@ import {
   copyDefault,
   copyFields,
   forceFieldId,
+  identityFields,
   platformFieldId,
   portraitFields,
   type CopyField,
 } from './preview-bridge';
-import { diffContent } from './publish';
+import type { MediaAsset } from './media';
+import { noteIssues, type MockNote } from './note-record';
+import { projectIssues } from './project-edit';
+import { diffContent, UNTITLED } from './publish';
 import type { PublicSnapshot } from './public-snapshot';
 
 /** One finding about the working state. Errors block a publish; warnings need an acknowledgement. */
@@ -29,6 +34,18 @@ export type Issue = {
   path: string;
   text: string;
   severity: 'error' | 'warning';
+  /** Record-level findings name their record and link to its editor; field findings use the registry instead. */
+  label?: string;
+  where?: string;
+  href?: string;
+};
+
+/** The records and the media library the record checks need. */
+export type RecordSource = {
+  projects: readonly ProjectRecord[];
+  notes: readonly MockNote[];
+  assets: readonly MediaAsset[];
+  figureIds: readonly string[];
 };
 
 const LANGS = ['tr', 'en'] as const;
@@ -36,11 +53,61 @@ export const GROUP_VALIDATION = 'Doğrulama';
 export const GROUP_DRAFT = 'Onaysız taslak metin';
 export const GROUP_HONESTY = 'Dürüstlük denetimi';
 
-/** Everything the field checks flag, plus the draft-copy and honesty warnings, for the working values. */
+const stripPrefix = (m: string) => m.replace(/^(?:Hata|Uyarı):\s*/, '');
+
+/** Errors of the project and note records that would be public. A draft is unfinished by nature and cannot block a
+ *  publish, and a sample never leaves development. */
+function recordIssues(src: RecordSource): Issue[] {
+  const out: Issue[] = [];
+  for (const p of src.projects) {
+    if (p.fixture || p.visibility !== 'published') continue;
+    const label = `Proje “${p.title.tr.trim() || UNTITLED}”`;
+    const assetIds = new Set(src.assets.flatMap((a) => [a.id, `${p.id}/${a.id}`]));
+    for (const i of projectIssues(p, { records: src.projects, assetIds })) {
+      if (i.severity !== 'error') continue;
+      out.push({
+        group: GROUP_VALIDATION,
+        fieldId: `project.${p.id}.${i.field}`,
+        path: `project.${p.id}.${i.field}`,
+        text: `${label}: ${stripPrefix(i.message)}${i.lang ? ` (${i.lang.toUpperCase()})` : ''}`,
+        severity: 'error',
+        label,
+        where: 'Projeler',
+        href: `/admin/projeler/${encodeURIComponent(p.id)}#bolum-${i.section}`,
+      });
+    }
+  }
+  const noteCtx = { records: src.notes, figureIds: src.figureIds, assetIds: src.assets.map((a) => a.src) };
+  for (const n of src.notes) {
+    if (n.fixture || n.status !== 'published') continue;
+    const label = `Not “${n.title.tr.trim() || UNTITLED}”`;
+    for (const i of noteIssues(n, noteCtx)) {
+      if (i.severity !== 'error') continue;
+      out.push({
+        group: GROUP_VALIDATION,
+        fieldId: `note.${n.id}.${i.field}`,
+        path: `note.${n.id}.${i.field}`,
+        text: `${label}: ${stripPrefix(i.message)}${i.lang ? ` (${i.lang.toUpperCase()})` : ''}`,
+        severity: 'error',
+        label,
+        where: 'Notlar',
+        href: `/admin/notlar/${encodeURIComponent(n.id)}`,
+      });
+    }
+  }
+  return out;
+}
+
+const NAME_EMPTY = 'Bu alan boş bırakılamaz; önizleme varsayılan adı gösterir.';
+const checkName = (k: keyof typeof identityFields, v: string): string | undefined =>
+  !v.trim() ? NAME_EMPTY : v.length > identityFields[k].max ? `En fazla ${identityFields[k].max} karakter.` : undefined;
+
+/** Everything the field checks flag, the record errors, and the draft-copy and honesty warnings. */
 export function collectIssues(
   values: Record<string, string>,
   snapshot: PublicSnapshot,
   registry: readonly RegistryEntry[],
+  records?: RecordSource,
 ): Issue[] {
   const out: Issue[] = [];
   const ownerOf = (fieldId: string) =>
@@ -62,6 +129,10 @@ export function collectIssues(
       if (f.dest === 'draft' && v.trim() && v !== copyDefault(f)[l])
         add(id, `${l.toUpperCase()} metni onaysız taslak.`, 'warning', GROUP_DRAFT);
     }
+  }
+  for (const k of ['firstName', 'lastName'] as const) {
+    const fid = identityFields[k].id;
+    if (fid in values) error(fid, checkName(k, values[fid]));
   }
   if (contactFields.email in values) error(contactFields.email, checkEmail(values[contactFields.email]));
   for (const p of snapshot.content.platforms) {
@@ -97,5 +168,6 @@ export function collectIssues(
       }
     }
   }
+  if (records) out.push(...recordIssues(records));
   return out;
 }

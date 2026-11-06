@@ -4,6 +4,7 @@ import {
   VIEWPORTS,
   h1Problem,
   inputFontProblems,
+  navRoutes,
   paletteProblems,
   renderReport,
   screenRoutes,
@@ -11,8 +12,21 @@ import {
   touchTargetProblems,
 } from './checks.ts';
 
-test('screenRoutes maps the overview to /admin and adds the sign-in page', () => {
-  assert.deepEqual(screenRoutes(['', 'profil']), ['/admin/giris', '/admin', '/admin/profil']);
+const NAV_HTML =
+  '<nav aria-label="Ekranlar" class="a-nav"><a href="/admin">A</a><a class="x" href="/admin/profil">B</a>' +
+  '<a href="/admin/notlar/">C</a><a href="/admin/profil#bio">D</a><a href="https://example.com/">E</a></nav>' +
+  '<nav aria-label="Bölüm dizini"><a href="/admin/baska">F</a></nav>';
+
+test('navRoutes reads the screen links of the sidebar only, once each, without hashes', () => {
+  assert.deepEqual(navRoutes(NAV_HTML), ['/admin', '/admin/profil', '/admin/notlar']);
+});
+
+test('navRoutes finds nothing when the page has no sidebar', () => {
+  assert.deepEqual(navRoutes('<main><a href="/admin/x">x</a></main>'), []);
+});
+
+test('screenRoutes adds the sign-in page and the overview and removes duplicates', () => {
+  assert.deepEqual(screenRoutes(['/admin', '/admin/profil']), ['/admin/giris', '/admin', '/admin/profil']);
 });
 
 test('the sweep covers the six widths and both tablet orientations', () => {

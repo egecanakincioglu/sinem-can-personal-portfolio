@@ -4,7 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { screens, screenHref } from '../screens';
 import { Segmented } from './controls';
-import { revLetter, useAdmin } from './store';
+import { revLetter, useAdmin, type AdminState } from './store';
+
+/** The record's Turkish title for the breadcrumb; the id never shows. */
+function recordTitle(state: AdminState, screenSlug: string, id: string): string {
+  const title =
+    screenSlug === 'projeler'
+      ? state.projects.find((p) => p.id === id)?.title.tr
+      : screenSlug === 'notlar'
+        ? state.notes.find((n) => n.id === id)?.title.tr
+        : undefined;
+  return title?.trim() || 'Başlıksız kayıt';
+}
 
 /** Title block (antet): the working context as ruled cells. 6 cells → 3×2 → 2×3. */
 export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPalette: () => void }) {
@@ -12,7 +23,7 @@ export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPal
   const { state, setEditLang, issues } = useAdmin();
   const seg = path.split('/').filter(Boolean).slice(1);
   const screen = screens.find((s) => s.slug === (seg[0] ?? '')) ?? screens[0];
-  const trail = seg[1] ? `${screen.title} › ${decodeURIComponent(seg[1])}` : screen.title;
+  const trail = seg[1] ? `${screen.title} › ${recordTitle(state, seg[0], decodeURIComponent(seg[1]))}` : screen.title;
   const status = state.dirty ? 'Taslak' : state.saveCount > 0 ? 'Kaydedildi (sim.)' : 'Taslak';
   return (
     <header className="a-tb" aria-label="Antet">
@@ -60,9 +71,10 @@ export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPal
           type="button"
           className="a-btn a-btn-quiet"
           onClick={onPalette}
-          aria-label="⌘K: komut paletini aç (Ctrl+K)"
+          aria-label="Ara, ⌘K: komut paletini aç (Ctrl+K)"
         >
           <kbd className="a-kbd">⌘K</kbd>
+          <span className="a-kbd-alt">Ara</span>
         </button>
       </div>
     </header>

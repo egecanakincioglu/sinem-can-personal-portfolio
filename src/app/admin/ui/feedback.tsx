@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
 
 /** Line-language glyphs: states are drawn, not coloured. */
 export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up' | 'down' | 'x' | 'arrow' }) {
   const p = {
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: name === 'check' ? 1.5 : 1.25,
+    strokeWidth: name === 'check' || name === 'bang' ? 1.5 : 1.25,
     strokeLinecap: 'square' as const,
     strokeLinejoin: 'miter' as const,
   };
@@ -15,7 +15,7 @@ export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up
     check: <path d="M2.5 8.5 6.2 12 13.5 4" />,
     bang: (
       <>
-        <path d="M8 3v6" strokeDasharray="2 1.5" />
+        <path d="M8 2.5v7" strokeDasharray="2.5 1.5" />
         <path d="M8 12v1.5" />
       </>
     ),
@@ -41,7 +41,7 @@ export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up
 /** Persistent, non-dismissible prototype banner. */
 export function SimBanner() {
   return (
-    <div className="a-sim" role="note">
+    <div className="a-sim" role="region" aria-label="Prototip bildirimi">
       <strong>Prototip</strong>
       <span> — Değişiklikler sunucuya gitmez; yalnızca bu tarayıcı oturumunda saklanır.</span>
     </div>
@@ -120,41 +120,35 @@ export function ErrorState({ title, children, action }: { title: string; childre
   );
 }
 
-/** Modal base: focus trap, Esc, focus return to the invoker. */
-export function Dialog({
-  open,
-  onClose,
-  label,
-  children,
-  variant = 'dialog',
-  initialFocus,
-}: {
-  open: boolean;
-  onClose: () => void;
-  label: string;
-  children: ReactNode;
-  variant?: 'dialog' | 'sheet' | 'palette';
-  initialFocus?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
+const FOCUSABLE = 'button:not([disabled]),[href],input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])';
+
+/** Modal behaviour for any container: focus moves in, Tab stays inside, Esc closes, focus returns to the invoker.
+ *  `yieldToDialogs` leaves the keys to a Dialog opened above it (the palette over the preview). */
+export function useModalFocus(
+  ref: RefObject<HTMLElement | null>,
+  active: boolean,
+  onClose: () => void,
+  initialFocus?: string,
+  yieldToDialogs = false,
+) {
+  // The latest handler is read when Esc is pressed; a new function each render must not move the focus again.
+  const close = useRef(onClose);
   useEffect(() => {
-    if (!open) return;
-    opener.current = document.activeElement as HTMLElement | null;
-    const el = ref.current!;
-    const focusables = () =>
-      Array.from(
-        el.querySelectorAll<HTMLElement>(
-          'button:not([disabled]),[href],input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])',
-        ),
-      );
+    close.current = onClose;
+  });
+  useEffect(() => {
+    if (!active || !ref.current) return;
+    const el = ref.current;
+    const opener = document.activeElement as HTMLElement | null;
+    const focusables = () => Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE));
     const first0 = (initialFocus ? el.querySelector<HTMLElement>(initialFocus) : null) ?? focusables()[0];
     first0?.focus();
     const key = (e: KeyboardEvent) => {
+      if (yieldToDialogs && document.querySelector('.a-scrim')) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        onClose();
+        close.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -175,9 +169,29 @@ export function Dialog({
     return () => {
       document.removeEventListener('keydown', key, true);
       delete document.documentElement.dataset.locked;
-      opener.current?.focus();
+      opener?.focus();
     };
-  }, [open, onClose, initialFocus]);
+  }, [ref, active, initialFocus, yieldToDialogs]);
+}
+
+/** Modal base: focus trap, Esc, focus return to the invoker. */
+export function Dialog({
+  open,
+  onClose,
+  label,
+  children,
+  variant = 'dialog',
+  initialFocus,
+}: {
+  open: boolean;
+  onClose: () => void;
+  label: string;
+  children: ReactNode;
+  variant?: 'dialog' | 'sheet' | 'palette';
+  initialFocus?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useModalFocus(ref, open, onClose, initialFocus);
   if (!open) return null;
   return (
     <div

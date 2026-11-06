@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="800" height="480" font-family="Hanken Grotesk, system-ui, sans-serif">
+  <rect width="800" height="480" fill="#F6F7F2"/>
+  <g stroke="#262624" fill="none" stroke-width="1.5"><path d="M90 40 V400 H740"/></g>
+  <g stroke="#C8CDC0" stroke-width="1"><path d="M90 328H740 M90 256H740 M90 184H740 M90 112H740"/></g>
+  <g stroke="#76776F" stroke-width="1"><path d="M90 400v6 M252.5 400v6 M415 400v6 M577.5 400v6 M740 400v6 M84 328h6 M84 256h6 M84 184h6 M84 112h6 M84 40h6"/></g>
+  <g fill="#5F6058" font-size="15" text-anchor="middle"><text x="90" y="428">0</text><text x="252.5" y="428">50</text><text x="415" y="428">100</text><text x="577.5" y="428">150</text><text x="740" y="428">200</text></g>
+  <g fill="#5F6058" font-size="15" text-anchor="end"><text x="76" y="405">0</text><text x="76" y="333">2.5</text><text x="76" y="261">5.0</text><text x="76" y="189">7.5</text><text x="76" y="117">10.0</text><text x="76" y="45">12.5</text></g>
+  <path d="M90 400 L740 40" stroke="#262624" stroke-width="1.5" fill="none"/>
+  <circle cx="415" cy="220" r="4" fill="none" stroke="#262624" stroke-width="1.5"/>
+  <text x="427" y="212" font-size="15" fill="#262624">100 N, 6.25 mm</text>
+  <text x="415" y="458" font-size="16" fill="#262624" text-anchor="middle" font-style="italic" font-family="Newsreader, Georgia, serif">P (N)</text>
+  <text x="90" y="26" font-size="16" fill="#262624" font-style="italic" font-family="Newsreader, Georgia, serif">δ (mm)</text>
+</svg>

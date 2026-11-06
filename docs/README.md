@@ -3,6 +3,7 @@
 This folder describes what the project is, how it is built and how to work on it.
 
 - [roadmap.md](roadmap.md): phases and current status
+- [architecture.md](architecture.md): how the application is built, and what exists today
 - [adr/](adr/README.md): architecture decision records
 - [guides/development-setup.md](guides/development-setup.md): set up the project and run it locally
 - [guides/git-workflow.md](guides/git-workflow.md): branches, commits, pull requests, CI checks and releases

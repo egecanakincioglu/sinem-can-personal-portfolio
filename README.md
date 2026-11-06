@@ -4,11 +4,13 @@ The bilingual (Turkish and English) portfolio site of Sinem CAN, a senior mechan
 
 ## Status
 
-The repository is being set up. Tooling, documentation and the site follow in the next changes.
+The repository is being set up. The home page is in place; the other pages follow in the next changes.
 
 ## Stack
 
-- React 19, TypeScript in strict mode
+- Next.js 16 (App Router), React 19, TypeScript in strict mode
+- Tailwind CSS 4 with design tokens
+- Own `[locale]` routing with localized slugs and a typed dictionary; no i18n library
 - Vitest and Testing Library for tests
 - GitHub Actions for CI; Vercel deploys by version tag
 
@@ -21,12 +23,16 @@ git clone https://github.com/egecanakincioglu/sinem-can-personal-portfolio.git
 cd sinem-can-personal-portfolio
 corepack enable
 corepack pnpm install --frozen-lockfile
+corepack pnpm dev
 ```
 
-There is no site to open yet. No environment variables and no database are needed today. These scripts exist:
+Open http://localhost:3000. The root path redirects to `/tr`; the English site is under `/en`. No environment variables and no database are needed today. These scripts exist:
 
 | Script                       | Purpose                                     |
 | ---------------------------- | ------------------------------------------- |
+| `corepack pnpm dev`          | Start the development server                |
+| `corepack pnpm build`        | Build for production                        |
+| `corepack pnpm start`        | Serve the production build                  |
 | `corepack pnpm lint`         | Run ESLint                                  |
 | `corepack pnpm typecheck`    | Type check the project                      |
 | `corepack pnpm test`         | Run the tests with the coverage gate        |

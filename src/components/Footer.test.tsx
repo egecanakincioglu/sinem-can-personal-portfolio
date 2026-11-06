@@ -1,0 +1,40 @@
+import { cleanup, render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+import { getSiteContent } from '@/content/site-content.ts';
+import { Footer } from './Footer.tsx';
+
+afterEach(cleanup);
+
+const content = getSiteContent();
+
+describe('Footer', () => {
+  it('links the contact address and marks the active language', () => {
+    render(<Footer locale="tr" page="profile" />);
+    const mail = screen.getByRole('link', { name: content.contact.email });
+    expect(mail.getAttribute('href')).toBe(`mailto:${content.contact.email}`);
+
+    const en = screen.getByRole('link', { name: content.dict.langNames.en });
+    const tr = screen.getByRole('link', { name: content.dict.langNames.tr });
+    expect(tr.getAttribute('aria-current')).toBe('true');
+    expect(en.getAttribute('aria-current')).toBeNull();
+    expect(en.getAttribute('hreflang')).toBe('en');
+    expect(en.getAttribute('lang')).toBe('en');
+    expect(en.getAttribute('href')).toBe('/en/profile');
+  });
+
+  it('opens external profile links safely', () => {
+    render(<Footer locale="en" />);
+    const external = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]'));
+    expect(external.length).toBeGreaterThan(0);
+    for (const a of external) expect(a.rel).toBe('noopener noreferrer');
+  });
+
+  it('offers the primary navigation in the active language', () => {
+    render(<Footer locale="en" />);
+    const nav = screen.getByRole('navigation', { name: content.dict.nav.label.en });
+    expect(within(nav).getByRole('link', { name: content.dict.nav.projects.en }).getAttribute('href')).toBe(
+      '/en/projects',
+    );
+    expect(within(nav).getByRole('link', { name: content.dict.nav.contact.en }).getAttribute('href')).toBe('#contact');
+  });
+});

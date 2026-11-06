@@ -1,10 +1,11 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
-import type { ProjectRecord } from '@/content/projects/types';
+import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
 import { collectIssues, type Issue } from '@/lib/admin-issues';
 import { sharedFieldIds } from '@/lib/preview-bridge';
+import { applyFeatured, newRecordId } from '@/lib/project-edit';
 import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import { changesBetween, pushRevision, stamp, type Change, type Revision, type WorkSnapshot } from '@/lib/publish';
 import { registry } from '../registry';
@@ -23,7 +24,8 @@ export type AdminState = {
   device: DeviceId;
   values: Record<string, string>; // edited field values, keyed by field id
   savedValues: Record<string, string>; // snapshot of the last mock Save: what "Discard" returns to
-  projects: ProjectRecord[]; // mock project records; only development samples can be added for now
+  projects: ProjectRecord[]; // mock project records: development samples and projects created here
+  savedProjects: ProjectRecord[]; // snapshot of the last mock Save, like savedValues
   seeded: boolean; // development samples loaded
   probe: string | null; // project id whose 3D preview is being tried in the live preview; never stored
   dirty: boolean;
@@ -45,6 +47,7 @@ export const initialState: AdminState = {
   values: {},
   savedValues: {},
   projects: [],
+  savedProjects: [],
   seeded: false,
   probe: null,
   dirty: false,
@@ -61,8 +64,30 @@ const initial = initialState;
 const KEY = 'antet-admin';
 const PRISTINE = JSON.stringify({ ...initial, ready: undefined, toasts: undefined });
 
-/** The only record fields a screen may change through the store for now: the 3D preview and the private originals. */
-type ProjectPatch = Partial<Pick<ProjectRecord, 'preview3d' | 'privateOriginals'>>;
+/** Any field of a project record except its id; `undefined` removes an optional field. `approved` exists only while published. */
+export type ProjectPatch = Partial<Omit<Extract<ProjectRecord, { visibility: 'published' }>, 'id' | 'visibility'>> & {
+  visibility?: ProjectRecord['visibility'];
+};
+
+/** A new draft: only what the creator chose is set; the rest stays empty. */
+function draftProject(id: string, title: string, kind: ProjectKind): ProjectRecord {
+  return {
+    id,
+    slug: { tr: '', en: '' },
+    title: { tr: title, en: '' },
+    kind,
+    disciplines: [],
+    status: 'in-progress',
+    visibility: 'draft',
+  };
+}
+
+function applyPatch(p: ProjectRecord, patch: ProjectPatch): ProjectRecord {
+  const merged: Record<string, unknown> = { ...p, ...patch };
+  for (const k of Object.keys(merged)) if (merged[k] === undefined) delete merged[k];
+  if (merged.visibility === 'draft') delete merged.approved;
+  return merged as ProjectRecord;
+}
 
 type Action =
   | { type: 'hydrate'; state: Partial<AdminState> }
@@ -79,6 +104,9 @@ type Action =
   | { type: 'seedSamples'; records: ProjectRecord[] }
   | { type: 'clearSamples' }
   | { type: 'patchProject'; id: string; patch: ProjectPatch }
+  | { type: 'createProject'; record: ProjectRecord }
+  | { type: 'removeProject'; id: string }
+  | { type: 'setFeatured'; id: string | null }
   | { type: 'probe'; id: string | null }
   | { type: 'toast'; id: number; text: string; quiet?: boolean }
   | { type: 'dismiss'; id: number };
@@ -95,10 +123,12 @@ export function reducer(s: AdminState, a: Action): AdminState {
       if (Object.keys(a.state).length > 0 && a.state.schema !== initial.schema)
         return { ...s, ready: true, toasts: [] };
       const st = a.state;
+      const projects = Array.isArray(st.projects) ? st.projects : [];
       return {
         ...s,
         ...st,
-        projects: Array.isArray(st.projects) ? st.projects : [],
+        projects,
+        savedProjects: Array.isArray(st.savedProjects) ? st.savedProjects : projects,
         seeded: st.seeded === true,
         revisions: Array.isArray(st.revisions) ? st.revisions : [],
         published: st.published && typeof st.published.rev === 'number' ? st.published : null,
@@ -122,9 +152,9 @@ export function reducer(s: AdminState, a: Action): AdminState {
         dirty: true,
       };
     case 'save':
-      return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
+      return { ...s, savedValues: s.values, savedProjects: s.projects, dirty: false, saveCount: s.saveCount + 1 };
     case 'discard':
-      return { ...s, values: s.savedValues, dirty: false };
+      return { ...s, values: s.savedValues, projects: s.savedProjects, dirty: false };
     case 'publish': {
       const rev = s.rev + 1;
       const state = { values: s.values, projects: s.projects };
@@ -132,6 +162,7 @@ export function reducer(s: AdminState, a: Action): AdminState {
       return {
         ...s,
         savedValues: s.values,
+        savedProjects: s.projects,
         dirty: false,
         saveCount: s.saveCount + 1,
         rev,
@@ -148,6 +179,7 @@ export function reducer(s: AdminState, a: Action): AdminState {
         values: r.state.values,
         savedValues: r.state.values,
         projects: r.state.projects,
+        savedProjects: r.state.projects,
         seeded: r.state.projects.some((p) => p.fixture),
         dirty: false,
         saveCount: s.saveCount + 1,
@@ -158,22 +190,41 @@ export function reducer(s: AdminState, a: Action): AdminState {
     case 'reset':
       return { ...initial, ready: true, toasts: s.toasts };
     case 'seedSamples':
-      return { ...s, projects: [...s.projects.filter((p) => !p.fixture), ...a.records], seeded: true };
+      return {
+        ...s,
+        projects: [...s.projects.filter((p) => !p.fixture), ...a.records],
+        savedProjects: [...s.savedProjects.filter((p) => !p.fixture), ...a.records],
+        seeded: true,
+      };
     case 'clearSamples':
-      return { ...s, projects: s.projects.filter((p) => !p.fixture), seeded: false };
+      return {
+        ...s,
+        projects: s.projects.filter((p) => !p.fixture),
+        savedProjects: s.savedProjects.filter((p) => !p.fixture),
+        seeded: false,
+      };
     case 'patchProject':
       return {
         ...s,
-        projects: s.projects.map((p) =>
-          p.id === a.id
-            ? {
-                ...p,
-                ...('preview3d' in a.patch ? { preview3d: a.patch.preview3d } : {}),
-                ...('privateOriginals' in a.patch ? { privateOriginals: a.patch.privateOriginals } : {}),
-              }
-            : p,
-        ),
+        projects: s.projects.map((p) => (p.id === a.id ? applyPatch(p, a.patch) : p)),
+        dirty: true,
       };
+    case 'createProject':
+      return { ...s, projects: [...s.projects, a.record], dirty: true };
+    case 'removeProject':
+      return {
+        ...s,
+        projects: s.projects
+          .filter((p) => p.id !== a.id)
+          .map((p) => {
+            if (!p.relatedIds?.includes(a.id)) return p;
+            const rest = p.relatedIds.filter((x) => x !== a.id);
+            return applyPatch(p, { relatedIds: rest.length ? rest : undefined });
+          }),
+        dirty: true,
+      };
+    case 'setFeatured':
+      return { ...s, projects: applyFeatured(s.projects, a.id), dirty: true };
     case 'probe':
       return { ...s, probe: a.id };
     case 'toast':
@@ -215,6 +266,11 @@ type Ctx = {
   seedSamples: (records: ProjectRecord[]) => void;
   clearSamples: () => void;
   patchProject: (id: string, patch: ProjectPatch) => void;
+  /** Adds a draft with only the title (Turkish) and kind set; returns its new id. */
+  createProject: (input: { title: string; kind: ProjectKind }) => string;
+  removeProject: (id: string) => void;
+  /** At most one featured project: `null` clears it. */
+  setFeatured: (id: string | null) => void;
   probeProject: (id: string | null) => void;
   toast: (text: string) => void;
   dismiss: (id: number) => void;
@@ -349,6 +405,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         toast('Örnekler kaldırıldı (simülasyon).');
       },
       patchProject: (id, patch) => dispatch({ type: 'patchProject', id, patch }),
+      createProject: ({ title, kind }) => {
+        const id = newRecordId(
+          'proje',
+          state.projects.map((p) => p.id),
+          Math.random,
+        );
+        dispatch({ type: 'createProject', record: draftProject(id, title.trim(), kind) });
+        return id;
+      },
+      removeProject: (id) => dispatch({ type: 'removeProject', id }),
+      setFeatured: (id) => dispatch({ type: 'setFeatured', id }),
       probeProject: (id) => dispatch({ type: 'probe', id }),
       toast,
       dismiss: (id) => dispatch({ type: 'dismiss', id }),

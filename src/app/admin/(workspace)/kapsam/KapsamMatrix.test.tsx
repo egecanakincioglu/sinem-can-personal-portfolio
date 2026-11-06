@@ -56,7 +56,8 @@ describe('Kapsam screen', () => {
     const home = screen.getByRole('table', { name: /Ana sayfa:/ });
     expect(within(home).getAllByRole('link', { name: /Ana sayfa › Hero/ }).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { level: 2, name: 'Projeler' })).toBeTruthy();
-    const planned = within(screen.getByRole('table', { name: /Projeler:/ })).getAllByText('Planlandı');
-    expect(planned.length).toBeGreaterThan(0);
+    const projects = within(screen.getByRole('table', { name: /Projeler:/ }));
+    expect(projects.queryAllByText('Planlandı')).toHaveLength(0);
+    expect(projects.getAllByRole('link', { name: /Kimlik/ }).length).toBeGreaterThan(0);
   });
 });

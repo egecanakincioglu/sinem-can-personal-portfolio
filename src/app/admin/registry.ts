@@ -32,10 +32,10 @@ import { screens } from './screens';
    ------------------------------------------------------------------------------------------------ */
 
 /** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
-export const plannedScreens = ['projeler', 'notlar', 'medya'] as const;
+export const plannedScreens = ['notlar', 'medya'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
-export const partlyBuiltScreens = ['medya', 'projeler'] as const;
+export const partlyBuiltScreens = ['medya'] as const;
 
 const ALL = 'Tüm sayfalar';
 const sectionLabel = (screen: string, id: string) =>
@@ -317,42 +317,44 @@ for (const d of interfaceStrings()) {
 /* ---- 6. project and note records ---- */
 
 type RecordMeta = readonly [screen: PlannedScreen, type: FieldType, locale: FieldLocale, label: string];
+/** A project field's section in the project editor (`Projeler › [id]`), then its type, language scope and label. */
+type ProjectMeta = readonly [section: string, type: FieldType, locale: FieldLocale, label: string];
 type ProjectKey = keyof Extract<ProjectRecord, { visibility: 'published' }>;
 type NoteKey = Exclude<keyof NoteRecord, 'tr' | 'en'>;
 
 /** Exhaustive by type: adding a field to `ProjectRecord` fails the build until it is classified here. */
-const projectFields: Record<ProjectKey, RecordMeta> = {
-  id: ['projeler', 'text', 'shared', 'Kimlik'],
-  slug: ['projeler', 'text', 'bilingual', 'Adres parçası'],
-  title: ['projeler', 'text', 'bilingual', 'Başlık'],
-  subtitle: ['projeler', 'text', 'bilingual', 'Alt başlık'],
-  kind: ['projeler', 'choice', 'shared', 'Tür'],
-  disciplines: ['projeler', 'list', 'shared', 'Disiplinler'],
-  status: ['projeler', 'choice', 'shared', 'Durum'],
-  context: ['projeler', 'choice', 'shared', 'Bağlam'],
-  period: ['projeler', 'record', 'shared', 'Dönem'],
-  featured: ['projeler', 'toggle', 'shared', 'Öne çıkan'],
-  hero: ['projeler', 'choice', 'shared', 'Üst kompozisyon'],
-  cover: ['medya', 'media', 'shared', 'Kapak görseli'],
-  tools: ['projeler', 'list', 'shared', 'Araçlar'],
-  materials: ['projeler', 'list', 'bilingual', 'Malzemeler'],
-  objective: ['projeler', 'list', 'bilingual', 'Amaç'],
-  process: ['projeler', 'list', 'bilingual', 'Süreç'],
-  methodology: ['projeler', 'list', 'bilingual', 'Yöntem'],
-  measurements: ['projeler', 'record', 'bilingual', 'Ölçümler'],
-  calculations: ['projeler', 'record', 'bilingual', 'Hesaplar'],
-  decisions: ['projeler', 'record', 'bilingual', 'Tasarım kararları'],
-  learnings: ['projeler', 'list', 'bilingual', 'Öğrenilenler'],
-  results: ['projeler', 'list', 'bilingual', 'Sonuçlar'],
-  conclusions: ['projeler', 'list', 'bilingual', 'Çıkarımlar'],
-  figures: ['medya', 'media', 'bilingual', 'Şekiller'],
-  preview3d: ['projeler', 'media', 'bilingual', '3B önizleme'],
-  revisions: ['projeler', 'record', 'bilingual', 'Revizyonlar'],
-  relatedIds: ['projeler', 'list', 'shared', 'İlgili kayıtlar'],
-  privateOriginals: ['projeler', 'record', 'bilingual', 'Özel CAD özgün dosyaları (yalnızca üst veri)'],
-  fixture: ['projeler', 'toggle', 'shared', 'Geliştirme örneği işareti'],
-  visibility: ['projeler', 'choice', 'shared', 'Görünürlük'],
-  approved: ['projeler', 'toggle', 'shared', 'Onay'],
+const projectFields: Record<ProjectKey, ProjectMeta> = {
+  id: ['kimlik', 'text', 'shared', 'Kimlik'],
+  slug: ['kimlik', 'text', 'bilingual', 'Adres parçası'],
+  title: ['kimlik', 'text', 'bilingual', 'Başlık'],
+  subtitle: ['kimlik', 'text', 'bilingual', 'Alt başlık'],
+  kind: ['kimlik', 'choice', 'shared', 'Tür'],
+  disciplines: ['antet', 'list', 'shared', 'Disiplinler'],
+  status: ['antet', 'choice', 'shared', 'Durum'],
+  context: ['antet', 'choice', 'shared', 'Bağlam'],
+  period: ['antet', 'record', 'shared', 'Dönem'],
+  featured: ['yayin', 'toggle', 'shared', 'Öne çıkan'],
+  hero: ['gorsel', 'choice', 'shared', 'Üst kompozisyon'],
+  cover: ['gorsel', 'media', 'shared', 'Kapak görseli'],
+  tools: ['antet', 'list', 'shared', 'Araçlar'],
+  materials: ['antet', 'list', 'bilingual', 'Malzemeler'],
+  objective: ['govde', 'list', 'bilingual', 'Amaç'],
+  process: ['govde', 'list', 'bilingual', 'Süreç'],
+  methodology: ['govde', 'list', 'bilingual', 'Yöntem'],
+  measurements: ['govde', 'record', 'bilingual', 'Ölçümler'],
+  calculations: ['govde', 'record', 'bilingual', 'Hesaplar'],
+  decisions: ['govde', 'record', 'bilingual', 'Tasarım kararları'],
+  learnings: ['govde', 'list', 'bilingual', 'Öğrenilenler'],
+  results: ['govde', 'list', 'bilingual', 'Sonuçlar'],
+  conclusions: ['govde', 'list', 'bilingual', 'Çıkarımlar'],
+  figures: ['sekiller', 'media', 'bilingual', 'Şekiller'],
+  preview3d: ['model', 'media', 'bilingual', '3B önizleme'],
+  revisions: ['revizyonlar', 'record', 'bilingual', 'Revizyonlar'],
+  relatedIds: ['iliskiler', 'list', 'shared', 'İlgili kayıtlar'],
+  privateOriginals: ['model', 'record', 'bilingual', 'Özel CAD özgün dosyaları (yalnızca üst veri)'],
+  fixture: ['kimlik', 'toggle', 'shared', 'Geliştirme örneği işareti'],
+  visibility: ['yayin', 'choice', 'shared', 'Görünürlük'],
+  approved: ['yayin', 'toggle', 'shared', 'Onay'],
 };
 const noteFields: Record<NoteKey, RecordMeta> = {
   id: ['notlar', 'text', 'shared', 'Kimlik'],
@@ -392,7 +394,17 @@ function recordFields(
   }
 }
 // The 3D preview and the private originals are edited from 3B ve CAD, which is built; they are registered as ready below.
-recordFields('project', 'Projeler', 'Proje kaydı', projectFields, ['fixture', 'preview3d', 'privateOriginals']);
+for (const [key, [section, type, locale, label]] of Object.entries(projectFields)) {
+  if (['fixture', 'preview3d', 'privateOriginals'].includes(key)) continue;
+  ready(
+    `projeler.project.${key}`,
+    `project.${key}`,
+    { page: 'Projeler', section: 'Proje kaydı', screen: 'projeler', editorSection: section },
+    type,
+    locale,
+    { label },
+  );
+}
 ready(
   'cad-glb.project.preview3d',
   'project.preview3d',

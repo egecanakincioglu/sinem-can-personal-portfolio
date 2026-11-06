@@ -123,7 +123,7 @@ describe('blockStrings and buildCtx', () => {
         { type: 'math', tex: 'y' },
         { type: 'math', tex: 'z', id: 'e3' },
         { type: 'table', id: 't1', caption: 'c[@y]', head: [], rows: [] },
-        { type: 'svg', id: 'f1', svg: '', viewBox: '0 0 1 1', alt: '', caption: '' },
+        { type: 'figure', id: 'f1', figureId: 'beam' },
       ],
     } as unknown as NoteContent;
     const ctx = buildCtx(content, 'en');
@@ -139,5 +139,23 @@ describe('blockStrings and buildCtx', () => {
     expect(ctx.labels.get('e3')).toEqual({ kind: 'eq', n: 3 });
     expect(ctx.labels.get('t1')).toEqual({ kind: 'tab', n: 1 });
     expect(ctx.labels.get('f1')).toEqual({ kind: 'fig', n: 1 });
+  });
+
+  it('does not number a figure whose id is not in the registry', () => {
+    const content = {
+      slug: 's',
+      title: 't',
+      summary: 's',
+      blocks: [
+        { type: 'figure', id: 'ghost', figureId: 'no-such-figure' },
+        { type: 'figure', id: 'f1', figureId: 'beam' },
+        { type: 'p', text: 'see [[f1]]' },
+      ],
+    } as unknown as NoteContent;
+    const ctx = buildCtx(content, 'en');
+    expect(ctx.labels.has('ghost')).toBe(false);
+    expect(ctx.labels.get('f1')).toEqual({ kind: 'fig', n: 1 });
+    const { container } = render(<Inline text="see [[f1]]" ctx={ctx} />);
+    expect(container.textContent).toContain('1');
   });
 });

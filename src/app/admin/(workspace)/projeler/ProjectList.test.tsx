@@ -4,7 +4,7 @@ import { fixtureProjects } from '@/content/fixtures/projects';
 import type { ProjectRecord } from '@/content/projects/types';
 import { AdminProvider, useAdmin } from '../../ui/store';
 import { ProjectList } from './ProjectList';
-import ProjectsScreen from './page';
+import ProjectsScreen from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

@@ -8,7 +8,7 @@ import { fixtureMediaAssets } from '@/lib/media';
 import { AdminProvider, useAdmin } from '../../../ui/store';
 import { ProjectList } from '../ProjectList';
 import { ProjectEditor } from './ProjectEditor';
-import ProjectEditorPage from './page';
+import ProjectEditorPage from './page.dev';
 
 const push = vi.hoisted(() => vi.fn());
 

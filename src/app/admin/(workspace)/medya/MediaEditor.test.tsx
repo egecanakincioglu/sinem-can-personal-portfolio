@@ -5,7 +5,7 @@ import { fixtureProjects } from '@/content/fixtures/projects';
 import { fixtureMediaAssets, mediaTasks, mediaUsage, type MediaAsset } from '@/lib/media';
 import { AdminProvider } from '../../ui/store';
 import { MediaEditor } from './MediaEditor';
-import MediaScreen from './page';
+import MediaScreen from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

@@ -1,7 +1,7 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fixtureProjects } from '@/content/fixtures/projects';
-import RecordStub from './page';
+import RecordStub from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

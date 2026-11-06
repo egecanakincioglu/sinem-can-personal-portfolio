@@ -4,7 +4,7 @@ import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { AdminProvider } from '../../ui/store';
 import { NoteList } from './NoteList';
-import NotesScreen from './page';
+import NotesScreen from './page.dev';
 
 const push = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({

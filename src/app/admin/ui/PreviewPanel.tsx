@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PREVIEW_PROTOCOL, buildOverride, type StateMessage } from '@/lib/preview-bridge';
+import { glbIdOf } from '@/lib/glb';
+import { PREVIEW_PROTOCOL, buildOverride, type ModelProbe, type StateMessage } from '@/lib/preview-bridge';
 import { devices } from '../screens';
 import { Segmented } from './controls';
 import { useAdmin } from './store';
@@ -51,6 +52,12 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
   // Record ids only: the frame resolves them against its own server-side pool, so no record crosses the bridge.
   const projectIds = snapshot.publicIds;
 
+  // A 3D preview being tried: the record id, the library id of its model and the approval flag, nothing else.
+  const probe = useMemo<ModelProbe | undefined>(() => {
+    const p = state.probe ? state.projects.find((r) => r.id === state.probe) : undefined;
+    return p ? { id: p.id, glb: glbIdOf(p.preview3d?.modelSrc), approved: p.preview3d?.approved === true } : undefined;
+  }, [state.probe, state.projects]);
+
   // Debounced snapshot to the iframe (120 ms), exact same-origin target.
   useEffect(() => {
     if (!ready) return;
@@ -61,11 +68,12 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
         lang: state.previewLang,
         override,
         projects: projectIds,
+        ...(probe ? { probe } : {}),
       };
       frame.current?.contentWindow?.postMessage(msg, window.location.origin);
     }, 120);
     return () => window.clearTimeout(t);
-  }, [ready, hello, override, projectIds, state.previewLang]);
+  }, [ready, hello, override, projectIds, probe, state.previewLang]);
 
   const dev = state.device;
   const PAD = 24,

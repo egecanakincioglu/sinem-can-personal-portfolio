@@ -32,7 +32,7 @@ import { screens } from './screens';
    ------------------------------------------------------------------------------------------------ */
 
 /** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
-export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'yayin'] as const;
+export const plannedScreens = ['projeler', 'notlar', 'medya', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
 export const partlyBuiltScreens = ['medya', 'projeler'] as const;
@@ -346,10 +346,10 @@ const projectFields: Record<ProjectKey, RecordMeta> = {
   results: ['projeler', 'list', 'bilingual', 'Sonuçlar'],
   conclusions: ['projeler', 'list', 'bilingual', 'Çıkarımlar'],
   figures: ['medya', 'media', 'bilingual', 'Şekiller'],
-  preview3d: ['cad-glb', 'media', 'bilingual', '3B önizleme'],
+  preview3d: ['projeler', 'media', 'bilingual', '3B önizleme'],
   revisions: ['projeler', 'record', 'bilingual', 'Revizyonlar'],
   relatedIds: ['projeler', 'list', 'shared', 'İlgili kayıtlar'],
-  privateOriginals: ['cad-glb', 'record', 'bilingual', 'Özel CAD özgün dosyaları (yalnızca üst veri)'],
+  privateOriginals: ['projeler', 'record', 'bilingual', 'Özel CAD özgün dosyaları (yalnızca üst veri)'],
   fixture: ['projeler', 'toggle', 'shared', 'Geliştirme örneği işareti'],
   visibility: ['projeler', 'choice', 'shared', 'Görünürlük'],
   approved: ['projeler', 'toggle', 'shared', 'Onay'],
@@ -391,7 +391,24 @@ function recordFields(
     planned(`${screen}.${prefix}.${key}`, `${prefix}.${key}`, { page, section, screen }, type, locale, label);
   }
 }
-recordFields('project', 'Projeler', 'Proje kaydı', projectFields, ['fixture']);
+// The 3D preview and the private originals are edited from 3B ve CAD, which is built; they are registered as ready below.
+recordFields('project', 'Projeler', 'Proje kaydı', projectFields, ['fixture', 'preview3d', 'privateOriginals']);
+ready(
+  'cad-glb.project.preview3d',
+  'project.preview3d',
+  { page: 'Projeler', section: 'Proje kaydı', screen: 'cad-glb', editorSection: 'onizleme' },
+  'media',
+  'bilingual',
+  { label: '3B önizleme' },
+);
+ready(
+  'cad-glb.project.privateOriginals',
+  'project.privateOriginals',
+  { page: 'Projeler', section: 'Proje kaydı', screen: 'cad-glb', editorSection: 'ozgunler' },
+  'record',
+  'bilingual',
+  { label: 'Özel CAD özgün dosyaları (yalnızca üst veri)' },
+);
 // Shown as a read-only chip in the project list; set by the sample loader, never edited.
 ready(
   'projeler.project.fixture',

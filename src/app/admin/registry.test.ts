@@ -100,6 +100,14 @@ describe('field registry entries', () => {
     expect(registry.filter((e) => e.screen === 'projeler' && e.status === 'ready')).toHaveLength(1);
   });
 
+  it('edit the 3D preview and the private originals from the built 3B ve CAD screen', () => {
+    const cad = registry.filter((e) => e.screen === 'cad-glb');
+    expect(cad.map((e) => [e.path, e.status, e.editorSection])).toEqual([
+      ['project.preview3d', 'ready', 'onizleme'],
+      ['project.privateOriginals', 'ready', 'ozgunler'],
+    ]);
+  });
+
   it('sum to the summary totals', () => {
     const s = summarize(registry, leaves);
     expect(s.ready + s.planned).toBe(s.total);

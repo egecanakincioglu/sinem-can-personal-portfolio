@@ -30,7 +30,7 @@ import { screens } from './screens';
    Coverage against the public content model is checked by registry.test.ts and shown at /admin/kapsam.
    ------------------------------------------------------------------------------------------------ */
 
-/** Screens that exist only as placeholders; an entry pointing here is `planned`. */
+/** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
 export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'metinler', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
@@ -140,6 +140,20 @@ const profile = (sec: string): Where => ({
   section: sectionLabel('profil', sec),
   screen: 'profil',
   editorSection: sec,
+});
+
+// Locked copy: shown read-only in the editor, not accepted by the preview bridge.
+ready('atolye.applied', 'dict.workshop.applied', home('atolye'), 'text', 'bilingual', {
+  label: 'Uyguladım başlığı',
+  derived: true,
+});
+ready('atolye.observed', 'dict.workshop.observed', home('atolye'), 'text', 'bilingual', {
+  label: 'Gözlemledim başlığı',
+  derived: true,
+});
+ready('yaklasim.figure', 'dict.approach.figure', home('yaklasim'), 'text', 'bilingual', {
+  label: 'Şekil numarası',
+  derived: true,
 });
 
 ready(summaryLabelField(0).id.replace(/\d+/, '*'), 'summaryRows[].label', home('kisaca'), 'text', 'bilingual', {

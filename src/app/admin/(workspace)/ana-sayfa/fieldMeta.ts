@@ -27,8 +27,6 @@ export const fieldMeta: Partial<Record<CopyKey, FieldMeta>> = {
     label: 'Staj etiketi',
     helper: 'Kurum adının üzerindeki küçük etiket. Kurum, süre ve yer Deneyim kaydından gelir.',
   },
-  workshopApplied: { label: '“Uyguladım” başlığı' },
-  workshopObserved: { label: '“Gözlemledim” başlığı' },
   workshopAppliedHint: { label: '“Uyguladım” alt açıklaması' },
   workshopObservedHint: { label: '“Gözlemledim” alt açıklaması' },
   // Çalışmalar

@@ -90,7 +90,6 @@ export const copyFields = {
   // Yaklaşım / Beam. Equations, assumptions and the exaggeration note are protected and are not listed.
   beamHeading: { id: 'yaklasim.heading', dest: 'dict.approach', key: 'heading', max: 60 },
   beamInterests: { id: 'yaklasim.interests', dest: 'dict.approach', key: 'interests', max: 40 },
-  beamFigure: { id: 'yaklasim.figure', dest: 'dict.approach', key: 'figure', max: 16 },
   beamHint: { id: 'yaklasim.hint', dest: 'dict.approach', key: 'hint', max: 60 },
   beamCaption: { id: 'yaklasim.caption', dest: 'dict.approach', key: 'caption', max: 240 },
   beamTeaching: { id: 'yaklasim.teaching', dest: 'draft', key: 'beamTeaching', max: 280, fixed: ['{offset}'] },
@@ -116,8 +115,6 @@ export const copyFields = {
   introNote: { id: 'kisaca.note', dest: 'draft', key: 'introNote', max: 220 },
   workshopHeading: { id: 'atolye.heading', dest: 'dict.workshop', key: 'heading', max: 80 },
   workshopInternship: { id: 'atolye.internship', dest: 'dict.workshop', key: 'internship', max: 24 },
-  workshopApplied: { id: 'atolye.applied', dest: 'dict.workshop', key: 'applied', max: 24 },
-  workshopObserved: { id: 'atolye.observed', dest: 'dict.workshop', key: 'observed', max: 24 },
   workshopAppliedHint: { id: 'atolye.appliedHint', dest: 'dict.workshop', key: 'appliedHint', max: 60 },
   workshopObservedHint: { id: 'atolye.observedHint', dest: 'dict.workshop', key: 'observedHint', max: 60 },
   workHeading: { id: 'calismalar.heading', dest: 'dict.work', key: 'heading', max: 24 },

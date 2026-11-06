@@ -37,6 +37,14 @@ describe('compare', () => {
     });
     assert.deepEqual(compare(base, head), []);
   });
+  test('switching enabled on passes', () => {
+    assert.deepEqual(compare({ ...base, enabled: false }, { ...base, enabled: true }), []);
+    assert.deepEqual(compare(base, { ...base, enabled: false }), []);
+  });
+  test('switching enabled off or removing it fails', () => {
+    assert.equal(compare({ ...base, enabled: true }, { ...base, enabled: false }).length, 1);
+    assert.equal(compare({ ...base, enabled: true }, base).length, 1);
+  });
   test('a lowered category fails', () => {
     const head = withChange({ categories: { performance: 90, seo: 91 } });
     assert.deepEqual(compare(base, head), ['category seo dropped from 92 to 91']);

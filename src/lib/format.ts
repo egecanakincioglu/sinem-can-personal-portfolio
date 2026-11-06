@@ -56,3 +56,13 @@ export function numberWord(n: number, locale: Locale) {
 export function fill(template: string, vars: Record<string, string>) {
   return template.replace(/\{(\w+)\}/g, (m, key: string) => (key in vars ? vars[key] : m));
 }
+
+/** The resultant angle as shown everywhere (hero and force figure): one decimal, locale separator, degree sign. */
+export function angleText(deg: number, locale: Locale) {
+  return `${num(deg, locale, 1)}°`;
+}
+
+/** Joins the last two words with a no-break space so a trailing number never wraps onto a line of its own. */
+export function glueLastWords(s: string) {
+  return s.replace(/ (?=\S+$)/, ' ');
+}

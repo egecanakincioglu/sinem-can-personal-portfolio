@@ -1,10 +1,14 @@
 # Sinem CAN
 
-The bilingual (Turkish and English) portfolio site of Sinem CAN, a senior mechanical engineering student at Doğuş University.
+The bilingual (Turkish and English) portfolio site of Sinem CAN, a senior mechanical engineering student at Doğuş University. The repository also holds a private admin panel for editing the content.
+
+The site presents the profile, projects and notes of an engineering student. Its signature interactions come from the subject itself: a free-body hero with a computed resultant, a beam with support reactions and a bending moment diagram, and a force polygon.
 
 ## Status
 
-The public site is in place: home, profile, projects and notes pages in Turkish and English. Where no approved content exists, the pages show a designed empty state. The admin panel and the backend follow in later changes.
+The public site and the admin interface work on mock data. The admin panel answers 404 outside development until real authorization exists. The backend is planned and not built yet. See the [roadmap](docs/roadmap.md).
+
+The site shows only content that is published and approved. The project does not invent projects, notes, awards or skill levels. Where no approved content exists, the site shows a designed empty state.
 
 ## Stack
 
@@ -23,26 +27,28 @@ Requirements: Git, Node 24 and pnpm. Corepack provides pnpm.
 git clone https://github.com/egecanakincioglu/sinem-can-personal-portfolio.git
 cd sinem-can-personal-portfolio
 corepack enable
-corepack pnpm install --frozen-lockfile
-corepack pnpm dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Open http://localhost:3000. The root path redirects to `/tr`; the English site is under `/en`. No environment variables and no database are needed today. These scripts exist:
+Open http://localhost:3000. The root path redirects to `/tr`; the English site is under `/en`. No environment variables and no database are needed today.
 
-| Script                       | Purpose                                     |
-| ---------------------------- | ------------------------------------------- |
-| `corepack pnpm dev`          | Start the development server                |
-| `corepack pnpm build`        | Build for production                        |
-| `corepack pnpm start`        | Serve the production build                  |
-| `corepack pnpm lint`         | Run ESLint                                  |
-| `corepack pnpm typecheck`    | Type check the project                      |
-| `corepack pnpm test`         | Run the tests with the coverage gate        |
-| `corepack pnpm format`       | Format the files with Prettier              |
+During development, the admin interface is at http://localhost:3000/admin. It works on mock data and saves nothing. In production it answers 404. More detail is in the [development setup guide](docs/guides/development-setup.md).
+
+## Scripts
+
+| Script | Purpose |
+|---|---|
+| `corepack pnpm dev` | Start the development server |
+| `corepack pnpm build` | Build for production |
+| `corepack pnpm lint` | Run ESLint |
+| `corepack pnpm typecheck` | Type check the application and the tooling |
+| `corepack pnpm test` | Run the tests with the coverage gate |
+| `corepack pnpm format` | Format the files with Prettier |
 | `corepack pnpm format:check` | Check the formatting without changing files |
-| `corepack pnpm knip`         | Find unused files, exports and dependencies |
+| `corepack pnpm knip` | Find unused files, exports and dependencies |
+| `corepack pnpm site-audit` | Audit the built pages (overflow, accessibility, Lighthouse) |
 | `corepack pnpm release:prepare` | Prepare a release (version, changelog, release note draft) |
-
-More detail is in the [development setup guide](docs/guides/development-setup.md).
 
 ## Deployment
 
@@ -59,6 +65,12 @@ A copy of the project needs:
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) first. In short: one branch per piece of work, signed Conventional Commits in English, a pull request, and all required CI checks green. The [Git workflow guide](docs/guides/git-workflow.md) has the details. To report a security problem, follow [SECURITY.md](SECURITY.md).
 
+The page audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`.
+
+## Documentation
+
+The [docs folder](docs/README.md) has the architecture, the roadmap, the decision records, the guides and the runbooks.
+
 ## License
 
-The source code is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Personal content is not covered; see [NOTICE.md](NOTICE.md).
+The code is licensed under the PolyForm Noncommercial License 1.0.0 (see [LICENSE](LICENSE)). Commercial use is not permitted. The license covers the code only. The photo, biography, CV and personal text of Sinem CAN are all rights reserved. See [NOTICE.md](NOTICE.md).

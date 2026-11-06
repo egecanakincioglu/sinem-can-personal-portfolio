@@ -4,7 +4,8 @@ Security notes for the project. To report a vulnerability, follow [SECURITY.md](
 
 ## Current state
 
-- The site is not in the repository yet; the repository holds the tooling and configuration.
+- The public site has no accounts and stores no visitor data.
+- The admin interface works on mock data. A server-side guard answers 404 for every admin request when the app is not in development. Every admin page calls the guard.
 - No backend, database or authentication exists yet (planned).
 - Private files must be authorized on the server when the backend arrives. A `public` flag in the front end is not a security boundary.
 
@@ -14,4 +15,4 @@ CI runs Semgrep (project rules and registry rule sets), zizmor on the workflow f
 
 ## Review
 
-A security review is planned before 1.0. Its findings will be added to this folder.
+A security review is planned before 1.0 ([roadmap](../roadmap.md)). Its findings will be added to this folder.

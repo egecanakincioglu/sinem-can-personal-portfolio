@@ -21,7 +21,7 @@ Do not report security problems in a public issue, pull request or discussion. R
 
 ## Scope
 
-The repository holds the tooling and configuration; the site follows in later changes. There is no backend yet, so findings about stored data or real authorization do not apply today.
+The public site has no user accounts and stores no visitor data. The admin interface works on mock data and answers 404 outside development. There is no backend yet, so findings about stored data or real authorization do not apply today.
 
 ## Response
 

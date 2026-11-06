@@ -583,12 +583,14 @@ export function ContactEditor() {
               <>
                 <Segmented
                   label={`${p.name}: İletişim bölümünde`}
+                  title="İletişim bölümünde"
                   value={showContact ? '1' : '0'}
                   options={onOff}
                   onChange={(x) => setValue(platformFieldId(p.id, 'showContact'), x)}
                 />
                 <Segmented
                   label={`${p.name}: Alt bilgide`}
+                  title="Alt bilgide"
                   value={showFooter ? '1' : '0'}
                   options={onOff}
                   onChange={(x) => setValue(platformFieldId(p.id, 'showFooter'), x)}

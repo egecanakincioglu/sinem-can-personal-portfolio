@@ -85,4 +85,54 @@ describe('.gitleaks.toml custom rules', { skip }, () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  test('allows only the user:pw@ placeholder in test files', () => {
+    const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'gitleaks-rules-')));
+    try {
+      const repo = path.join(dir, 'repo');
+      const out = path.join(dir, 'out');
+      mkdirSync(repo);
+      mkdirSync(out);
+      copyFileSync(path.join(root, '.gitleaks.toml'), path.join(repo, '.gitleaks.toml'));
+      writeFileSync(path.join(repo, 'placeholder.test.ts'), "const u = 'https://user:pw@linkedin.com/in/x';\n"); // gitleaks:allow
+      writeFileSync(path.join(repo, 'other.test.ts'), "const u = 'https://admin:s3cret@db.example/x';\n"); // gitleaks:allow
+      writeFileSync(path.join(repo, 'source.ts'), "const u = 'https://user:pw@linkedin.com/in/x';\n"); // gitleaks:allow
+      const git = (...args: string[]) => spawnSync('git', args, { cwd: repo, encoding: 'utf8' });
+      git('init', '-q', '-b', 'main');
+      git('add', '-A');
+      git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'seed');
+      const r = spawnSync(
+        'docker',
+        [
+          'run',
+          '--rm',
+          '-v',
+          `${repo}:/repo:ro`,
+          '-v',
+          `${out}:/out`,
+          image,
+          'git',
+          '/repo',
+          '--config',
+          '/repo/.gitleaks.toml',
+          '--report-format',
+          'json',
+          '--report-path',
+          '/out/r.json',
+          '--exit-code',
+          '0',
+          '--no-banner',
+        ],
+        { encoding: 'utf8', env: { ...process.env, MSYS_NO_PATHCONV: '1' } },
+      );
+      assert.equal(r.status, 0, r.stderr);
+      const files = JSON.parse(readFileSync(path.join(out, 'r.json'), 'utf8'))
+        .filter((f: Finding) => f.RuleID === 'url-credentials')
+        .map((f: Finding) => f.File)
+        .sort();
+      assert.deepEqual(files, ['other.test.ts', 'source.ts']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

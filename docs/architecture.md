@@ -83,6 +83,13 @@ The Projeler screen (`/admin/projeler`) lists project records with counts, the w
 
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 
+### Guards
+
+- Every admin page, the admin layout and the route checks that the app runs in development. A test (`src/app/admin/gating.test.ts`) reads these sources and fails when one lacks the check.
+- Lint stops public code from importing the panel, the development preview and the panel-only libraries. The list is in `eslint.config.ts`. A new panel-only library is added there.
+- A style test (`src/app/admin/style-rules.test.ts`) checks the panel styles. It fails on the brand red, shadows, rounded corners, gradients, backdrop filters and file inputs.
+- The `build` job scans the production build output for sample data: the sample label, fixture ids and titles. It runs `node tooling/scripts/check-build-output.ts` and fails on a hit.
+
 ## Backend (planned)
 
 No database, API route or authentication exists yet. When the backend arrives, it replaces the data behind the content accessors. Components and pages do not change. Private files must be authorized on the server; a flag in the front end is not a security boundary.

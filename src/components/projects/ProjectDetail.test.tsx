@@ -13,4 +13,12 @@ describe('ProjectDetail', () => {
     render(<ProjectDetail project={toPublicProject(fixtureProjects[0])} locale="en" dict={dict} />);
     expect(screen.getByText(/Back§/)).toBeTruthy();
   });
+
+  it('uses the shared arrow style for the back link', () => {
+    const { dict } = mergeSiteContent({});
+    render(<ProjectDetail project={toPublicProject(fixtureProjects[0])} locale="en" dict={dict} />);
+    const back = screen.getByRole('link', { name: dict.projects.back.en });
+    expect(back.className).toContain('cta-back');
+    expect(back.querySelector('.arrow')).not.toBeNull();
+  });
 });

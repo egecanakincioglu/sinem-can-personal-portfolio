@@ -24,6 +24,11 @@ describe('Sidenote', () => {
     expect(body.getAttribute('data-open')).toBe('false');
   });
 
+  it('joins the mark to the word before it so it never wraps onto its own line', () => {
+    const { container } = render(<Sidenote n="1">Body</Sidenote>);
+    expect(container.querySelector('.sn')?.textContent?.startsWith(String.fromCodePoint(0x2060))).toBe(true);
+  });
+
   it('shows the optional label inside the mark', () => {
     render(
       <Sidenote n="2" label="what is this">

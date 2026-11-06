@@ -39,6 +39,11 @@ describe('dictionary', () => {
     expect(out).toHaveProperty('nav');
   });
 
+  it('writes the development-demo label in sentence case', () => {
+    const { demo } = dict.projects.viewer;
+    for (const l of ['tr', 'en'] as const) expect(demo[l]).not.toBe(demo[l].toUpperCase());
+  });
+
   it('has labels for every note language status in both languages', () => {
     for (const k of ['langBoth', 'langOnlyTr', 'langOnlyEn'] as const) {
       expect(dict.notes[k].tr).toBeTruthy();

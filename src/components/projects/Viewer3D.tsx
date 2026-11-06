@@ -218,11 +218,11 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
   };
 
   const ready = status === 'ready';
-  const btn = 'ulink inline-flex min-h-11 items-center px-1 text-[15px] disabled:opacity-40';
+  const btn = 'ulink inline-flex min-h-11 items-center px-1 text-[15px] disabled:text-kursun disabled:no-underline';
 
   return (
     <div>
-      <div className="relative border-[1.5px] border-grafit bg-white">
+      <div className="relative border-[1.5px] border-grafit bg-kagit">
         <div
           ref={hostRef}
           tabIndex={ready ? 0 : -1}
@@ -235,7 +235,7 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
         />
 
         {labels.demo && (
-          <p className="pointer-events-none absolute left-3 top-3 border border-grafit bg-white px-2 py-1 text-[13px] font-medium text-grafit">
+          <p className="pointer-events-none absolute left-3 top-3 border border-grafit bg-kagit px-2 py-1 text-[13px] font-medium text-grafit">
             {labels.demo}
           </p>
         )}
@@ -265,13 +265,13 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
         )}
 
         {status === 'loading' && (
-          <div role="status" className="absolute inset-0 flex items-center justify-center bg-white/90">
+          <div role="status" className="absolute inset-0 flex items-center justify-center bg-kagit/90">
             <p className="serif text-[19px] italic text-kursun">{labels.loading}</p>
           </div>
         )}
 
         {status === 'error' && (
-          <div role="alert" className="absolute inset-0 flex flex-col bg-white">
+          <div role="alert" className="absolute inset-0 flex flex-col bg-kagit">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={poster.src}

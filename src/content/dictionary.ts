@@ -237,10 +237,6 @@ export const dictTemplate = {
     },
     partial: { tr: 'Kısmi bileşke', en: 'Partial resultant' },
     reversedNote: { tr: 'ters sırayla toplandı', en: 'added in reverse order' },
-    note: {
-      tr: 'Vektörler kavramsal temsildir; ölçülmüş kuvvetler değildir.',
-      en: 'Vectors are conceptual; they are not measured forces.',
-    },
   },
   workshop: {
     heading: { tr: 'Çizimdeki ölçü, atölyede sınanır.', en: 'A dimension on paper gets tested on the shop floor.' },
@@ -403,7 +399,7 @@ export const dictTemplate = {
       rotateUp: { tr: '↑ Yukarı', en: '↑ Up' },
       rotateDown: { tr: 'Aşağı ↓', en: 'Down ↓' },
       canvas: { tr: '3B model görüntüleyici', en: '3D model viewer' },
-      demo: { tr: 'GELİŞTİRME ÖRNEĞİ', en: 'DEVELOPMENT DEMO' },
+      demo: { tr: 'Geliştirme örneği', en: 'Development demo' },
     },
     figure: { tr: 'Şekil', en: 'Figure' },
     rev: shared.rev,

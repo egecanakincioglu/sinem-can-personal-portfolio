@@ -67,7 +67,7 @@ export default function HomeScreen() {
             forcesPartial: pair(dict.forces.partial),
             forcesReverse: pair(dict.forces.reverse),
           },
-          locked: { caption: pair(dict.forces.caption), note: pair(dict.forces.note) },
+          locked: { caption: pair(dict.forces.caption) },
         },
         beam: {
           copy: {

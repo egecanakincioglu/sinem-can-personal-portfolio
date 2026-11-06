@@ -23,6 +23,14 @@ afterEach(() => {
 const menuButton = () => screen.getByRole('button', { name: dict.nav.menu.en });
 
 describe('Header', () => {
+  it('has a fully opaque paper background and a 44px logo link', () => {
+    const { container } = render(<Header locale="en" ownerName="Test Owner" email="a@example.test" />);
+    const bar = container.querySelector('header') as HTMLElement;
+    expect(bar.className).toContain('bg-kagit');
+    expect(bar.className).not.toMatch(/\/0\./);
+    expect(screen.getByRole('link', { name: 'Test Owner' }).className).toContain('min-h-11');
+  });
+
   it('marks the language links with hreflang, lang and aria-current on the active one', () => {
     render(<Header locale="en" page="profile" ownerName="Test Owner" email="a@example.test" />);
     const group = screen.getAllByRole('group', { name: dict.nav.language.en })[0];

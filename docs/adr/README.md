@@ -11,6 +11,7 @@ This folder holds the architecture decisions of the project. Each one is numbere
 | [0006](0006-quality-targets-and-thresholds.md) | Quality targets and thresholds: Lighthouse gate 90, `site-audit` | Accepted | 2026-11-05 |
 | [0007](0007-versioning-and-releases.md) | Versioning and releases: SemVer, deploy by signed tag | Accepted | 2026-11-05 |
 | [0008](0008-license-noncommercial.md) | License: noncommercial code, reserved personal content | Accepted | 2026-11-05 |
+| [0009](0009-svg-boundary.md) | SVG boundary: figures from a registry of components | Accepted | 2026-11-06 |
 
 ## Statuses
 

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getSiteContent, mergeSiteContent } from '@/content/site-content';
-import { buildOverride, interfaceStrings } from '@/lib/preview-bridge';
+import { buildOverride, checkCopy, interfaceStrings } from '@/lib/preview-bridge';
 import { AdminProvider, useAdmin } from '../../ui/store';
 import { InterfaceStrings } from './InterfaceStrings';
 import InterfaceStringsScreen from './page.dev';
@@ -12,6 +12,12 @@ vi.mock('next/navigation', () => ({
   },
   usePathname: () => '/admin/metinler',
 }));
+
+// Counts how many times a row is checked, which is once per render of that row.
+vi.mock('@/lib/preview-bridge', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/preview-bridge')>();
+  return { ...original, checkCopy: vi.fn(original.checkCopy) };
+});
 
 // The screen lists every dictionary string, so each render is large.
 vi.setConfig({ testTimeout: 20000 });
@@ -89,6 +95,18 @@ describe('InterfaceStrings', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Eksik' }));
     expect(field('hero.resultantLabel', 'en')).toBeTruthy();
     expect(maybeField('forces.angle', 'en')).toBeNull();
+  });
+
+  it('re-renders only the edited row when one text changes', () => {
+    setup();
+    const check = vi.mocked(checkCopy);
+    const mounted = check.mock.calls.length;
+    expect(mounted).toBeGreaterThan(100);
+    check.mockClear();
+    fireEvent.change(field('hero.resultantLabel', 'en'), { target: { value: 'Net' } });
+    expect(field('hero.resultantLabel', 'en').value).toBe('Net');
+    // One row is checked for both languages; the other rows keep their render.
+    expect(check.mock.calls.length).toBeLessThanOrEqual(4);
   });
 
   it('shows locked rows read-only with their reason', () => {

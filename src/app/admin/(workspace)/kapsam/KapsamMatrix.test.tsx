@@ -35,9 +35,11 @@ describe('Kapsam screen', () => {
       ]),
     );
     expect(readouts['Genel sitedeki alan']).toBe(leaves.length);
-    expect(readouts['Düzenleyicisi hazır']).toBe(summary.ready);
-    expect(readouts['Düzenleyicisi planlanan']).toBe(summary.planned);
-    expect(readouts['Düzenleyicisi hazır'] + readouts['Düzenleyicisi planlanan']).toBe(readouts['Genel sitedeki alan']);
+    expect(readouts['Düzenleyicisi olan alan']).toBe(summary.ready);
+    expect(readouts['Düzenleyicisi henüz olmayan alan']).toBe(summary.planned);
+    expect(readouts['Düzenleyicisi olan alan'] + readouts['Düzenleyicisi henüz olmayan alan']).toBe(
+      readouts['Genel sitedeki alan'],
+    );
     expect(readouts['Kayıt defterinde karşılığı olmayan alan']).toBe(checkCoverage(registry, leaves).uncovered.length);
 
     const rows = container.querySelectorAll('tbody tr');
@@ -48,6 +50,29 @@ describe('Kapsam screen', () => {
     expect(screen.getAllByText('Planlandı', { selector: '.a-chip' })).toHaveLength(
       summary.rows.filter((r) => r.entry.status === 'planned').length,
     );
+  });
+
+  it('makes each wide table a focusable, named scroll region', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const { container } = render(<KapsamScreen />);
+    const wraps = [...container.querySelectorAll('.a-matrix-wrap')];
+    expect(wraps.length).toBeGreaterThan(0);
+    for (const w of wraps) {
+      expect(w.getAttribute('role')).toBe('region');
+      expect(w.getAttribute('aria-label')).toMatch(/^Kapsam tablosu \(yatay kaydırılır\)/);
+      expect(w.getAttribute('tabindex')).toBe('0');
+    }
+  });
+
+  it('names interface strings by their text and keeps the path as a small second line', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const { container } = render(<KapsamScreen />);
+    const row = [...container.querySelectorAll('tbody tr')].find((r) =>
+      r.textContent?.includes('dict.hero.resultantLabel'),
+    );
+    expect(row?.querySelector('.a-matrix-label')?.textContent).toBeTruthy();
+    expect(row?.querySelector('.a-matrix-label')?.textContent).not.toMatch(/^dict\./);
+    expect(row?.querySelector('.a-matrix-path')?.textContent).toBe('dict.hero.resultantLabel');
   });
 
   it('groups rows by public page and links ready editors', () => {

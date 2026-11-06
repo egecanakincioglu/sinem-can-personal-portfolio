@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dict } from '@/content/dictionary';
-import { describeInterfaceStrings, dictAt, lockedStrings, putAt } from './interface-strings';
+import { describeInterfaceStrings, dictAt, lockedStrings, putAt, stringLabel } from './interface-strings';
 import { interfaceStrings } from './preview-bridge';
 
 const plain = describeInterfaceStrings();
@@ -93,6 +93,17 @@ describe('describeInterfaceStrings', () => {
     expect(real.get('projects.emptyTitle')).toMatchObject({ owner: 'ana-sayfa', aliasOf: 'work.emptyProjects' });
     expect(real.get('hero.graduation')?.owner).toBe('ana-sayfa');
     expect(real.get('profile.expected')?.owner).toBe('profil');
+  });
+});
+
+describe('stringLabel', () => {
+  it('uses the Turkish text on one line, shortened with an ellipsis', () => {
+    expect(stringLabel('  Ana   sayfa ')).toBe('Ana sayfa');
+    expect(stringLabel('a'.repeat(60))).toBe(`${'a'.repeat(48)}…`);
+  });
+
+  it('never returns an empty label', () => {
+    expect(stringLabel('  ')).toBe('Başlıksız metin');
   });
 });
 

@@ -119,6 +119,13 @@ export function describeInterfaceStrings(
   });
 }
 
+/** A short human name for a dictionary string: its default Turkish text, on one line and trimmed. */
+export function stringLabel(tr: string, max = 48): string {
+  const t = tr.replace(/\s+/g, ' ').trim();
+  if (t === '') return 'Başlıksız metin';
+  return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t;
+}
+
 const SEGMENT = /([^.[\]]+)|\[(\d+)\]/g;
 const segments = (path: string) => [...path.matchAll(SEGMENT)].map((m) => m[1] ?? Number(m[2]));
 

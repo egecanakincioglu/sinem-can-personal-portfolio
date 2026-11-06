@@ -30,7 +30,7 @@ test('robotsProblems accepts one catch-all group that names the sitemap and clos
 });
 
 test('robotsProblems rejects named bots, a missing sitemap, an open API and content signals', () => {
-  const text = 'User-Agent: *\nDisallow: /\n\nUser-Agent: SomeBot\nDisallow: /\nContent-Signal: ai-train=no\n';
+  const text = 'User-Agent: *\nDisallow: /\n\nUser-Agent: SomeBot\nDisallow: /\nContent-Signal: search=yes\n';
   const problems = robotsProblems(text, 'http://a/sitemap.xml');
   assert.equal(problems.length, 4);
   assert.match(problems.join('\n'), /one "User-agent: \*" group/);

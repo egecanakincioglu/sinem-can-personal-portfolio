@@ -58,6 +58,8 @@ When a project or note list is empty, the pages show a designed empty state.
 
 The calculations are pure functions in `src/lib/physics.ts` and `src/lib/math.ts`, so they are unit tested without a browser. Animation respects the reduced motion setting.
 
+The resultant angle is shown with one decimal. The hero and the force figure use one shared helper in `src/lib/format.ts`. The hero keeps the month and year of the graduation date on one line.
+
 ## 3D viewer
 
 Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model.

@@ -31,8 +31,8 @@ export type Block =
   /** Display equation in TeX subset (lib/math.ts). Numbered automatically; `id` makes it referable. */
   | { type: 'math'; tex: string; id?: string }
   | { type: 'image'; id?: string; image: ImageBlockMedia; caption: string }
-  /** Technical SVG figure: trusted, authored markup using the site's line classes (svg-heavy, svg-thin …). */
-  | { type: 'svg'; id?: string; svg: string; viewBox: string; alt: string; caption: string }
+  /** Technical figure from the figure registry (content/figures). `alt` and `caption` override the registry defaults. */
+  | { type: 'figure'; id?: string; figureId: string; alt?: string; caption?: string }
   | {
       type: 'table';
       id?: string;

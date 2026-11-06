@@ -60,7 +60,7 @@ Project pages can show a 3D model with three.js. The viewer is optional and load
 
 ## Notes
 
-Note pages render formulas as MathML, code blocks and figures. Figures are SVG written in the notes themselves; a registry of figures is planned. A table of contents is built from the headings.
+Note pages render formulas as MathML, code blocks and figures. Figures come from a registry of components chosen by `figureId` ([ADR 0009](adr/0009-svg-boundary.md)). A table of contents is built from the headings.
 
 ## Admin interface
 

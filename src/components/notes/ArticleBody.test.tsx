@@ -83,4 +83,27 @@ describe('ArticleBody', () => {
     expect(screen.getByRole('rowheader').textContent).toBe('a');
     expect(screen.getByRole('region').getAttribute('tabindex')).toBe('0');
   });
+
+  it('renders a registry figure with default alt and caption, and overrides', () => {
+    const { container, rerender } = render(
+      <ArticleBody locale="en" content={note([{ type: 'figure', id: 'b', figureId: 'beam' }])} />,
+    );
+    const svg = container.querySelector('svg[role="img"]');
+    expect(svg?.getAttribute('aria-label')).toMatch(/Simply supported beam/);
+    expect(svg?.querySelector('.svg-heavy')).not.toBeNull();
+    expect(container.querySelector('figure#fig-b figcaption')?.textContent).toMatch(/midspan point load/);
+    rerender(
+      <ArticleBody
+        locale="en"
+        content={note([{ type: 'figure', figureId: 'beam', alt: 'Custom alt', caption: 'Custom caption' }])}
+      />,
+    );
+    expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('Custom alt');
+    expect(container.querySelector('figcaption')?.textContent).toMatch(/Custom caption/);
+  });
+
+  it('renders nothing for an unknown figure id', () => {
+    const { container } = render(<ArticleBody locale="en" content={note([{ type: 'figure', figureId: 'missing' }])} />);
+    expect(container.querySelector('figure')).toBeNull();
+  });
 });

@@ -9,27 +9,6 @@ import type { NoteRecord } from '../notes/types';
 
 const r = String.raw;
 
-/** Technical figure: simply supported beam, point load at midspan. Uses the site's line classes. */
-const BEAM_SVG = `
-<g>
-  <line x1="70" y1="22" x2="530" y2="22" class="svg-thin"/>
-  <line x1="70" y1="14" x2="70" y2="84" class="svg-thin"/><line x1="530" y1="14" x2="530" y2="84" class="svg-thin"/>
-  <polygon points="70,22 81,18.5 81,25.5" class="fill-grafit"/><polygon points="530,22 519,18.5 519,25.5" class="fill-grafit"/>
-  <text x="300" y="15" text-anchor="middle" font-size="19" class="svg-text">L</text>
-  <line x1="300" y1="44" x2="300" y2="78" class="svg-red"/><polygon points="300,89 296,76 304,76" class="fill-red"/>
-  <text x="313" y="62" font-size="21" class="svg-text" style="fill:var(--color-kirmizi)">P</text>
-  <line x1="70" y1="90" x2="530" y2="90" class="svg-heavy"/>
-  <path d="M70 90 L62 109 H78 Z" class="svg-heavy"/><path d="M57 117H83 M62 117l-3 5 M70 117l-3 5 M78 117l-3 5" class="svg-thin"/>
-  <path d="M530 90 L522 107 H538 Z" class="svg-heavy"/><circle cx="526" cy="110" r="2.6" class="svg-thin"/><circle cx="534" cy="110" r="2.6" class="svg-thin"/><path d="M517 115H543" class="svg-thin"/>
-  <path d="M70 90 C190 138 410 138 530 90" class="svg-ghost"/>
-  <line x1="300" y1="94" x2="300" y2="124" class="svg-thin"/><line x1="293" y1="126" x2="307" y2="126" class="svg-thin"/>
-  <text x="311" y="116" font-size="19" class="svg-text">δ</text>
-  <line x1="70" y1="178" x2="70" y2="136" class="svg-heavy"/><polygon points="70,128 66,141 74,141" class="fill-grafit"/>
-  <text x="82" y="166" font-size="19" class="svg-text">R<tspan dy="5" font-size="13" font-style="normal">A</tspan></text>
-  <line x1="530" y1="178" x2="530" y2="136" class="svg-heavy"/><polygon points="530,128 526,141 534,141" class="fill-grafit"/>
-  <text x="542" y="166" font-size="19" class="svg-text">R<tspan dy="5" font-size="13" font-style="normal">B</tspan></text>
-</g>`;
-
 const beam: NoteRecord = {
   id: 'fx-beam',
   status: 'published',
@@ -58,15 +37,7 @@ const beam: NoteRecord = {
         type: 'p',
         text: 'A straight, prismatic beam of span $L$ rests on a pin at $A$ and a roller at $B$. A single point load $P$ acts at midspan, as in [[beam]]. The question: what do the supports carry, and how far does the beam sag?',
       },
-      {
-        type: 'svg',
-        id: 'beam',
-        viewBox: '0 0 600 200',
-        alt: 'Simply supported beam of span L with a point load P at midspan, reactions R A and R B at the supports and the dashed deflected shape with midspan deflection delta.',
-        caption:
-          'Simply supported beam with a midspan point load. The dashed curve is the deflected shape, exaggerated; **P** is the applied load.',
-        svg: BEAM_SVG,
-      },
+      { type: 'figure', id: 'beam', figureId: 'beam' },
       {
         type: 'callout',
         kind: 'assumption',
@@ -209,15 +180,7 @@ const beam: NoteRecord = {
         type: 'p',
         text: "$L$ açıklığındaki, doğru ve prizmatik bir kiriş, $A$'da bir sabit mesnete, $B$'de bir hareketli mesnete oturur. Orta noktada tek bir $P$ noktasal yükü etki eder; bkz. [[beam]]. Soru şudur: mesnetler neyi taşır ve kiriş ne kadar sehim yapar?",
       },
-      {
-        type: 'svg',
-        id: 'beam',
-        viewBox: '0 0 600 200',
-        alt: 'L açıklıklı, orta noktasında P noktasal yükü olan basit mesnetli kiriş; mesnetlerde R A ve R B tepkileri, kesikli çizgiyle gösterilen sehim şekli ve orta nokta sehimi delta.',
-        caption:
-          'Orta noktasında noktasal yük bulunan basit mesnetli kiriş. Kesikli eğri, abartılmış sehim şeklidir; **P** uygulanan yüktür.',
-        svg: BEAM_SVG,
-      },
+      { type: 'figure', id: 'beam', figureId: 'beam' },
       {
         type: 'callout',
         kind: 'assumption',

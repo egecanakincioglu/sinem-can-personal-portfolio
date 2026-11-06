@@ -111,7 +111,7 @@ function extraWords(b: Block): number {
     case 'math':
       return 15;
     case 'image':
-    case 'svg':
+    case 'figure':
       return 25;
     default:
       return 0;

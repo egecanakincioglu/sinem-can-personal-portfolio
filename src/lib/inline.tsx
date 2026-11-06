@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Block, NoteContent } from '@/content/notes/types';
 import type { Locale } from '@/content/types';
+import { getFigure } from '@/content/figures/registry';
 import { texToMathML } from './math';
 
 /* Inline markup for note text (see content/notes/types.ts) and the per-article numbering context. */
@@ -35,8 +36,9 @@ export function blockStrings(b: Block): string[] {
     case 'pullquote':
       return [b.text, b.cite ?? ''];
     case 'image':
-    case 'svg':
       return [b.caption];
+    case 'figure':
+      return [b.caption ?? ''];
     case 'table':
       return [b.caption, ...b.head, ...b.rows.flat(), b.note ?? ''];
     case 'callout':
@@ -51,8 +53,17 @@ export function buildCtx(content: NoteContent, locale: Locale): Ctx {
   const counts: Record<LabelKind, number> = { fig: 0, tab: 0, eq: 0 };
   const cite = /\[\^([\w-]+)\]|\[@([\w-]+)\]/g;
   for (const b of content.blocks) {
+    // An unknown figureId renders nothing, so it must not take a number.
     const kind: LabelKind | null =
-      b.type === 'image' || b.type === 'svg' ? 'fig' : b.type === 'table' ? 'tab' : b.type === 'math' ? 'eq' : null;
+      b.type === 'figure' && !getFigure(b.figureId)
+        ? null
+        : b.type === 'image' || b.type === 'figure'
+          ? 'fig'
+          : b.type === 'table'
+            ? 'tab'
+            : b.type === 'math'
+              ? 'eq'
+              : null;
     if (kind) {
       counts[kind]++;
       if ('id' in b && b.id) ctx.labels.set(b.id, { kind, n: counts[kind] });

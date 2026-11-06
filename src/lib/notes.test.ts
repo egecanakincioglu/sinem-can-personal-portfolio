@@ -206,7 +206,7 @@ describe('readingMinutes', () => {
       { type: 'code', code: words(3 * 230) },
       { type: 'math', tex: 'x' },
       { type: 'image', image: { src: '/a.png', alt: 'a', width: 1, height: 1 }, caption: '' },
-      { type: 'svg', svg: '', viewBox: '0 0 1 1', alt: 'a', caption: '' },
+      { type: 'figure', figureId: 'beam' },
     ];
     // 230 + 15 + 25 + 25 = 295 words at 230 wpm
     expect(m.readingMinutes(content('a', { blocks }), 'en')).toBe(1);

@@ -77,6 +77,8 @@ The admin interface lives under `src/app/admin`. It works on mock data and has a
 
 One field registry (`src/app/admin/registry.ts`) lists every editable field of the public site. Each entry names the public page and section, the admin screen and editor that edit the field, its status (`ready` or `planned`), its language behaviour and its type. Pure helpers in `src/lib/field-registry.ts` match registry entries to public fields. A coverage test fails when a public field has no entry, or when an entry points to a field that does not exist. This keeps the site and the panel in step. The Kapsam screen (`/admin/kapsam`, development only) shows the registry as a matrix with the ready and planned counts per screen.
 
+The "Uyguladım" and "Gözlemledim" headings and the beam figure label are locked. The home editor shows them read-only, and the preview bridge no longer accepts them. Each panel screen's sheet number is its sidebar number minus one.
+
 The Medya screen (`/admin/medya`) lists the real image files from `src/content/media-manifest.ts` and edits the portrait slot. The slot has a show switch, a choice limited to eligible photos (a real photo whose shorter side is at least 1000 px), a focal point, a zoom from 1 to 2.5, alt text in both languages and a 4:5 preview. A consent checkbox is stored as a value and does not change the preview. While a third-party clearance is open, the status reads "Onay bekliyor". Sample images exist only in development, in a separate group, and cannot be the portrait. Upload is disabled until the backend exists. The Profil screen shows a thumbnail with a link to Medya, and the portrait field ids are unchanged. Pure checks live in `src/lib/media.ts`.
 
 ## Backend (planned)

@@ -17,6 +17,7 @@ import lighthouse, { desktopConfig } from 'lighthouse';
 import puppeteer, { type Page } from 'puppeteer-core';
 import {
   consoleProblems,
+  bypassCache,
   hasHorizontalOverflow,
   imageProblem,
   pageSeoProblems,
@@ -175,6 +176,7 @@ async function auditView(page: Page, url: string, d: Device, axeSource: string):
   page.on('pageerror', onPageError);
 
   await setViewport(page, d);
+  await bypassCache(page);
   const response = await page.goto(url, { waitUntil: 'networkidle0' });
   if (response && response.status() !== 200) fail(`status ${where}`, `status ${response.status()}, expected 200`);
 

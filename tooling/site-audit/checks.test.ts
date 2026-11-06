@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { findChrome } from './chrome.ts';
 import {
+  bypassCache,
   consoleProblems,
   hasHorizontalOverflow,
   imageProblem,
@@ -154,4 +155,14 @@ test('chrome path: CHROME_PATH wins, then known locations per platform', () => {
     findChrome({}, 'win32', () => false),
     null,
   );
+});
+
+test('bypassCache turns the page cache off so a revalidation never replaces the 200 response', async () => {
+  const calls: boolean[] = [];
+  await bypassCache({
+    setCacheEnabled: async (enabled) => {
+      calls.push(enabled);
+    },
+  });
+  assert.deepEqual(calls, [false]);
 });

@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { checkCoverage, summarize } from '@/lib/field-registry';
 import { publicFieldPaths, registry } from '../../registry';
-import KapsamScreen from './page';
+import KapsamScreen from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

@@ -6,7 +6,7 @@ import type { MockNote } from '@/lib/note-record';
 import { AdminProvider } from '../../ui/store';
 import { accusative } from './BlockEditor';
 import { NoteEditor } from './NoteEditor';
-import NoteEditorScreen from './[id]/page';
+import NoteEditorScreen from './[id]/page.dev';
 
 const push = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({

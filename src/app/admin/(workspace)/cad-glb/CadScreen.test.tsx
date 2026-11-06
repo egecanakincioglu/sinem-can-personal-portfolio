@@ -7,7 +7,7 @@ import { glbLibrary } from '@/lib/glb';
 import { fixtureMediaAssets } from '@/lib/media';
 import { AdminProvider, useAdmin } from '../../ui/store';
 import { CadScreen } from './CadScreen';
-import CadScreenPage from './page';
+import CadScreenPage from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

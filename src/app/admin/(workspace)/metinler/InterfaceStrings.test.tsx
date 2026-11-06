@@ -4,7 +4,7 @@ import { getSiteContent, mergeSiteContent } from '@/content/site-content';
 import { buildOverride, interfaceStrings } from '@/lib/preview-bridge';
 import { AdminProvider, useAdmin } from '../../ui/store';
 import { InterfaceStrings } from './InterfaceStrings';
-import InterfaceStringsScreen from './page';
+import InterfaceStringsScreen from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

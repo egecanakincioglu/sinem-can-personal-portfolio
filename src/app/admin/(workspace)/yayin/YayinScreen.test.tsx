@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AdminProvider, useAdmin } from '../../ui/store';
-import PublishScreen from './page';
+import PublishScreen from './page.dev';
 import { YayinScreen } from './YayinScreen';
 
 vi.mock('next/navigation', () => ({

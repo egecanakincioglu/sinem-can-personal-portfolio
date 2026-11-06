@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { AdminProvider } from '../ui/store';
 import { Overview } from './Overview';
-import OverviewScreen from './page';
+import OverviewScreen from './page.dev';
 
 vi.mock('next/navigation', () => ({
   notFound: () => {

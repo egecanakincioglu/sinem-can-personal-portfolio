@@ -1,0 +1,196 @@
+'use client';
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
+import { mergeSiteContent, type SiteContent } from '@/content/site-content';
+import { buildOverride } from '@/lib/preview-bridge';
+import type { DeviceId } from '../screens';
+
+/** Mock admin state. Lives in React + sessionStorage only: nothing in localStorage, cookies or network. */
+type Lang = 'tr' | 'en';
+type Toast = { id: number; text: string };
+type AdminState = {
+  editLang: Lang;
+  previewLang: Lang;
+  device: DeviceId;
+  values: Record<string, string>; // edited field values, keyed by field id
+  savedValues: Record<string, string>; // snapshot of the last mock Save: what "Discard" returns to
+  dirty: boolean;
+  saveCount: number;
+  rev: number; // 0 = A, 1 = B …
+  toasts: Toast[];
+  log: string[]; // "Son eylemler"
+  ready: boolean; // sessionStorage has been read; persistence is allowed only after this (never stored)
+};
+
+const initial: AdminState = {
+  editLang: 'tr',
+  previewLang: 'tr',
+  device: 390,
+  values: {},
+  savedValues: {},
+  dirty: false,
+  saveCount: 0,
+  rev: 0,
+  toasts: [],
+  log: [],
+  ready: false,
+};
+const KEY = 'antet-admin';
+
+type Action =
+  | { type: 'hydrate'; state: Partial<AdminState> }
+  | { type: 'editLang'; lang: Lang }
+  | { type: 'previewLang'; lang: Lang }
+  | { type: 'device'; device: DeviceId }
+  | { type: 'value'; id: string; value: string }
+  | { type: 'save' }
+  | { type: 'discard' }
+  | { type: 'publish' }
+  | { type: 'reset' }
+  | { type: 'toast'; id: number; text: string }
+  | { type: 'dismiss'; id: number };
+
+const withLog = (s: AdminState, text: string) => ({ ...s, log: [text, ...s.log].slice(0, 10) });
+
+function reducer(s: AdminState, a: Action): AdminState {
+  switch (a.type) {
+    case 'hydrate':
+      return { ...s, ...a.state, ready: true, toasts: [] };
+    case 'editLang':
+      return { ...s, editLang: a.lang };
+    case 'previewLang':
+      return { ...s, previewLang: a.lang };
+    case 'device':
+      return { ...s, device: a.device };
+    case 'value':
+      return { ...s, values: { ...s.values, [a.id]: a.value }, dirty: true };
+    case 'save':
+      return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
+    case 'discard':
+      return { ...s, values: s.savedValues, dirty: false };
+    case 'publish':
+      return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1, rev: s.rev + 1 };
+    case 'reset':
+      return { ...initial, ready: true, toasts: s.toasts, log: s.log };
+    case 'toast':
+      return withLog({ ...s, toasts: [...s.toasts, { id: a.id, text: a.text }] }, a.text);
+    case 'dismiss':
+      return { ...s, toasts: s.toasts.filter((t) => t.id !== a.id) };
+  }
+}
+
+export const revLetter = (n: number): string => {
+  let out = '';
+  let i = n;
+  do {
+    out = String.fromCharCode(65 + (i % 26)) + out;
+    i = Math.floor(i / 26) - 1;
+  } while (i >= 0);
+  return out;
+};
+
+type Ctx = {
+  state: AdminState;
+  /** The public content as the current mock values would render it: one derivation shared by every editor readout. */
+  derived: SiteContent;
+  hydrated: boolean;
+  setEditLang: (l: Lang) => void;
+  setPreviewLang: (l: Lang) => void;
+  setDevice: (d: DeviceId) => void;
+  setValue: (id: string, v: string) => void;
+  save: () => void;
+  discard: () => void;
+  publish: () => void;
+  reset: () => void;
+  toast: (text: string) => void;
+  dismiss: (id: number) => void;
+};
+const AdminCtx = createContext<Ctx | null>(null);
+export const useAdmin = () => {
+  const c = useContext(AdminCtx);
+  if (!c) throw new Error('useAdmin outside AdminProvider');
+  return c;
+};
+
+export function AdminProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initial);
+  const seq = useRef(0);
+
+  useEffect(() => {
+    let saved: Partial<AdminState> = {};
+    try {
+      const raw = sessionStorage.getItem(KEY);
+      if (raw) saved = JSON.parse(raw) as Partial<AdminState>;
+    } catch {
+      /* ignore */
+    }
+    delete saved.ready;
+    dispatch({ type: 'hydrate', state: saved }); // always dispatched: it also flips `ready`
+  }, []);
+
+  useEffect(() => {
+    // Not before the stored draft has been applied, or the initial state would overwrite it on every load.
+    if (!state.ready) return;
+    try {
+      const { toasts: _t, ready: _r, ...rest } = state;
+      void _t;
+      void _r;
+      sessionStorage.setItem(KEY, JSON.stringify(rest));
+    } catch {
+      /* ignore */
+    }
+  }, [state]);
+
+  // Unsaved-change guard: the browser asks before a refresh/close would drop an unsaved draft.
+  // (The draft itself survives a refresh in sessionStorage; the prompt makes that explicit.)
+  useEffect(() => {
+    if (!state.dirty) return;
+    const guard = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', guard);
+    return () => window.removeEventListener('beforeunload', guard);
+  }, [state.dirty]);
+
+  const toast = useCallback((text: string) => {
+    const id = ++seq.current;
+    dispatch({ type: 'toast', id, text });
+    window.setTimeout(() => dispatch({ type: 'dismiss', id }), 4500);
+  }, []);
+
+  const derived = useMemo(() => mergeSiteContent(buildOverride(state.values)), [state.values]);
+
+  const value = useMemo<Ctx>(
+    () => ({
+      state,
+      derived,
+      hydrated: state.ready,
+      setEditLang: (lang) => dispatch({ type: 'editLang', lang }),
+      setPreviewLang: (lang) => dispatch({ type: 'previewLang', lang }),
+      setDevice: (device) => dispatch({ type: 'device', device }),
+      setValue: (id, v) => dispatch({ type: 'value', id, value: v }),
+      save: () => {
+        dispatch({ type: 'save' });
+        toast('Kaydedildi (simülasyon) — yalnızca bu tarayıcı oturumunda.');
+      },
+      discard: () => {
+        dispatch({ type: 'discard' });
+        toast('Değişiklikler atıldı (simülasyon). Önizleme son kaydedilen değerlere döndü.');
+      },
+      publish: () => {
+        dispatch({ type: 'publish' });
+        toast('Yayınlandı (simülasyon). Gerçek siteye gönderilmedi.');
+      },
+      reset: () => {
+        dispatch({ type: 'reset' });
+        toast('Demo sıfırlandı (simülasyon).');
+      },
+      toast,
+      dismiss: (id) => dispatch({ type: 'dismiss', id }),
+    }),
+    [state, derived, toast],
+  );
+
+  return <AdminCtx.Provider value={value}>{children}</AdminCtx.Provider>;
+}

@@ -15,7 +15,6 @@ import {
   checkGroup,
   checkLang,
   checkMem,
-  coreIds,
   isCore,
   listErr,
   profileIds,
@@ -39,6 +38,8 @@ import { screenBySlug, sheetLabel } from '../../screens';
 import { CopyGroup, CopyStatus, TopicsEditor, useJsonList } from '../ana-sayfa/SectionEditors';
 
 const screen = screenBySlug('profil')!;
+/** What a record row is called: its own name, never its internal id. */
+const recName = (name: string, core = false) => `${name.trim() || 'Başlıksız kayıt'}${core ? ' · korunan' : ''}`;
 const nonEmpty = (e: Errs) => Object.keys(e).length > 0;
 const move = <T,>(list: T[], i: number, d: -1 | 1): T[] => {
   const n = [...list];
@@ -172,7 +173,7 @@ function EducationEditor() {
             <RecordRow
               key={r.id}
               index={i}
-              meta={core ? `${r.id} · korunan` : r.id}
+              meta={recName(r.institution.tr, core)}
               itemLabel="Eğitim kaydı"
               onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
               onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -213,7 +214,7 @@ function EducationEditor() {
                 </p>
               ) : (
                 <Segmented
-                  label={`${r.id}: Dönem duyarlığı`}
+                  label={`${recName(r.institution.tr)}: Dönem duyarlığı`}
                   title="Dönem duyarlığı"
                   value={r.precision}
                   options={[
@@ -248,7 +249,7 @@ function EducationEditor() {
                 <div className="a-field">
                   <p className="a-label">Beklenen bitiş</p>
                   <Segmented
-                    label={`${r.id}: Mezuniyet durumu`}
+                    label={`${recName(r.institution.tr)}: Mezuniyet durumu`}
                     title="Mezuniyet durumu"
                     value={r.expected ? '1' : '0'}
                     options={[
@@ -309,7 +310,7 @@ function ExperienceEditor() {
         {list.map((r, i) => {
           const e = errs[i];
           return (
-            <RecordRow key={r.id} index={i} meta={`${r.id} · korunan`} itemLabel="Deneyim kaydı">
+            <RecordRow key={r.id} index={i} meta={recName(r.organization, true)} itemLabel="Deneyim kaydı">
               <Txt
                 name={`deneyim.${r.id}.organization`}
                 label="Kurum"
@@ -413,7 +414,7 @@ function CommunityEditor() {
             <RecordRow
               key={r.id}
               index={i}
-              meta={core ? `${r.id} · korunan` : r.id}
+              meta={recName(r.organization, core)}
               itemLabel="Topluluk kaydı"
               onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
               onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -526,7 +527,7 @@ function SkillsEditor() {
             <RecordRow
               key={g.id}
               index={gi}
-              meta={g.id}
+              meta={recName(g.name.tr)}
               itemLabel="Grup"
               onUp={gi > 0 ? () => setList(move(list, gi, -1)) : undefined}
               onDown={gi < list.length - 1 ? () => setList(move(list, gi, 1)) : undefined}
@@ -598,7 +599,7 @@ function SkillsEditor() {
                       helper="Yalnızca bilindiği yerde: ad yanında parantez içinde görünür."
                     />
                     <Segmented
-                      label={`${g.id} ${ii + 1}: Özet`}
+                      label={`${recName(g.name.tr)} ${ii + 1}: Özet`}
                       title="Özet"
                       value={it.summary}
                       options={[...SUMMARY_OPTS]}
@@ -663,7 +664,7 @@ function LanguagesEditor() {
           <RecordRow
             key={r.id}
             index={i}
-            meta={r.id}
+            meta={recName(r.name.tr)}
             itemLabel="Dil"
             onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
             onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -778,7 +779,7 @@ function ActivitiesEditor() {
           <RecordRow
             key={r.id}
             index={i}
-            meta={r.id}
+            meta={recName(r.name.tr)}
             itemLabel="Etkinlik"
             onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
             onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -861,9 +862,8 @@ export function ProfileEditor() {
     <>
       <PageHeader kicker={sheetLabel('profil')} title={screen.title} lede={screen.lede} />
       <p className="a-help">
-        Çekirdek kayıtlar ({[...coreIds.education, ...coreIds.experience, ...coreIds.memberships].join(', ')}) başka
-        alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki türetilmiş alanlar aynı anda
-        güncellenir. Tüm işlemler simülasyondur.
+        “Korunan” etiketli kayıtlar başka alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki
+        türetilmiş alanlar aynı anda güncellenir. Tüm işlemler simülasyondur.
       </p>
 
       <Section

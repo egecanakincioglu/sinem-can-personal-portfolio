@@ -71,16 +71,10 @@ export function OriginalsList({ project }: { project: ProjectRecord }) {
                 onTr={(v) => edit(i, { label: { ...o.label, tr: v } })}
                 onEn={(v) => edit(i, { label: { ...o.label, en: v } })}
               />
-              <div className="a-field">
-                <label htmlFor={`orig-${o.assetId}-id`} className="a-label">
-                  Dosya anahtarı
-                </label>
-                <input id={`orig-${o.assetId}-id`} className="a-input" readOnly value={o.assetId} />
-                <p className="a-help">
-                  Sistem tarafından üretilir, değiştirilemez.
-                  {o.sizeBytes !== undefined && ` Boyut: ${formatSize(o.sizeBytes)}.`}
-                </p>
-              </div>
+              <p className="a-help">
+                Dosya kimliği: {o.assetId}. Sistem tarafından üretilir, değiştirilemez.
+                {o.sizeBytes !== undefined && ` Boyut: ${formatSize(o.sizeBytes)}.`}
+              </p>
             </div>
             <div className="a-rec-tools">
               <RemoveButton onClick={() => write(list.filter((_, j) => j !== i))} />

@@ -10,7 +10,7 @@ import type { MediaAsset } from '@/lib/media';
 import type { PairedBlock } from '@/lib/note-blocks';
 import { pairNote, type MockNote } from '@/lib/note-record';
 import { sharedFieldIds } from '@/lib/preview-bridge';
-import { applyFeatured, newRecordId } from '@/lib/project-edit';
+import { applyFeatured, foldSlug, newRecordId } from '@/lib/project-edit';
 import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import { changesBetween, pushRevision, stamp, type Change, type Revision, type WorkSnapshot } from '@/lib/publish';
 import { blankBlock, type BlockType } from '../(workspace)/notlar/palette';
@@ -81,11 +81,11 @@ export type ProjectPatch = Partial<Omit<Extract<ProjectRecord, { visibility: 'pu
   visibility?: ProjectRecord['visibility'];
 };
 
-/** A new draft: only what the creator chose is set; the rest stays empty. */
+/** A new draft: only what the creator chose is set; the Turkish address is suggested from the title. */
 function draftProject(id: string, title: string, kind: ProjectKind): ProjectRecord {
   return {
     id,
-    slug: { tr: '', en: '' },
+    slug: { tr: foldSlug(title), en: '' },
     title: { tr: title, en: '' },
     kind,
     disciplines: [],

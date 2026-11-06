@@ -744,8 +744,7 @@ html:not([data-js]) .beam-range {
   font-size: 0.7em;
   font-weight: 500;
   font-style: normal;
-  color: var(--color-kalem);
-  opacity: 0.8;
+  color: var(--color-kursun);
   display: inline-flex;
   min-width: 24px;
   min-height: 24px;
@@ -888,7 +887,7 @@ html:not([data-js]) .beam-range {
   font-size: 13px;
 }
 .art-callout-assumption {
-  border: 1px dashed var(--color-grafit);
+  border: 1px solid var(--color-grafit);
 }
 .art-callout-limitation {
   border-left: 1.5px solid var(--color-grafit);
@@ -1087,7 +1086,7 @@ img.art-fig-media {
 .art-fig:target,
 .art-table:target,
 .art-eq:target {
-  outline: 1px dashed var(--color-grafit);
+  outline: 1px solid var(--color-grafit);
   outline-offset: 8px;
 }
 

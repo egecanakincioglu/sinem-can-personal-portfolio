@@ -14,6 +14,7 @@ import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
 import { BlockList, IssueList } from './BlockEditor';
 import { PairText, type Ctxs } from './PairText';
+import { sheetLabel } from '../../screens';
 
 type Pair = { tr: string; en: string };
 const pair = (): Pair => ({ tr: '', en: '' });
@@ -67,7 +68,7 @@ export function NoteEditor({
   if (!note || !ctxs) {
     return (
       <>
-        <PageHeader kicker="Pafta 04" title="Not düzenle" />
+        <PageHeader kicker={sheetLabel('notlar')} title="Not düzenle" />
         <ErrorState title={`“${id}” kaydı bulunamadı.`}>
           <p>
             Not listesinden bir kayıt seçin.{' '}
@@ -100,7 +101,7 @@ export function NoteEditor({
   return (
     <>
       <PageHeader
-        kicker="Pafta 04"
+        kicker={sheetLabel('notlar')}
         title={note.title[state.editLang] || note.title.tr || note.id}
         lede="Not düzenle"
         aside={

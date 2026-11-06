@@ -9,7 +9,7 @@ import { BilingualField, Segmented, TextField } from '../../ui/controls';
 import { StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('medya')!;
 const dec = (n: number) => String(n).replace('.', ',');
@@ -179,7 +179,7 @@ export function MediaEditor({
 }) {
   return (
     <>
-      <PageHeader kicker="Pafta 05" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('medya')} title={screen.title} lede={screen.lede} />
       <Section
         id="portre"
         title="Portre"

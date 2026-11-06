@@ -41,7 +41,7 @@ export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up
 /** Persistent, non-dismissible prototype banner. */
 export function SimBanner() {
   return (
-    <div className="a-sim" role="note">
+    <div className="a-sim" role="region" aria-label="Prototip bildirimi">
       <strong>Prototip</strong>
       <span> — Değişiklikler sunucuya gitmez; yalnızca bu tarayıcı oturumunda saklanır.</span>
     </div>

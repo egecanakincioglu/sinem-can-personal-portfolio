@@ -35,7 +35,7 @@ import { BilingualField, Disclosure, ListEditor, RecordRow, Segmented, TextField
 import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { CopyGroup, CopyStatus, TopicsEditor, useJsonList } from '../ana-sayfa/SectionEditors';
 
 const screen = screenBySlug('profil')!;
@@ -859,7 +859,7 @@ export function ProfileEditor() {
   const { derived } = useAdmin();
   return (
     <>
-      <PageHeader kicker="Pafta 02" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('profil')} title={screen.title} lede={screen.lede} />
       <p className="a-help">
         Çekirdek kayıtlar ({[...coreIds.education, ...coreIds.experience, ...coreIds.memberships].join(', ')}) başka
         alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki türetilmiş alanlar aynı anda

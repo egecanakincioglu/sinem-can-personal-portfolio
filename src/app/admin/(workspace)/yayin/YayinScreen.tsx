@@ -7,7 +7,7 @@ import { DiffView } from '../../ui/DiffView';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { ConfirmDialog, EmptyState, Readout } from '../../ui/feedback';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('yayin')!;
 const when = (at: string) => `${fullDate(at.slice(0, 10), 'tr')} (sim.)`;
@@ -22,7 +22,7 @@ export function YayinScreen() {
   return (
     <>
       <PageHeader
-        kicker="Pafta 09"
+        kicker={sheetLabel('yayin')}
         title={screen.title}
         lede={screen.lede}
         aside={<p className="a-help">Gerçek site bu işlemden etkilenmez.</p>}

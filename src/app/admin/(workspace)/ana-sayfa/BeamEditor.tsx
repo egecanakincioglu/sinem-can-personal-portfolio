@@ -312,7 +312,7 @@ export function BeamEditor({ seed }: { seed: BeamSeed }) {
 
       <Disclosure label="Erişilebilirlik metinleri" meta={<span className="a-sfx">4 metin çifti</span>}>
         {pairFor('beamControls', 'Yük konumu adı', 'Kaydırıcının ve kontrol grubunun ekran okuyucu adı.')}
-        {pairFor('beamFigAlt', 'Diyagram açıklaması', 'Ekran okuyucuların diyagram için okuduğu metin.', {
+        {pairFor('beamFigAlt', 'Diyagram alternatif metni', 'Ekran okuyucuların diyagram için okuduğu metin.', {
           multiline: true,
         })}
         {pairFor(

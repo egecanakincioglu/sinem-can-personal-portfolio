@@ -7,7 +7,7 @@ import { TextField } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { revLetter, useAdminContent } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { ContactEditor, CopyGroup, CopyStatus, GlobalEditor } from '../ana-sayfa/SectionEditors';
 
 const screen = screenBySlug('ayarlar')!;
@@ -115,7 +115,7 @@ function PublicationInfo() {
 export function SettingsEditor() {
   return (
     <>
-      <PageHeader kicker="Pafta 08" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('ayarlar')} title={screen.title} lede={screen.lede} />
       <p className="a-help">
         Bu ekrandaki kimlik, iletişim ve etiket alanları Ana sayfa düzenleyicisindekilerle aynı alanlardır: birinde
         yapılan değişiklik diğerinde de görünür. Tüm işlemler simülasyondur.

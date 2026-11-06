@@ -6,7 +6,7 @@ import type { MediaAsset } from '@/lib/media';
 import { EmptyState } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdminContent } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { OriginalsList } from './OriginalsList';
 import { Gauge, Preview3DPanel } from './Preview3DPanel';
 
@@ -44,7 +44,7 @@ export function CadScreen({
   return (
     <>
       <PageHeader
-        kicker="Pafta 06"
+        kicker={sheetLabel('cad-glb')}
         title={screen.title}
         lede={screen.lede}
         aside={

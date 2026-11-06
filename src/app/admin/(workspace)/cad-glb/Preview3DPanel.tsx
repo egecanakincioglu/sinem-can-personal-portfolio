@@ -138,7 +138,7 @@ export function Preview3DPanel({
           </option>
           {posters.map((a) => (
             <option key={a.id} value={a.src}>
-              {a.id} ({a.width} × {a.height})
+              {a.alt.tr || 'Başlıksız görsel'} ({a.width} × {a.height})
             </option>
           ))}
         </select>
@@ -202,7 +202,7 @@ export function Preview3DPanel({
               <Glyph name={c.ok ? 'check' : 'bang'} />
               <span>
                 {c.label}
-                {c.ok ? '' : ' — eksik'}
+                {c.ok ? '' : c.id === 'size' && p?.sizeBytes !== undefined ? ' — aşıldı' : ' — eksik'}
               </span>
             </li>
           ))}

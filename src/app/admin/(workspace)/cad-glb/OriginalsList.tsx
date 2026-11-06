@@ -3,7 +3,7 @@
 import type { ProjectRecord } from '@/content/projects/types';
 import { formatSize, newAssetId } from '@/lib/glb';
 import { toPublicProject } from '@/lib/projects';
-import { BilingualField } from '../../ui/controls';
+import { BilingualField, RemoveButton } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
 import { useAdminContent } from '../../ui/store';
 
@@ -71,21 +71,13 @@ export function OriginalsList({ project }: { project: ProjectRecord }) {
                 onTr={(v) => edit(i, { label: { ...o.label, tr: v } })}
                 onEn={(v) => edit(i, { label: { ...o.label, en: v } })}
               />
-              <div className="a-field">
-                <label htmlFor={`orig-${o.assetId}-id`} className="a-label">
-                  Dosya anahtarı
-                </label>
-                <input id={`orig-${o.assetId}-id`} className="a-input" readOnly value={o.assetId} />
-                <p className="a-help">
-                  Sistem tarafından üretilir, değiştirilemez.
-                  {o.sizeBytes !== undefined && ` Boyut: ${formatSize(o.sizeBytes)}.`}
-                </p>
-              </div>
+              <p className="a-help">
+                Dosya kimliği: {o.assetId}. Sistem tarafından üretilir, değiştirilemez.
+                {o.sizeBytes !== undefined && ` Boyut: ${formatSize(o.sizeBytes)}.`}
+              </p>
             </div>
             <div className="a-rec-tools">
-              <button type="button" className="a-btn a-btn-quiet" onClick={() => write(list.filter((_, j) => j !== i))}>
-                Kaldır
-              </button>
+              <RemoveButton onClick={() => write(list.filter((_, j) => j !== i))} />
             </div>
           </li>
         ))}

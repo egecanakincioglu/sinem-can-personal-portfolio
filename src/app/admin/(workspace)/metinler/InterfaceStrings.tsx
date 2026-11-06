@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { memo, useId, useState, type ReactNode } from 'react';
 import { getSiteContent } from '@/content/site-content';
-import { dictAt, type InterfaceString } from '@/lib/interface-strings';
+import { dictAt, stringLabel, type InterfaceString } from '@/lib/interface-strings';
 import { checkCopy, controlId, interfaceStrings } from '@/lib/preview-bridge';
 import { BilingualField, Segmented } from '../../ui/controls';
 import { EmptyState, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdminContent } from '../../ui/store';
-import { fold, screenBySlug } from '../../screens';
+import { fold, screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('metinler')!;
 type Filter = 'all' | 'missing';
@@ -31,12 +31,22 @@ const groupNote = (group: string, count: number) =>
   }`.trim();
 
 /** Read-only text pair: derived, locked, or edited on another screen. */
-function ReadOnlyRow({ d, text, children }: { d: InterfaceString; text: Pair; children: ReactNode }) {
+function ReadOnlyRow({
+  d,
+  label,
+  text,
+  children,
+}: {
+  d: InterfaceString;
+  label: string;
+  text: Pair;
+  children: ReactNode;
+}) {
   return (
     <div className={`a-field a-str-ro${d.kind === 'locked' ? ' is-locked' : ' is-derived'}`}>
       <div className="a-field-head">
         <span className="a-label">
-          {d.path}
+          {label}
           {d.kind === 'locked' && <span className="a-sfx"> · korumalı</span>}
           {d.kind === 'derived' && <span className="a-sfx"> · türetilmiş</span>}
         </span>
@@ -49,6 +59,9 @@ function ReadOnlyRow({ d, text, children }: { d: InterfaceString; text: Pair; ch
         <dd lang="en">{text.en}</dd>
       </dl>
       <p className="a-help">{children}</p>
+      <p className="a-help">
+        Anahtar: <code className="a-matrix-path">{d.path}</code>
+      </p>
     </div>
   );
 }
@@ -66,9 +79,10 @@ const Row = memo(function Row({
   setValue: (id: string, v: string) => void;
 }) {
   const text = { tr, en };
+  const label = stringLabel(((dictAt(getSiteContent().dict, d.path) as Pair | undefined) ?? { tr: '' }).tr);
   if (d.kind === 'locked')
     return (
-      <ReadOnlyRow d={d} text={text}>
+      <ReadOnlyRow d={d} label={label} text={text}>
         {d.reason}
       </ReadOnlyRow>
     );
@@ -77,7 +91,7 @@ const Row = memo(function Row({
     const root = d.aliasOf ?? d.path;
     const places = interfaceStrings().filter((x) => x.owner && (x.aliasOf ?? x.path) === root).length;
     return (
-      <ReadOnlyRow d={d} text={text}>
+      <ReadOnlyRow d={d} label={label} text={text}>
         Bu metin <Link href={`/admin/${d.owner}`}>{target?.title ?? d.owner} ekranından</Link> düzenlenir
         {places > 1 && ` · aynı metin ${places} yerde`}.
       </ReadOnlyRow>
@@ -85,7 +99,7 @@ const Row = memo(function Row({
   }
   if (d.kind === 'derived')
     return (
-      <ReadOnlyRow d={d} text={text}>
+      <ReadOnlyRow d={d} label={label} text={text}>
         Kayıttan gelir; kayıtlar değişince kendiliğinden güncellenir.
       </ReadOnlyRow>
     );
@@ -95,11 +109,11 @@ const Row = memo(function Row({
   return (
     <BilingualField
       name={d.id}
-      label={d.path}
+      label={label}
       helper={
         also.length
-          ? `Aynı metin ${also.length + 1} yerde kullanılır (${[d.path, ...also].join(', ')}); bir düzenleme hepsini değiştirir.`
-          : undefined
+          ? `Anahtar: ${d.path}. Aynı metin ${also.length + 1} yerde kullanılır (${[d.path, ...also].join(', ')}); bir düzenleme hepsini değiştirir.`
+          : `Anahtar: ${d.path}`
       }
       max={d.max}
       multiline={d.max > 120}
@@ -151,13 +165,13 @@ export function InterfaceStrings() {
   return (
     <>
       <PageHeader
-        kicker="Pafta 07"
+        kicker={sheetLabel('metinler')}
         title={screen.title}
         lede={screen.lede}
         aside={
-          <p className="a-num">
-            <span className="a-nowrap">{all.length} metin</span> ·{' '}
-            <span className="a-nowrap">EN eksik: {missingEn}</span>
+          <p className="a-num a-stats">
+            <span>{all.length} metin</span>
+            <span>EN eksik: {missingEn}</span>
           </p>
         }
       />
@@ -170,7 +184,7 @@ export function InterfaceStrings() {
             id={searchId}
             type="search"
             className="a-input"
-            placeholder="Türkçe metin, İngilizce metin ya da anahtar yolu"
+            placeholder="Metin ya da anahtar"
             value={query}
             autoComplete="off"
             onChange={(e) => setQuery(e.target.value)}

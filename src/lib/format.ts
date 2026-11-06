@@ -98,3 +98,13 @@ export function cachedPeriodText(p: Period, locale: Locale) {
   const f = (s: string) => (p.precision === 'year' ? s : cachedMonthYear(s, locale));
   return p.end ? `${f(p.start)} – ${f(p.end)}` : `${f(p.start)} –`;
 }
+
+/** The resultant angle as shown everywhere (hero and force figure): one decimal, locale separator, degree sign. */
+export function angleText(deg: number, locale: Locale) {
+  return `${num(deg, locale, 1)}°`;
+}
+
+/** Joins the last two words with a no-break space so a trailing number never wraps onto a line of its own. */
+export function glueLastWords(s: string) {
+  return s.replace(/ (?=\S+$)/, ' ');
+}

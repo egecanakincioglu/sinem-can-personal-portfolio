@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { screens } from '../screens';
@@ -12,9 +12,10 @@ import { PreviewPanel } from './PreviewPanel';
 import { PublishDialog } from './PublishDialog';
 import { Toolbar } from './Toolbar';
 import { TaskQueue } from './TaskQueue';
-import { ConfirmDialog, Toasts } from './feedback';
-import { AdminProvider, useAdmin } from './store';
+import { ConfirmDialog, Toasts, useModalFocus } from './feedback';
+import { AdminProvider, useAdmin, type RecordLibrary } from './store';
 import { useFieldFocus } from './useFieldFocus';
+import { useMedia } from './useMedia';
 
 function FieldFocus() {
   useFieldFocus();
@@ -26,13 +27,15 @@ export function AdminShell({
   children,
   samples = [],
   noteSamples = [],
+  library,
 }: {
   children: ReactNode;
   samples?: ProjectRecord[];
   noteSamples?: NoteRecord[];
+  library?: RecordLibrary;
 }) {
   return (
-    <AdminProvider>
+    <AdminProvider library={library}>
       <Frame samples={samples} noteSamples={noteSamples}>
         {children}
       </Frame>
@@ -53,7 +56,7 @@ function Frame({
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
-  const { state, reset, dismiss } = useAdmin();
+  const { state, reset, dismiss, setDevice } = useAdmin();
   const [navOpen, setNavOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false); // overlay/drawer below 1024
   const [previewHidden, setPreviewHidden] = useState(false); // collapsed on wide screens
@@ -87,7 +90,7 @@ function Frame({
         setPalette(true);
       } else if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        document.querySelector<HTMLButtonElement>('.a-bar-actions .a-btn')?.click();
+        document.querySelector<HTMLButtonElement>('.a-bar [data-save]')?.click();
       } else if (mod && e.key === 'Enter') {
         e.preventDefault();
         setPub(true);
@@ -102,6 +105,18 @@ function Frame({
   const openPublish = useCallback(() => setPub(true), []);
   const openReset = useCallback(() => setRst(true), []);
   const hasPreview = !!screen.preview;
+
+  // Below 1024 the preview is an overlay or drawer: a real modal dialog.
+  const narrow = useMedia('(max-width: 1023.98px)');
+  const previewRef = useRef<HTMLElement>(null);
+  const closePreview = () => setPreviewOpen(false);
+  const previewModal = hasPreview && previewOpen && narrow;
+  useModalFocus(previewRef, previewModal, closePreview, undefined, true);
+  // Opening it starts at the device that fits: the phone frame on a phone, Tablet on a tablet.
+  const togglePreview = () => {
+    if (!previewOpen && narrow) setDevice(window.innerWidth < 768 ? 390 : 768);
+    setPreviewOpen((v) => !v);
+  };
 
   return (
     <div
@@ -126,7 +141,7 @@ function Frame({
           <Toolbar
             hasPreview={hasPreview}
             previewOpen={previewOpen}
-            onPreview={() => setPreviewOpen((v) => !v)}
+            onPreview={togglePreview}
             onPublish={openPublish}
             onNav={() => setNavOpen((v) => !v)}
             navOpen={navOpen}
@@ -158,12 +173,15 @@ function Frame({
         {hasPreview && (
           <aside
             id="a-preview"
+            ref={previewRef}
             className="a-preview"
             aria-label="Canlı önizleme"
+            role={previewModal ? 'dialog' : undefined}
+            aria-modal={previewModal || undefined}
             data-open={previewOpen || undefined}
             tabIndex={-1}
           >
-            <PreviewPanel route={screen.preview!} title={screen.title} onClose={() => setPreviewOpen(false)} />
+            <PreviewPanel route={screen.preview!} title={screen.title} onClose={closePreview} />
           </aside>
         )}
       </div>

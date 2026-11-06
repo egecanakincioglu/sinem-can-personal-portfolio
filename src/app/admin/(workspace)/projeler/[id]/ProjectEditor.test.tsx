@@ -99,13 +99,12 @@ describe('creating a project', () => {
     );
     open('Yeni proje');
     const create = screen.getByRole('button', { name: 'Oluştur' }) as HTMLButtonElement;
-    expect(create.disabled).toBe(true);
     const dialog = within(screen.getByRole('dialog', { name: 'Yeni proje' }));
     expect((dialog.getByRole('combobox') as HTMLSelectElement).value).toBe('');
     fireEvent.change(dialog.getByRole('textbox'), { target: { value: 'Mil tasarımı' } });
-    expect(create.disabled).toBe(true);
+    fireEvent.click(create);
+    expect(push).not.toHaveBeenCalled();
     fireEvent.change(dialog.getByRole('combobox'), { target: { value: 'single-part' } });
-    expect(create.disabled).toBe(false);
     fireEvent.click(create);
 
     const id = screen.getByTestId('ids').textContent!;
@@ -120,7 +119,50 @@ describe('creating a project', () => {
     expect(input('Başlık · TR').value).toBe('Mil tasarımı');
     expect(input('Başlık · EN').value).toBe('');
     expect((screen.getByLabelText('Tür') as HTMLSelectElement).value).toBe('single-part');
-    expect(screen.getAllByText(/EN çevirisi \(2 alan\)/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/EN çevirisi \(2 alan: Başlık, Adres parçası\)/).length).toBeGreaterThan(0);
+  });
+
+  it('refuses an empty submit with an inline error, focuses the first invalid field and returns focus on cancel', () => {
+    render(
+      <AdminProvider>
+        <ProjectList samples={[]} />
+      </AdminProvider>,
+    );
+    const opener = screen.getByRole('button', { name: 'Yeni proje' });
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = within(screen.getByRole('dialog', { name: 'Yeni proje' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Oluştur' }));
+    const title = dialog.getByRole('textbox');
+    expect(title.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(title);
+    expect(dialog.getByText(/Hata: Bu alan boş bırakılamaz\./)).toBeTruthy();
+    fireEvent.change(title, { target: { value: 'Mil' } });
+    fireEvent.click(dialog.getByRole('button', { name: 'Oluştur' }));
+    const kind = dialog.getByRole('combobox');
+    expect(kind.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(kind);
+    expect(push).not.toHaveBeenCalled();
+    fireEvent.click(dialog.getByRole('button', { name: 'Vazgeç' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('suggests the address from the title until it is edited by hand', () => {
+    seed([draft({ id: 'proje-slug', title: { tr: '', en: '' }, slug: { tr: '', en: '' } })]);
+    editor('proje-slug');
+    type('Başlık · TR', 'Çelik Köprü');
+    expect(input('Adres parçası · TR').value).toBe('celik-kopru');
+    type('Adres parçası · TR', 'kopru');
+    type('Başlık · TR', 'Çelik Köprü 2');
+    expect(input('Adres parçası · TR').value).toBe('kopru');
+  });
+
+  it('shows the title and a small id line instead of the id as the record name', () => {
+    seed([draft({ id: 'proje-ad', title: { tr: 'Mil', en: '' } })]);
+    editor('proje-ad');
+    expect(screen.getByText('Kayıt kimliği: proje-ad')).toBeTruthy();
+    expect(screen.queryByText('Kayıt kimliği', { selector: 'dt' })).toBeNull();
   });
 
   it('lists what blocks publishing and keeps the draft from going live', () => {
@@ -330,7 +372,7 @@ describe('figures, relations, revisions', () => {
     addFigure(1);
     expect(screen.getAllByRole('button', { name: /'i yukarı taşı$/ }).length).toBe(2);
     const ids = () =>
-      Array.from(document.querySelectorAll('#bolum-sekiller .a-rec-meta .a-sfx')).map((e) => e.textContent);
+      Array.from(document.querySelectorAll('#bolum-sekiller .a-rec-body > .a-help')).map((e) => e.textContent);
     const before = ids();
     expect(before).toHaveLength(2);
     expect(before[0]).not.toBe(before[1]);

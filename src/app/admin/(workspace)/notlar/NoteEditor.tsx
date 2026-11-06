@@ -14,19 +14,11 @@ import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
 import { BlockList, IssueList } from './BlockEditor';
 import { PairText, type Ctxs } from './PairText';
+import { sheetLabel } from '../../screens';
 
 type Pair = { tr: string; en: string };
 const pair = (): Pair => ({ tr: '', en: '' });
 const LANG_NAME = { tr: 'Türkçe', en: 'İngilizce' } as const;
-
-const sections = [
-  ['ustbilgi', 'Üstbilgi'],
-  ['govde', 'Gövde'],
-  ['dipnotlar', 'Dipnotlar'],
-  ['kaynaklar', 'Kaynaklar'],
-  ['revizyonlar', 'Revizyonlar'],
-  ['yayin', 'Yayın'],
-] as const;
 
 function swap<T>(list: T[], i: number, by: -1 | 1): T[] {
   const next = [...list];
@@ -67,7 +59,7 @@ export function NoteEditor({
   if (!note || !ctxs) {
     return (
       <>
-        <PageHeader kicker="Pafta 04" title="Not düzenle" />
+        <PageHeader kicker={sheetLabel('notlar')} title="Not düzenle" />
         <ErrorState title={`“${id}” kaydı bulunamadı.`}>
           <p>
             Not listesinden bir kayıt seçin.{' '}
@@ -100,39 +92,30 @@ export function NoteEditor({
   return (
     <>
       <PageHeader
-        kicker="Pafta 04"
-        title={note.title[state.editLang] || note.title.tr || note.id}
+        kicker={sheetLabel('notlar')}
+        title={note.title[state.editLang] || note.title.tr || 'Başlıksız kayıt'}
         lede="Not düzenle"
         aside={
-          <div className="a-rec-tools">
+          <div className="a-rec-tools a-rec-chips">
             <StatusChip kind={note.status === 'published' ? 'live' : 'draft'} />
             {note.approved && <StatusChip kind="approved" />}
             {note.fixture && <StatusChip kind="sample" />}
           </div>
         }
       />
-      <nav aria-label="Not bölümleri" className="a-note-index">
-        <Link className="a-link" href="/admin/notlar">
-          Notlar
-        </Link>
-        {sections.map(([sid, label]) => (
-          <a key={sid} className="a-link" href={`#bolum-${sid}`}>
-            {label}
-          </a>
-        ))}
-      </nav>
-      <p className="a-help">Taslak önizlemesi sonraki adımda.</p>
+      <Link className="a-link a-note-index" href="/admin/notlar">
+        Notlar listesine dön
+      </Link>
 
       <Section id="ustbilgi" title="Üstbilgi" note="Tarihler, durum, ilgili notlar ve iki dildeki üstbilgi alanları.">
+        <p className="a-help">Kayıt kimliği: {note.id}</p>
         <dl className="a-readouts">
-          <Readout label="Kimlik" value={note.id} />
           <Readout derived label="Okuma süresi" value={row?.minutes ?? 0} unit="dk" />
           {locales.map((l) => (
             <Readout key={l} derived label={`${l.toUpperCase()} durumu`} value={noteLangStatus(note, l)} />
           ))}
         </dl>
         <div className="a-field">
-          <span className="a-label">Durum</span>
           <Segmented
             label="Durum"
             value={note.status}
@@ -193,7 +176,7 @@ export function NoteEditor({
                     })
                   }
                 />
-                <span>{o.title.tr || o.id}</span>
+                <span>{o.title.tr || o.title.en || 'Başlıksız kayıt'}</span>
               </label>
             ))}
           </fieldset>
@@ -438,7 +421,7 @@ export function NoteEditor({
           router.push('/admin/notlar');
         }}
       >
-        <p>“{note.title.tr || note.id}” bu tarayıcı oturumundan kaldırılır.</p>
+        <p>“{note.title.tr || 'Başlıksız kayıt'}” bu tarayıcı oturumundan kaldırılır.</p>
       </ConfirmDialog>
     </>
   );

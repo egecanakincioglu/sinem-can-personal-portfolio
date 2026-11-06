@@ -42,7 +42,7 @@ export const profileLimits = {
 } as const;
 
 /** Ids other facts are derived from (F1, F3, F4, F6, summary rows, hero glance): they cannot be removed. */
-export const coreIds = {
+const coreIds = {
   education: ['dogus', 'imkb'],
   experience: ['ferre-femas'],
   memberships: ['ieee-ras'],

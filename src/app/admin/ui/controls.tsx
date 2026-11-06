@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Glyph, StatusChip } from './feedback';
 import { useDeferredEdit } from './useDeferredEdit';
 
@@ -14,6 +14,8 @@ type FieldMeta = {
   locked?: string; // reason
   draft?: boolean;
   required?: boolean;
+  /** Keeps the label for assistive technology only; a visible heading elsewhere names the field. */
+  hiddenLabel?: boolean;
 };
 
 /** Label + control + helper/error/counter + state suffix. One component for all text types. */
@@ -41,7 +43,7 @@ export function Field({
       lang={lang}
     >
       <div className="a-field-head">
-        <label htmlFor={id} className="a-label">
+        <label htmlFor={id} className={meta.hiddenLabel ? 'a-label a-sr' : 'a-label'}>
           {meta.label}
           {meta.required && <span className="a-sfx"> · zorunlu</span>}
           {meta.derived && <span className="a-sfx"> · türetilmiş</span>}
@@ -77,7 +79,7 @@ export function Field({
           )}
         </div>
         {meta.counter && (
-          <p className={`a-count a-num${over ? ' is-err' : near ? ' is-warn' : ''}`} aria-live="off">
+          <p className={`a-count a-num${over ? ' is-err' : near ? ' is-warn' : ''}`}>
             {near && <span>Uyarı: </span>}
             {over && <span>Hata: </span>}
             {meta.counter.value} / {meta.counter.max}
@@ -86,6 +88,29 @@ export function Field({
       </div>
     </div>
   );
+}
+
+/** Grows a textarea to its content, and again when its width changes (a hidden pane reports no height). */
+function useAutosize(ref: RefObject<HTMLTextAreaElement | null>, value: string, on: boolean) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!on || !el) return;
+    const fit = () => {
+      el.style.height = 'auto';
+      if (el.scrollHeight === 0) return;
+      el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+    };
+    fit();
+    if (typeof ResizeObserver === 'undefined') return;
+    let width = el.offsetWidth;
+    const ro = new ResizeObserver(() => {
+      if (el.offsetWidth === width) return;
+      width = el.offsetWidth;
+      fit();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, value, on]);
 }
 
 export function TextField({
@@ -106,11 +131,14 @@ export function TextField({
   const id = useId();
   const [shown, edit] = useDeferredEdit(value, onChange);
   const readOnly = !!meta.derived || !!meta.locked;
+  const area = useRef<HTMLTextAreaElement>(null);
+  useAutosize(area, value, !!multiline);
   return (
     <Field meta={meta} id={id} lang={lang}>
       {({ id, describedBy, invalid }) =>
         multiline ? (
           <textarea
+            ref={area}
             id={id}
             name={name}
             data-field={name}
@@ -211,6 +239,9 @@ export function BilingualField({
       aria-labelledby={`${name}-tab-${l}`}
       className={`a-pane${tab === l ? ' is-shown' : ''}${missing ? ' a-ghost-under' : ''}`}
     >
+      <span className="a-pane-lang" aria-hidden="true">
+        {l.toUpperCase()}
+      </span>
       <TextField
         name={`${name}.${l}`}
         lang={l}
@@ -219,6 +250,7 @@ export function BilingualField({
         onChange={set}
         meta={{
           label: `${label} · ${l.toUpperCase()}`,
+          hiddenLabel: true,
           counter: max ? { value: v.length, max } : undefined,
           error: errors?.[l],
           warning: missing ? `Bu dil henüz yazılmadı; önizlemede [${l.toUpperCase()} eksik] görünür.` : undefined,
@@ -228,17 +260,17 @@ export function BilingualField({
   );
   return (
     <div className="a-bi" role="group" aria-labelledby={`${name}-lg`}>
-      <div className="a-bi-legend" id={`${name}-lg`}>
-        <span>{label}</span>
+      <div className="a-bi-legend">
+        <span id={`${name}-lg`}>{label}</span>
         {draft && <StatusChip kind="text-draft" />}
         {trMissing && <StatusChip kind="missing">TR eksik</StatusChip>}
         {enMissing && <StatusChip kind="missing">EN eksik</StatusChip>}
+        <div className="a-tabs" role="tablist" aria-label={`${label}: dil`} onKeyDown={onKey}>
+          {tabBtn('tr', trMissing)}
+          {tabBtn('en', enMissing)}
+        </div>
       </div>
       {helper && <p className="a-help a-bi-help">{helper}</p>}
-      <div className="a-tabs" role="tablist" aria-label={`${label}: dil`} onKeyDown={onKey}>
-        {tabBtn('tr', trMissing)}
-        {tabBtn('en', enMissing)}
-      </div>
       <div className="a-bi-panes">
         {pane('tr', tr, onTr, trMissing)}
         {pane('en', en, onEn, enMissing)}
@@ -247,7 +279,35 @@ export function BilingualField({
   );
 }
 
+/**
+ * Every group shows its name. `label` is the accessible name; `title` is the shorter visible text when the
+ * accessible name carries more (it must contain the title). Toolbar cells name the group themselves, so their
+ * stylesheet hides the repeated text.
+ */
 export function Segmented<T extends string | number>({
+  label,
+  title,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  title?: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="a-seg-field">
+      <span className="a-label" aria-hidden="true">
+        {title ?? label}
+      </span>
+      <SegmentedGroup label={label} options={options} value={value} onChange={onChange} />
+    </div>
+  );
+}
+
+function SegmentedGroup<T extends string | number>({
   label,
   options,
   value,
@@ -337,6 +397,37 @@ export function Disclosure({
   );
 }
 
+/** The one remove control: the word and a cross in the same box everywhere. */
+export function RemoveButton({
+  onClick,
+  disabled,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+}) {
+  return (
+    <button type="button" className="a-btn a-btn-remove" disabled={disabled} onClick={onClick} aria-label={ariaLabel}>
+      <Glyph name="x" /> Kaldır
+    </button>
+  );
+}
+
+/** Move up / move down; `label` is the item in the accusative, e.g. "Paragraf 1'i". */
+export function MoveButtons({ label, onUp, onDown }: { label: string; onUp?: () => void; onDown?: () => void }) {
+  return (
+    <>
+      <button type="button" className="a-ibtn" disabled={!onUp} onClick={onUp} aria-label={`${label} yukarı taşı`}>
+        <Glyph name="up" />
+      </button>
+      <button type="button" className="a-ibtn" disabled={!onDown} onClick={onDown} aria-label={`${label} aşağı taşı`}>
+        <Glyph name="down" />
+      </button>
+    </>
+  );
+}
+
 /** Hairline record with index/ID meta column and button-based reordering. */
 export function RecordRow({
   index,
@@ -364,27 +455,10 @@ export function RecordRow({
       </div>
       <div className="a-rec-body">{children}</div>
       <div className="a-rec-tools">
-        <button
-          type="button"
-          className="a-ibtn"
-          disabled={!onUp}
-          onClick={onUp}
-          aria-label={`${itemLabel} ${index + 1}'i yukarı taşı`}
-        >
-          <Glyph name="up" />
-        </button>
-        <button
-          type="button"
-          className="a-ibtn"
-          disabled={!onDown}
-          onClick={onDown}
-          aria-label={`${itemLabel} ${index + 1}'i aşağı taşı`}
-        >
-          <Glyph name="down" />
-        </button>
+        <MoveButtons label={`${itemLabel} ${index + 1}'i`} onUp={onUp} onDown={onDown} />
         {confirm ? (
-          <span className="a-inline-confirm" role="group" aria-label="Silinsin mi?">
-            Silinsin mi?
+          <span className="a-inline-confirm" role="group" aria-label="Kaldırılsın mı?">
+            Kaldırılsın mı?
             <button
               type="button"
               className="a-link"
@@ -400,15 +474,11 @@ export function RecordRow({
             </button>
           </span>
         ) : (
-          <button
-            type="button"
-            className="a-ibtn"
+          <RemoveButton
             disabled={!onRemove}
             onClick={() => setConfirm(true)}
-            aria-label={`${itemLabel} ${index + 1}'i sil`}
-          >
-            <Glyph name="x" />
-          </button>
+            ariaLabel={`${itemLabel} ${index + 1}'i kaldır`}
+          />
         )}
       </div>
     </li>
@@ -437,7 +507,7 @@ export function ListEditor({
     <div className="a-list">
       <div className="a-list-head">
         <span className="a-label">{label}</span>
-        <span className="a-count a-num" role="status">
+        <span className="a-count a-num">
           {count} / {max}
         </span>
       </div>

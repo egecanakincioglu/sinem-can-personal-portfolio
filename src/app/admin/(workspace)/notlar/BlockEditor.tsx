@@ -6,7 +6,7 @@ import { texIssues } from '@/lib/math';
 import type { PairedBlock } from '@/lib/note-blocks';
 import type { MockNote, NoteIssue } from '@/lib/note-record';
 import type { MediaAsset } from '@/lib/media';
-import { BilingualField, ListEditor, RecordRow, TextField } from '../../ui/controls';
+import { BilingualField, ListEditor, MoveButtons, RecordRow, RemoveButton, TextField } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
 import { useAdminContent } from '../../ui/store';
 import { PairText, linkError, useGuarded, type Ctxs } from './PairText';
@@ -620,7 +620,7 @@ function MathFields({
         />
       </div>
       {g.value !== '' && !g.error && (
-        <p className="a-live" aria-label="Denklem önizlemesi">
+        <p className="a-live" role="img" aria-label="Denklem önizlemesi">
           <Inline text={`$${g.value}$`} ctx={ctxs.tr} keyPrefix={`${name}-math`} />
         </p>
       )}
@@ -678,32 +678,12 @@ export function BlockList({
                   <span className="a-num">{String(i + 1).padStart(2, '0')}</span> {blockLabel(b.type)}
                 </span>
                 <span className="a-rec-tools a-block-tools">
-                  <button
-                    type="button"
-                    className="a-ibtn"
-                    disabled={i === 0}
-                    aria-label={`${label} yukarı taşı`}
-                    onClick={() => moveBlock(note.id, i, -1)}
-                  >
-                    <Glyph name="up" />
-                  </button>
-                  <button
-                    type="button"
-                    className="a-ibtn"
-                    disabled={i === last}
-                    aria-label={`${label} aşağı taşı`}
-                    onClick={() => moveBlock(note.id, i, 1)}
-                  >
-                    <Glyph name="down" />
-                  </button>
-                  <button
-                    type="button"
-                    className="a-btn a-btn-quiet"
-                    aria-label={`${label} kaldır`}
-                    onClick={() => removeBlock(note.id, i)}
-                  >
-                    Kaldır
-                  </button>
+                  <MoveButtons
+                    label={label}
+                    onUp={i === 0 ? undefined : () => moveBlock(note.id, i, -1)}
+                    onDown={i === last ? undefined : () => moveBlock(note.id, i, 1)}
+                  />
+                  <RemoveButton ariaLabel={`${label} kaldır`} onClick={() => removeBlock(note.id, i)} />
                 </span>
               </div>
               <div className="a-block-body">

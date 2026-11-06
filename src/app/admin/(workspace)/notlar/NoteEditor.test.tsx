@@ -73,12 +73,11 @@ const type = (label: string, value: string, at = 0) =>
   fireEvent.change(screen.getAllByLabelText(label)[at], { target: { value } });
 
 describe('note editor', () => {
-  it('shows the section index, the preview line and the block palette', () => {
+  it('has one back link instead of a second section index, and the block palette', () => {
     setup();
-    const nav = screen.getByRole('navigation', { name: 'Not bölümleri' });
-    for (const s of ['Üstbilgi', 'Gövde', 'Dipnotlar', 'Kaynaklar', 'Revizyonlar', 'Yayın'])
-      expect(within(nav).getByRole('link', { name: s })).toBeTruthy();
-    expect(screen.getByText('Taslak önizlemesi sonraki adımda.')).toBeTruthy();
+    expect(screen.queryByRole('navigation', { name: 'Not bölümleri' })).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Notlar listesine dön' })).toHaveLength(1);
+    expect(screen.queryByText('Taslak önizlemesi sonraki adımda.')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Blok ekle' }));
     const options = within(screen.getByRole('listbox', { name: 'Blok türleri' })).getAllByRole('option');
     expect(options.map((o) => o.textContent)).toContain('Teknik figür (kayıtlı)');
@@ -168,6 +167,7 @@ describe('note editor', () => {
   it('shows a live equation and holds back unsupported TeX', () => {
     const { container } = setup();
     expect(container.querySelector('math')).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Denklem önizlemesi' })).toBeTruthy();
     type('TeX', String.raw`\frac{a}{b}`);
     expect(container.querySelector('math mfrac')).toBeTruthy();
     type('TeX', String.raw`\nonsense{a}`);

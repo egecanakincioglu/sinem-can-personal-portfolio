@@ -14,7 +14,6 @@ import {
   checkGroup,
   checkLang,
   checkMem,
-  coreIds,
   isCore,
   listErr,
   profileIds,
@@ -35,10 +34,12 @@ import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { PreviewPortrait } from '../../ui/PreviewPortrait';
 import { useAdminContent } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { CopyGroup, CopyStatus, TopicsEditor, useJsonList } from '../ana-sayfa/SectionEditors';
 
 const screen = screenBySlug('profil')!;
+/** What a record row is called: its own name, never its internal id. */
+const recName = (name: string, core = false) => `${name.trim() || 'Başlıksız kayıt'}${core ? ' · korunan' : ''}`;
 const nonEmpty = (e: Errs) => Object.keys(e).length > 0;
 const move = <T,>(list: T[], i: number, d: -1 | 1): T[] => {
   const n = [...list];
@@ -172,7 +173,7 @@ function EducationEditor() {
             <RecordRow
               key={r.id}
               index={i}
-              meta={core ? `${r.id} · korunan` : r.id}
+              meta={recName(r.institution.tr, core)}
               itemLabel="Eğitim kaydı"
               onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
               onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -213,7 +214,8 @@ function EducationEditor() {
                 </p>
               ) : (
                 <Segmented
-                  label={`${r.id}: dönem duyarlılığı`}
+                  label={`${recName(r.institution.tr)}: Dönem duyarlığı`}
+                  title="Dönem duyarlığı"
                   value={r.precision}
                   options={[
                     { value: 'year', label: 'Yıl' },
@@ -229,7 +231,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={7}
               />
               <Txt
                 name={`egitim.${r.id}.end`}
@@ -238,7 +239,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
                 required={r.id === 'dogus'}
-                max={7}
                 helper={
                   r.id === 'dogus'
                     ? 'Beklenen mezuniyet ayı; Hero, Kısaca ve Profil ile Kuvvetler F3 bu değerden türetilir.'
@@ -249,7 +249,8 @@ function EducationEditor() {
                 <div className="a-field">
                   <p className="a-label">Beklenen bitiş</p>
                   <Segmented
-                    label={`${r.id}: beklenen`}
+                    label={`${recName(r.institution.tr)}: Mezuniyet durumu`}
+                    title="Mezuniyet durumu"
                     value={r.expected ? '1' : '0'}
                     options={[
                       { value: '0', label: 'Tamamlandı' },
@@ -309,7 +310,7 @@ function ExperienceEditor() {
         {list.map((r, i) => {
           const e = errs[i];
           return (
-            <RecordRow key={r.id} index={i} meta={`${r.id} · korunan`} itemLabel="Deneyim kaydı">
+            <RecordRow key={r.id} index={i} meta={recName(r.organization, true)} itemLabel="Deneyim kaydı">
               <Txt
                 name={`deneyim.${r.id}.organization`}
                 label="Kurum"
@@ -336,7 +337,6 @@ function ExperienceEditor() {
                 onChange={(v) => patch(i, { month: v })}
                 error={e.month}
                 required
-                max={7}
                 helper="Hero staj satırı, Kısaca özeti, Kuvvetler F6 dönemi ve metin içindeki staj ayı bu değerden türetilir."
               />
               <Bi
@@ -414,7 +414,7 @@ function CommunityEditor() {
             <RecordRow
               key={r.id}
               index={i}
-              meta={core ? `${r.id} · korunan` : r.id}
+              meta={recName(r.organization, core)}
               itemLabel="Topluluk kaydı"
               onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
               onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -465,7 +465,6 @@ function CommunityEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={4}
               />
               <Txt
                 name={`topluluk.${r.id}.end`}
@@ -473,7 +472,6 @@ function CommunityEditor() {
                 value={r.end}
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
-                max={4}
               />
               <Bi
                 name={`topluluk.${r.id}.text`}
@@ -529,7 +527,7 @@ function SkillsEditor() {
             <RecordRow
               key={g.id}
               index={gi}
-              meta={g.id}
+              meta={recName(g.name.tr)}
               itemLabel="Grup"
               onUp={gi > 0 ? () => setList(move(list, gi, -1)) : undefined}
               onDown={gi < list.length - 1 ? () => setList(move(list, gi, 1)) : undefined}
@@ -601,7 +599,8 @@ function SkillsEditor() {
                       helper="Yalnızca bilindiği yerde: ad yanında parantez içinde görünür."
                     />
                     <Segmented
-                      label={`${g.id} ${ii + 1}: özet`}
+                      label={`${recName(g.name.tr)} ${ii + 1}: Özet`}
+                      title="Özet"
                       value={it.summary}
                       options={[...SUMMARY_OPTS]}
                       onChange={(v) =>
@@ -665,7 +664,7 @@ function LanguagesEditor() {
           <RecordRow
             key={r.id}
             index={i}
-            meta={r.id}
+            meta={recName(r.name.tr)}
             itemLabel="Dil"
             onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
             onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -780,7 +779,7 @@ function ActivitiesEditor() {
           <RecordRow
             key={r.id}
             index={i}
-            meta={r.id}
+            meta={recName(r.name.tr)}
             itemLabel="Etkinlik"
             onUp={i > 0 ? () => setList(move(list, i, -1)) : undefined}
             onDown={i < list.length - 1 ? () => setList(move(list, i, 1)) : undefined}
@@ -801,7 +800,6 @@ function ActivitiesEditor() {
               value={r.start}
               onChange={(v) => patch(i, { start: v })}
               error={errs[i].start}
-              max={4}
             />
             <Txt
               name={`etk.${r.id}.end`}
@@ -809,7 +807,6 @@ function ActivitiesEditor() {
               value={r.end}
               onChange={(v) => patch(i, { end: v })}
               error={errs[i].end}
-              max={4}
             />
           </RecordRow>
         ))}
@@ -862,11 +859,10 @@ export function ProfileEditor() {
   const { derived } = useAdminContent();
   return (
     <>
-      <PageHeader kicker="Pafta 02" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('profil')} title={screen.title} lede={screen.lede} />
       <p className="a-help">
-        Çekirdek kayıtlar ({[...coreIds.education, ...coreIds.experience, ...coreIds.memberships].join(', ')}) başka
-        alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki türetilmiş alanlar aynı anda
-        güncellenir. Tüm işlemler simülasyondur.
+        “Korunan” etiketli kayıtlar başka alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki
+        türetilmiş alanlar aynı anda güncellenir. Tüm işlemler simülasyondur.
       </p>
 
       <Section

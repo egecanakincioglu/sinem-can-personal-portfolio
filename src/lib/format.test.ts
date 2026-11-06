@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Period } from '@/content/types';
 import {
+  angleText,
   cachedFullDate,
   cachedMonthYear,
   cachedNum,
   cachedPeriodText,
   capFirst,
   fill,
+  glueLastWords,
   fullDate,
   lower,
   monthYear,
@@ -78,6 +80,17 @@ describe('text helpers', () => {
   it('fills known tokens and leaves unknown ones', () => {
     expect(fill('a = {a}, b = {b}', { a: '1' })).toBe('a = 1, b = {b}');
     expect(fill('{x}{x}', { x: 'y' })).toBe('yy');
+  });
+
+  it('formats an angle with one decimal and the locale separator', () => {
+    expect(angleText(23.94, 'tr')).toBe('23,9°');
+    expect(angleText(23.94, 'en')).toBe('23.9°');
+    expect(angleText(24, 'en')).toBe('24.0°');
+  });
+
+  it('glues the last two words with a no-break space', () => {
+    expect(glueLastWords('beklenen mezuniyet Temmuz 2027')).toBe('beklenen mezuniyet Temmuz 2027');
+    expect(glueLastWords('single')).toBe('single');
   });
 });
 

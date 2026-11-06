@@ -9,7 +9,7 @@ import { StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { PreviewPortrait } from '../../ui/PreviewPortrait';
 import { useAdminContent } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('medya')!;
 const dec = (n: number) => String(n).replace('.', ',');
@@ -62,7 +62,6 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
           k === 'zoom'
             ? '1 = yakınlaştırma yok. Kırpma 4:5 çerçevede odak noktasına göre yapılır.'
             : '0 sol/üst, 100 sağ/alt kenar.',
-        counter: { value: num(k).length, max: 6 },
       }}
     />
   );
@@ -78,17 +77,19 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
         </p>
       </div>
       <div className="a-media-form">
-        <p className="a-help a-media-status">
-          Durum:{' '}
-          {clearance ? (
-            <StatusChip kind="draft">Onay bekliyor</StatusChip>
-          ) : (
-            <span>{consent ? 'Sinem onayı kayıtlı' : 'Sinem onayı kaydedilmedi'}</span>
-          )}
-          {clearance && current.clearanceNote && <span> {current.clearanceNote}</span>}
-        </p>
+        {clearance ? (
+          <div className="a-media-status">
+            <p className="a-media-chips">
+              <StatusChip kind="draft">Onay bekliyor</StatusChip>
+            </p>
+            {current.clearanceNote && <p className="a-help">{current.clearanceNote}</p>}
+          </div>
+        ) : (
+          <p className="a-help a-media-status">{consent ? 'Sinem onayı kayıtlı' : 'Sinem onayı kaydedilmedi'}</p>
+        )}
         <Segmented
           label="Portre göster"
+          title="Portre"
           options={onOff}
           value={show ? '1' : '0'}
           onChange={(x) => setValue(portraitSlotFields.show, x)}
@@ -105,7 +106,7 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
           >
             {eligible.map((a) => (
               <option key={a.id} value={a.id}>
-                {a.id} ({a.width} × {a.height})
+                {a.alt.tr || 'Başlıksız görsel'} ({a.width} × {a.height})
               </option>
             ))}
           </select>
@@ -151,10 +152,11 @@ function Card({ a, uses }: { a: MediaAsset; uses: string[] }) {
   return (
     <li className="a-media-card">
       <Thumb a={a} />
-      <p className="a-media-id">{a.id}</p>
+      <p className="a-media-id">{a.alt.tr || 'Başlıksız görsel'}</p>
       <p className="a-help a-num">
         {a.kind} · {a.width} × {a.height}
       </p>
+      <p className="a-help">Kimlik: {a.id}</p>
       <p className="a-help">{uses.length ? uses.join(', ') : 'Kullanılmıyor'}</p>
       <p className="a-media-chips">
         {a.fixture && <StatusChip kind="sample" />}
@@ -179,7 +181,7 @@ export function MediaEditor({
 }) {
   return (
     <>
-      <PageHeader kicker="Pafta 05" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('medya')} title={screen.title} lede={screen.lede} />
       <Section
         id="portre"
         title="Portre"
@@ -187,7 +189,7 @@ export function MediaEditor({
       >
         <PortraitSlot assets={assets} />
       </Section>
-      <Section id="kitaplik" title="Görsel kitaplığı" note="Depodaki dosyalar; yükleme bu aşamada yok.">
+      <Section id="kitaplik" title="Görsel kitaplığı" note="Depodaki dosyalar.">
         <div className="a-field">
           <button type="button" className="a-btn" disabled aria-describedby="medya-upload-help">
             Yükle

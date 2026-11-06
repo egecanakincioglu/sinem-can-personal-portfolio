@@ -84,6 +84,69 @@ describe('useFieldFocus', () => {
     expect(opened).toHaveBeenCalledTimes(1);
   });
 
+  it('puts the caret after the existing text', () => {
+    alan = 'a';
+    render(
+      <>
+        <input data-field="a" defaultValue="mevcut metin" />
+        <Probe />
+      </>,
+    );
+    run();
+    const input = document.activeElement as HTMLInputElement;
+    expect([input.selectionStart, input.selectionEnd]).toEqual([12, 12]);
+  });
+
+  it('copes with a control that has no caret', () => {
+    alan = 'n';
+    render(
+      <>
+        <input data-field="n" type="number" defaultValue="5" />
+        <Probe />
+      </>,
+    );
+    run();
+    expect(document.activeElement?.getAttribute('data-field')).toBe('n');
+  });
+
+  it('scrolls the editor column only, never its clipped frame', () => {
+    alan = 'deep';
+    Element.prototype.getBoundingClientRect = function () {
+      return { top: this.id === 'col' ? 0 : 900, height: 0, bottom: 0, left: 0, right: 0, width: 0 } as DOMRect;
+    };
+    render(
+      <div className="a-body">
+        <main id="col" className="a-main" style={{ overflowY: 'auto' }}>
+          <div className="a-bar" />
+          <input data-field="deep" />
+        </main>
+        <Probe />
+      </div>,
+    );
+    const col = document.getElementById('col')!;
+    Object.defineProperty(col, 'scrollHeight', { value: 3000 });
+    Object.defineProperty(col, 'clientHeight', { value: 600 });
+    const body = document.querySelector<HTMLElement>('.a-body')!;
+    run();
+    expect(col.scrollTop).toBeGreaterThan(0);
+    expect(body.scrollTop).toBe(0);
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('lets the page scroll where the column does not', () => {
+    alan = 'p';
+    render(
+      <>
+        <main className="a-main">
+          <input data-field="p" />
+        </main>
+        <Probe />
+      </>,
+    );
+    run();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
   it('does nothing without the parameter', () => {
     render(
       <>

@@ -15,6 +15,10 @@ export type Change = {
   path: string;
   /** Admin wording for the row when the path alone is not readable (note fields name the note by title). */
   label?: string;
+  /** Title of the project a field change belongs to; the row names the record by it, never by its id. */
+  title?: string;
+  /** Set when the whole record was added or removed; such a row has no before and after text. */
+  record?: 'added' | 'removed';
   tr?: Delta;
   en?: Delta;
   shared?: Delta;
@@ -66,17 +70,29 @@ function diffLeaves(a: Map<string, Leaf>, b: Map<string, Leaf>, prefix: string):
 export const diffContent = (a: SiteContent, b: SiteContent): Change[] =>
   diffLeaves(flattenContent(a), flattenContent(b), '');
 
+export const UNTITLED = 'Başlıksız kayıt';
+
+/** Development samples never leave development, so no change list mentions them. */
+const real = <T extends { fixture?: boolean }>(list: readonly T[]): T[] => list.filter((r) => !r.fixture);
+
 /** Records are matched by id: a new id is an addition, a missing id a removal, the rest compare field by field. */
 export function diffRecords(a: readonly ProjectRecord[], b: readonly ProjectRecord[]): Change[] {
   const changes: Change[] = [];
-  const before = new Map(a.map((r) => [r.id, r]));
-  const after = new Map(b.map((r) => [r.id, r]));
+  const before = new Map(real(a).map((r) => [r.id, r]));
+  const after = new Map(real(b).map((r) => [r.id, r]));
   for (const id of [...new Set([...before.keys(), ...after.keys()])].sort()) {
     const x = before.get(id);
     const y = after.get(id);
-    if (!x) changes.push({ path: `project.${id}`, shared: { before: '—', after: 'Eklendi' } });
-    else if (!y) changes.push({ path: `project.${id}`, shared: { before: 'Vardı', after: 'Kaldırıldı' } });
-    else changes.push(...diffLeaves(flattenContent(x), flattenContent(y), `project.${id}.`));
+    const title = (y ?? x)!.title.tr.trim() || UNTITLED;
+    if (!x || !y) {
+      changes.push({
+        path: `project.${id}`,
+        label: `Proje “${title}”`,
+        record: x ? 'removed' : 'added',
+      });
+    } else {
+      for (const c of diffLeaves(flattenContent(x), flattenContent(y), `project.${id}.`)) changes.push({ ...c, title });
+    }
   }
   return changes;
 }
@@ -112,18 +128,14 @@ function noteLabel(title: string, field: string): string {
 /** Notes are matched by id like project records; changes are labelled with the note title. */
 export function diffNotes(a: readonly MockNote[], b: readonly MockNote[]): Change[] {
   const changes: Change[] = [];
-  const before = new Map(a.map((n) => [n.id, n]));
-  const after = new Map(b.map((n) => [n.id, n]));
+  const before = new Map(real(a).map((n) => [n.id, n]));
+  const after = new Map(real(b).map((n) => [n.id, n]));
   for (const id of [...new Set([...before.keys(), ...after.keys()])].sort()) {
     const x = before.get(id);
     const y = after.get(id);
-    const title = (y ?? x)!.title.tr || id;
+    const title = (y ?? x)!.title.tr.trim() || UNTITLED;
     if (!x || !y) {
-      changes.push({
-        path: `note.${id}`,
-        label: `Not “${title}”`,
-        shared: { before: x ? 'Vardı' : '—', after: x ? 'Kaldırıldı' : 'Eklendi' },
-      });
+      changes.push({ path: `note.${id}`, label: `Not “${title}”`, record: x ? 'removed' : 'added' });
       continue;
     }
     for (const c of diffLeaves(flattenContent(x), flattenContent(y), `note.${id}.`)) {

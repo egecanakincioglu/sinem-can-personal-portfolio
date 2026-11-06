@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getSiteContent } from '@/content/site-content.ts';
+import { angleText } from '@/lib/format.ts';
+import { resultant } from '@/lib/physics.ts';
 import { Hero } from './Hero.tsx';
 
 afterEach(cleanup);
@@ -31,6 +33,23 @@ describe('Hero', () => {
     expect(mark.getAttribute('aria-expanded')).toBe('true');
     expect(container.querySelector('.sn-body')?.textContent).toContain(content.draft.isolationNote.en);
   });
+  it('shows the computed resultant angle with the shared formatting, never a typed value', () => {
+    const R = resultant(content.forceRecords);
+    for (const locale of ['tr', 'en'] as const) {
+      const { container } = render(<Hero locale={locale} content={getSiteContent()} />);
+      expect(container.textContent).toContain(angleText(R.angleDeg, locale));
+      cleanup();
+    }
+  });
+
+  it('keeps the graduation month and year on one line', () => {
+    for (const locale of ['tr', 'en'] as const) {
+      const { container } = render(<Hero locale={locale} content={getSiteContent()} />);
+      expect(container.textContent).toMatch(/[^\s ] \d{4}/);
+      cleanup();
+    }
+  });
+
   it('keeps only dt/dd groups directly inside the definition list', () => {
     const { container } = render(<Hero locale="en" content={getSiteContent()} />);
     for (const dl of container.querySelectorAll('dl')) {

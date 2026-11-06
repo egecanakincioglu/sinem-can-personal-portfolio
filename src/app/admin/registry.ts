@@ -1,4 +1,5 @@
 import { getSiteContent } from '@/content/site-content';
+import { dictAt, stringLabel } from '@/lib/interface-strings';
 import type { NoteContent, NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { publicLeaves, type FieldLocale, type FieldType, type RegistryEntry } from '@/lib/field-registry';
@@ -310,7 +311,10 @@ for (const d of interfaceStrings()) {
     },
     'text',
     'bilingual',
-    { derived: d.kind === 'derived' || d.kind === 'locked' },
+    {
+      label: stringLabel((dictAt(getSiteContent().dict, d.path) as { tr?: string } | undefined)?.tr ?? ''),
+      derived: d.kind === 'derived' || d.kind === 'locked',
+    },
   );
 }
 

@@ -46,7 +46,9 @@ Only if you plan to commit:
 
 The `site-audit` command is optional locally. The audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`. The audit loads every page with the browser cache off, so each page is measured as a first visit.
 
-The `admin-audit` command runs only on your machine. It needs Chrome (set `CHROME_PATH`). It starts `next dev` on a free port, or uses the server at `ADMIN_AUDIT_URL`. It writes its report to the file named in `ADMIN_AUDIT_OUT`, or prints it. It checks overflow, headings, accessibility, console errors, touch targets, input font size and the command palette keys on every panel screen at the review sizes. Exit code 0 means no findings, 1 means findings, and 2 means a setup problem.
+The `admin-audit` command runs only on your machine. It needs Chrome (set `CHROME_PATH`). It starts `next dev` on a free port, or uses the server at `ADMIN_AUDIT_URL`. It writes its report to the file named in `ADMIN_AUDIT_OUT`, or prints it. It checks overflow, headings, accessibility, console errors, touch targets, input font size and the command palette keys on every panel screen at the review sizes. Exit code 0 means no findings, 1 means findings, and 2 means a setup problem. The sweep takes its routes from the side panel of `/admin`, not from source files, and exits with code 2 when it finds none.
+
+Tooling files do not import app source, except an allowlist that a test checks.
 
 Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check` and `corepack pnpm test` before you open a pull request. CI runs the full set of checks.
 

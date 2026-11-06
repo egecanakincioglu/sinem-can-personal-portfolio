@@ -71,6 +71,8 @@ The admin interface lives under `src/app/admin`. It works on mock data and has a
 - A server-side guard (`src/app/admin/guard.ts`) answers 404 for every request when the app is not in development. The root admin layout and every admin page call it.
 - There is no real sign-in yet. The admin stays closed in production until real authorization exists (planned).
 
+One field registry (`src/app/admin/registry.ts`) lists every editable field of the public site. Each entry names the public page and section, the admin screen and editor that edit the field, its status (`ready` or `planned`), its language behaviour and its type. Pure helpers in `src/lib/field-registry.ts` match registry entries to public fields. A coverage test fails when a public field has no entry, or when an entry points to a field that does not exist. This keeps the site and the panel in step. The Kapsam screen (`/admin/kapsam`, development only) shows the registry as a matrix with the ready and planned counts per screen.
+
 ## Backend (planned)
 
 No database, API route or authentication exists yet. When the backend arrives, it replaces the data behind the content accessors. Components and pages do not change. Private files must be authorized on the server; a flag in the front end is not a security boundary.

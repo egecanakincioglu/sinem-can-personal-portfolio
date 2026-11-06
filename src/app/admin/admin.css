@@ -1481,3 +1481,34 @@ html[data-locked] body {
     border-right: 0;
   }
 }
+
+/* Kapsam matrix ------------------------------------------------------------------------------------------------- */
+.admin-root .a-matrix-wrap {
+  overflow-x: auto;
+}
+.admin-root .a-matrix {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-root .a-matrix th,
+.admin-root .a-matrix td {
+  padding: 10px 12px 10px 0;
+  border-top: 1px solid var(--a-cizgi);
+  text-align: left;
+  vertical-align: top;
+}
+.admin-root .a-matrix th {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--a-kursun);
+}
+.admin-root .a-matrix-label {
+  display: block;
+}
+.admin-root .a-matrix-path {
+  font-size: 12px;
+  color: var(--a-kursun);
+  overflow-wrap: anywhere;
+}

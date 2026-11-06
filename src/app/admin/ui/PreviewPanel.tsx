@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { glbIdOf } from '@/lib/glb';
-import { PREVIEW_PROTOCOL, buildOverride, type ModelProbe, type StateMessage } from '@/lib/preview-bridge';
+import {
+  PREVIEW_PROTOCOL,
+  buildOverride,
+  isCloseMessage,
+  type ModelProbe,
+  type StateMessage,
+} from '@/lib/preview-bridge';
 import { devices } from '../screens';
 import { Segmented } from './controls';
 import { useAdmin } from './store';
@@ -16,7 +22,18 @@ const REPEAT_WINDOW = 1500;
 const PREVIEW_DEBOUNCE_MS = 250;
 
 /** Right panel: same-origin iframe at true device width, scaled to fit. State goes in by postMessage. */
-export function PreviewPanel({ route, title, onClose }: { route: string; title: string; onClose: () => void }) {
+export function PreviewPanel({
+  route,
+  title,
+  onClose,
+  overlay = false,
+}: {
+  route: string;
+  title: string;
+  onClose: () => void;
+  /** True while the panel is the open modal overlay (below 1024); only then can the frame's Escape close it. */
+  overlay?: boolean;
+}) {
   const { state, previewValues, previewSnapshot, setDevice, setPreviewLang, setPreviewSource } = useAdmin();
   const wrap = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -51,6 +68,22 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
     window.addEventListener('message', on);
     return () => window.removeEventListener('message', on);
   }, []);
+
+  // Escape pressed inside the frame never reaches the editor's document; the frame forwards it, and it closes the
+  // overlay only while the overlay is open and only when it comes from this frame.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
+  useEffect(() => {
+    if (!overlay) return;
+    const on = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return;
+      if (isCloseMessage(e.data)) closeRef.current();
+    };
+    window.addEventListener('message', on);
+    return () => window.removeEventListener('message', on);
+  }, [overlay]);
 
   const frameKey = `${route}|${state.previewLang}`;
   const [seenFrameKey, setSeenFrameKey] = useState(frameKey);
@@ -129,7 +162,7 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
                 label="Önizleme genişliği"
                 value={dev}
                 onChange={setDevice}
-                options={devices.map((d) => ({ value: d.id, label: d.label }))}
+                options={devices.map((d) => ({ value: d.id, label: d.label, short: String(d.id) }))}
               />
             </div>
             <div className="a-prev-src">
@@ -139,7 +172,7 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
                 onChange={setPreviewSource}
                 options={[
                   { value: 'draft', label: 'Taslak' },
-                  { value: 'published', label: 'Yayınlanan (sim.)' },
+                  { value: 'published', label: 'Yayınlanan (sim.)', short: 'Yayın' },
                 ]}
               />
             </div>

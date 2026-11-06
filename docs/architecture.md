@@ -121,6 +121,14 @@ The task queue groups field issues in a fixed order and hides empty groups. The 
 
 On small screens the toolbar is one row with save, preview and publish. Discard sits in the top strip, and toasts appear above the bar. Read-only screens show no save or discard. Below 1024 px the preview is a modal dialog: it traps focus, closes with Escape and returns focus to the control that opened it. Screens without a live preview hide the preview controls. The preview repeats its ready signal at most four times, and the panel skips repeats right after it sends the state.
 
+Focus and touch handling in the panel:
+
+- Modals and the section drawer trap focus on visible controls only. On small screens the drawer is a modal dialog: Escape closes it and focus returns to the control that opened it.
+- Escape pressed inside the preview frame closes the preview overlay. The frame sends a versioned `close` message, and the parent checks the origin and the source window.
+- On phones the action bar comes after the content in Tab order.
+- Rail labels come from one rule in `railLabels` (`src/app/admin/screens.ts`): the first letters of the first two words, with "ve" and "&" skipped. A first word of two characters is used whole.
+- Touch targets are at least 44 px. Form fields are 16 px below 768 px.
+
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 
 Typing stays off the render path. Editors read a content view of the store (`useAdminContent`) that ignores preview, toast and recent-command state. Text fields commit through a transition, so counters and errors may trail the typing briefly. The preview updates 250 ms after typing pauses. `src/lib/format.ts` offers cached formatters with the same output as the plain ones.

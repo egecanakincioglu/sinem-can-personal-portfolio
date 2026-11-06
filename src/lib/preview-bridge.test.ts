@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getSiteContent, mergeSiteContent } from '../content/site-content';
 import {
   FORCE_IDS,
   PREVIEW_PROTOCOL,
+  forwardEscapeToParent,
+  isCloseMessage,
   SUMMARY_COUNT,
   beamLoadField,
   buildOverride,
@@ -606,5 +608,42 @@ describe('model probe on the bridge', () => {
       approved: true,
     });
     expect(parseStateMessage(msg('p'))).not.toHaveProperty('probe');
+  });
+});
+
+describe('close message', () => {
+  const realParent = window.parent;
+  afterEach(() => {
+    Object.defineProperty(window, 'parent', { value: realParent, configurable: true });
+    vi.restoreAllMocks();
+  });
+
+  it('accepts only the exact shape', () => {
+    expect(isCloseMessage({ type: 'close', v: PREVIEW_PROTOCOL })).toBe(true);
+    expect(isCloseMessage({ type: 'close', v: 99 })).toBe(false);
+    expect(isCloseMessage({ type: 'ready', v: PREVIEW_PROTOCOL })).toBe(false);
+    expect(isCloseMessage(null)).toBe(false);
+    expect(isCloseMessage('close')).toBe(false);
+  });
+
+  it('posts to the parent on Escape only, with the exact origin, and stops after cleanup', () => {
+    const parent = { postMessage: vi.fn() };
+    Object.defineProperty(window, 'parent', { value: parent, configurable: true });
+    const stop = forwardEscapeToParent();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    expect(parent.postMessage).not.toHaveBeenCalled();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(parent.postMessage).toHaveBeenCalledWith({ type: 'close', v: PREVIEW_PROTOCOL }, window.location.origin);
+    stop();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(parent.postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing when the page is not embedded', () => {
+    const spy = vi.spyOn(window, 'postMessage');
+    const stop = forwardEscapeToParent();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    stop();
+    expect(spy).not.toHaveBeenCalled();
   });
 });

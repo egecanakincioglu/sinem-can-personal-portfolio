@@ -284,6 +284,9 @@ export function BilingualField({
  * accessible name carries more (it must contain the title). Toolbar cells name the group themselves, so their
  * stylesheet hides the repeated text.
  */
+/** `short` is a compact visual label CSS can swap in; the button keeps `label` as its accessible name. */
+type SegOption<T> = { value: T; label: string; short?: string };
+
 export function Segmented<T extends string | number>({
   label,
   title,
@@ -293,7 +296,7 @@ export function Segmented<T extends string | number>({
 }: {
   label: string;
   title?: string;
-  options: { value: T; label: string }[];
+  options: SegOption<T>[];
   value: T;
   onChange: (v: T) => void;
 }) {
@@ -314,7 +317,7 @@ function SegmentedGroup<T extends string | number>({
   onChange,
 }: {
   label: string;
-  options: { value: T; label: string }[];
+  options: SegOption<T>[];
   value: T;
   onChange: (v: T) => void;
 }) {
@@ -354,8 +357,18 @@ function SegmentedGroup<T extends string | number>({
               move(options.length - 1);
             }
           }}
+          aria-label={o.short ? o.label : undefined}
         >
-          {o.label}
+          {o.short ? (
+            <>
+              <span className="a-seg-s" aria-hidden="true">
+                {o.short}
+              </span>
+              <span className="a-seg-l">{o.label}</span>
+            </>
+          ) : (
+            o.label
+          )}
         </button>
       ))}
     </div>

@@ -10,7 +10,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { CommandPalette } from './CommandPalette';
 import { PreviewPanel } from './PreviewPanel';
 import { PublishDialog } from './PublishDialog';
-import { Toolbar } from './Toolbar';
+import { BarActions, Toolbar } from './Toolbar';
 import { TaskQueue } from './TaskQueue';
 import { ConfirmDialog, Toasts, useModalFocus } from './feedback';
 import { AdminProvider, useAdmin, type RecordLibrary } from './store';
@@ -90,7 +90,7 @@ function Frame({
         setPalette(true);
       } else if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        document.querySelector<HTMLButtonElement>('.a-bar [data-save]')?.click();
+        document.querySelector<HTMLButtonElement>('[data-save]')?.click();
       } else if (mod && e.key === 'Enter') {
         e.preventDefault();
         setPub(true);
@@ -112,6 +112,12 @@ function Frame({
   const closePreview = () => setPreviewOpen(false);
   const previewModal = hasPreview && previewOpen && narrow;
   useModalFocus(previewRef, previewModal, closePreview, undefined, true);
+  // The section drawer below 1024 is a modal too: Esc closes it, Tab stays inside, focus returns to its opener.
+  const sideRef = useRef<HTMLElement>(null);
+  const closeNav = useCallback(() => setNavOpen(false), []);
+  const navModal = narrow && navOpen;
+  useModalFocus(sideRef, navModal, closeNav, undefined, true);
+  const phone = useMedia('(max-width: 767.98px)');
   // Opening it starts at the device that fits: the phone frame on a phone, Tablet on a tablet.
   const togglePreview = () => {
     if (!previewOpen && narrow) setDevice(window.innerWidth < 768 ? 390 : 768);
@@ -134,8 +140,16 @@ function Frame({
       )}
       <AdminHeader onTasks={openTasks} onPalette={openPalette} />
       <div className="a-body">
-        <aside id="a-side" className="a-side" data-open={navOpen || undefined} aria-label="Çalışma alanı gezinmesi">
-          <AdminSidebar onNavigate={() => setNavOpen(false)} />
+        <aside
+          id="a-side"
+          ref={sideRef}
+          className="a-side"
+          data-open={navOpen || undefined}
+          aria-label="Çalışma alanı gezinmesi"
+          role={navModal ? 'dialog' : undefined}
+          aria-modal={navModal || undefined}
+        >
+          <AdminSidebar onNavigate={closeNav} />
         </aside>
         <main id="a-main" className="a-main" tabIndex={-1}>
           <Toolbar
@@ -145,6 +159,7 @@ function Frame({
             onPublish={openPublish}
             onNav={() => setNavOpen((v) => !v)}
             navOpen={navOpen}
+            actions={!phone}
           />
           <div className="a-main-in">
             <button
@@ -169,6 +184,15 @@ function Frame({
               )}
             </div>
           </div>
+          {phone && (
+            <BarActions
+              hasPreview={hasPreview}
+              previewOpen={previewOpen}
+              onPreview={togglePreview}
+              onPublish={openPublish}
+              label="Eylemler"
+            />
+          )}
         </main>
         {hasPreview && (
           <aside
@@ -181,7 +205,7 @@ function Frame({
             data-open={previewOpen || undefined}
             tabIndex={-1}
           >
-            <PreviewPanel route={screen.preview!} title={screen.title} onClose={closePreview} />
+            <PreviewPanel route={screen.preview!} title={screen.title} onClose={closePreview} overlay={previewModal} />
           </aside>
         )}
       </div>

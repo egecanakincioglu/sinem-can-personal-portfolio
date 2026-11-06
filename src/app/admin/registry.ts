@@ -34,7 +34,7 @@ import { screens } from './screens';
 export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'metinler', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
-export const partlyBuiltScreens = ['medya'] as const;
+export const partlyBuiltScreens = ['medya', 'projeler'] as const;
 
 const ALL = 'Tüm sayfalar';
 const sectionLabel = (screen: string, id: string) =>
@@ -396,12 +396,28 @@ const noteContentFields: Record<keyof NoteContent, RecordMeta> = {
   coverAlt: ['notlar', 'text', 'bilingual', 'Kapak alternatif metni'],
 };
 
-function recordFields(prefix: string, page: string, section: string, table: Record<string, RecordMeta>) {
+function recordFields(
+  prefix: string,
+  page: string,
+  section: string,
+  table: Record<string, RecordMeta>,
+  skip: readonly string[] = [],
+) {
   for (const [key, [screen, type, locale, label]] of Object.entries(table)) {
+    if (skip.includes(key)) continue;
     planned(`${screen}.${prefix}.${key}`, `${prefix}.${key}`, { page, section, screen }, type, locale, label);
   }
 }
-recordFields('project', 'Projeler', 'Proje kaydı', projectFields);
+recordFields('project', 'Projeler', 'Proje kaydı', projectFields, ['fixture']);
+// Shown as a read-only chip in the project list; set by the sample loader, never edited.
+ready(
+  'projeler.project.fixture',
+  'project.fixture',
+  { page: 'Projeler', section: 'Proje kaydı', screen: 'projeler' },
+  'toggle',
+  'shared',
+  { label: 'Geliştirme örneği işareti', derived: true },
+);
 recordFields('note', 'Notlar', 'Not kaydı', noteFields);
 recordFields('note.content', 'Notlar', 'Not içeriği', noteContentFields);
 

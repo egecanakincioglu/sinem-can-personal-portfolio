@@ -73,6 +73,13 @@ describe('field registry entries', () => {
     }
   });
 
+  it('mark the sample flag of a project as a ready, derived field of the Projeler screen', () => {
+    const flag = registry.filter((e) => e.path === 'project.fixture');
+    expect(flag).toHaveLength(1);
+    expect(flag[0]).toMatchObject({ screen: 'projeler', status: 'ready', derived: true });
+    expect(registry.filter((e) => e.screen === 'projeler' && e.status === 'ready')).toHaveLength(1);
+  });
+
   it('sum to the summary totals', () => {
     const s = summarize(registry, leaves);
     expect(s.ready + s.planned).toBe(s.total);

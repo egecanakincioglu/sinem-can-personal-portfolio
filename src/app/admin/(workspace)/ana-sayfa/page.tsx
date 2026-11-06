@@ -3,7 +3,6 @@ import { HomeEditor } from './HomeEditor';
 import { dict } from '@/content/dictionary';
 import { beam, draft, forceRecords, identity, interests } from '@/content/site';
 import { num } from '@/lib/format';
-import { getPublicProjects } from '@/lib/projects';
 import { beamMaxMidspanOffset, resultant } from '@/lib/physics';
 
 const pair = (c: { tr: string; en: string }) => ({ tr: c.tr, en: c.en });
@@ -18,18 +17,8 @@ const forceSource: Record<string, string> = {
   F6: 'Deneyim › Ferre | Femas Group',
 };
 
-export default async function HomeScreen({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default function HomeScreen() {
   assertDevOnly();
-  const sp = await searchParams;
-  // Only published + approved records can be chosen as featured (getPublicProjects applies the same filter as the public site).
-  const projects = getPublicProjects({ includeFixtures: sp.fixtures === '1' }).map((p) => ({
-    id: p.id,
-    title: { tr: p.title.tr, en: p.title.en },
-  }));
   const h = dict.hero;
   return (
     <HomeEditor
@@ -107,7 +96,6 @@ export default async function HomeScreen({
         },
         lead: draft.statement,
         interests: interests.map((i) => ({ tr: i.tr, en: i.en })),
-        projects,
       }}
     />
   );

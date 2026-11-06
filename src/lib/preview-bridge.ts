@@ -34,8 +34,17 @@ export const PREVIEW_PROTOCOL = 1;
 
 /** iframe -> parent. The handshake: "my listener is attached, send the state". */
 export type ReadyMessage = { type: 'ready'; v: typeof PREVIEW_PROTOCOL };
-/** parent -> iframe. `override` is already sanitised; the iframe sanitises it again. */
-export type StateMessage = { type: 'state'; v: typeof PREVIEW_PROTOCOL; lang: Locale; override: SiteContentOverride };
+/**
+ * parent -> iframe. `override` is already sanitised; the iframe sanitises it again. `projects` carries record ids
+ * only: the iframe resolves them against its own server-side pool, so no record or URL ever crosses the bridge.
+ */
+export type StateMessage = {
+  type: 'state';
+  v: typeof PREVIEW_PROTOCOL;
+  lang: Locale;
+  override: SiteContentOverride;
+  projects?: string[];
+};
 
 type DictGroup =
   | 'meta'
@@ -817,10 +826,27 @@ export function buildOverride(values: Record<string, string>): SiteContentOverri
 
 const isLocale = (v: unknown): v is Locale => v === 'tr' || v === 'en';
 
+const PROJECT_ID = /^[A-Za-z0-9_-]{1,80}$/;
+const MAX_PROJECT_IDS = 50;
+
+/** Keeps well-formed, unique record ids (at most 50); anything else is dropped. Not an array: no list at all. */
+export function sanitizeProjectIds(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const ids = raw.filter((x): x is string => typeof x === 'string' && PROJECT_ID.test(x));
+  return [...new Set(ids)].slice(0, MAX_PROJECT_IDS);
+}
+
 /** Iframe side: validate an incoming message. Returns null for anything that is not a well-formed state message. */
 export function parseStateMessage(data: unknown): StateMessage | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
   if (d.type !== 'state' || d.v !== PREVIEW_PROTOCOL || !isLocale(d.lang)) return null;
-  return { type: 'state', v: PREVIEW_PROTOCOL, lang: d.lang, override: sanitizeOverride(d.override) };
+  const projects = sanitizeProjectIds(d.projects);
+  return {
+    type: 'state',
+    v: PREVIEW_PROTOCOL,
+    lang: d.lang,
+    override: sanitizeOverride(d.override),
+    ...(projects ? { projects } : {}),
+  };
 }

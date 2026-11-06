@@ -378,7 +378,6 @@ export function TopicsEditor() {
 
 /* ------------------------------------------------------------------ Çalışmalar ------------------------------------------------------------------ */
 
-export type ProjectOption = { id: string; title: Pair };
 const WORK_KEYS = [
   'workHeading',
   'workProjects',
@@ -395,14 +394,16 @@ const WORK_KEYS = [
   'workRev',
 ] as const satisfies readonly CopyKey[];
 
-export function WorkEditor({ projects }: { projects: ProjectOption[] }) {
-  const { state, setValue } = useAdmin();
+export function WorkEditor() {
+  const { state, setValue, snapshot, derived } = useAdmin();
+  // The same records the preview shows: public-rule projects of the mock state (loaded samples included).
+  const projects = snapshot.publicProjects;
   const selectId = useId();
   const showProjects = flag(state.values[workViewFields.showProjects], true);
   const showNotes = flag(state.values[workViewFields.showNotes], true);
   const featured = state.values[workViewFields.featured] ?? '';
   const known = projects.some((p) => p.id === featured);
-  const owner = useAdmin().derived.ownerName;
+  const owner = derived.ownerName;
   return (
     <>
       <CopyStatus keys={WORK_KEYS} />

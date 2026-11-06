@@ -741,6 +741,11 @@ html[data-locked] body {
   font-size: 20px;
   text-underline-offset: 3px;
 }
+.admin-root .a-proj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .admin-root .a-inline-confirm {
   display: inline-flex;
   align-items: center;

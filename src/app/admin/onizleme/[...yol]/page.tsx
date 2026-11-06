@@ -17,5 +17,6 @@ export default async function Onizleme({
   const { lang } = await searchParams;
   if (yol[0] === 'ana-sayfa') redirect(`/${lang === 'en' ? 'en' : 'tr'}/dev-preview/live`);
   if (yol[0] === 'profil') redirect(`/${lang === 'en' ? 'en' : 'tr'}/dev-preview/live-profile`);
+  if (yol[0] === 'projeler') redirect(`/${lang === 'en' ? 'en' : 'tr'}/dev-preview/live-project`);
   return <PreviewSkeleton path={yol.join('/')} />;
 }

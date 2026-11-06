@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
-import { mergeSiteContent, type SiteContent } from '@/content/site-content';
-import { buildOverride } from '@/lib/preview-bridge';
+import type { ProjectRecord } from '@/content/projects/types';
+import type { SiteContent } from '@/content/site-content';
+import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import type { DeviceId } from '../screens';
 
 /** Mock admin state. Lives in React + sessionStorage only: nothing in localStorage, cookies or network. */
@@ -14,6 +15,8 @@ type AdminState = {
   device: DeviceId;
   values: Record<string, string>; // edited field values, keyed by field id
   savedValues: Record<string, string>; // snapshot of the last mock Save: what "Discard" returns to
+  projects: ProjectRecord[]; // mock project records; only development samples can be added for now
+  seeded: boolean; // development samples loaded
   dirty: boolean;
   saveCount: number;
   rev: number; // 0 = A, 1 = B …
@@ -28,6 +31,8 @@ const initial: AdminState = {
   device: 390,
   values: {},
   savedValues: {},
+  projects: [],
+  seeded: false,
   dirty: false,
   saveCount: 0,
   rev: 0,
@@ -47,6 +52,8 @@ type Action =
   | { type: 'discard' }
   | { type: 'publish' }
   | { type: 'reset' }
+  | { type: 'seedSamples'; records: ProjectRecord[] }
+  | { type: 'clearSamples' }
   | { type: 'toast'; id: number; text: string }
   | { type: 'dismiss'; id: number };
 
@@ -55,7 +62,14 @@ const withLog = (s: AdminState, text: string) => ({ ...s, log: [text, ...s.log].
 function reducer(s: AdminState, a: Action): AdminState {
   switch (a.type) {
     case 'hydrate':
-      return { ...s, ...a.state, ready: true, toasts: [] };
+      return {
+        ...s,
+        ...a.state,
+        projects: Array.isArray(a.state.projects) ? a.state.projects : [],
+        seeded: a.state.seeded === true,
+        ready: true,
+        toasts: [],
+      };
     case 'editLang':
       return { ...s, editLang: a.lang };
     case 'previewLang':
@@ -72,6 +86,10 @@ function reducer(s: AdminState, a: Action): AdminState {
       return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1, rev: s.rev + 1 };
     case 'reset':
       return { ...initial, ready: true, toasts: s.toasts, log: s.log };
+    case 'seedSamples':
+      return { ...s, projects: [...s.projects.filter((p) => !p.fixture), ...a.records], seeded: true };
+    case 'clearSamples':
+      return { ...s, projects: s.projects.filter((p) => !p.fixture), seeded: false };
     case 'toast':
       return withLog({ ...s, toasts: [...s.toasts, { id: a.id, text: a.text }] }, a.text);
     case 'dismiss':
@@ -93,6 +111,8 @@ type Ctx = {
   state: AdminState;
   /** The public content as the current mock values would render it: one derivation shared by every editor readout. */
   derived: SiteContent;
+  /** Everything the public site would take from the current mock state; the preview and every count come from it. */
+  snapshot: PublicSnapshot;
   hydrated: boolean;
   setEditLang: (l: Lang) => void;
   setPreviewLang: (l: Lang) => void;
@@ -102,6 +122,8 @@ type Ctx = {
   discard: () => void;
   publish: () => void;
   reset: () => void;
+  seedSamples: (records: ProjectRecord[]) => void;
+  clearSamples: () => void;
   toast: (text: string) => void;
   dismiss: (id: number) => void;
 };
@@ -159,12 +181,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => dispatch({ type: 'dismiss', id }), 4500);
   }, []);
 
-  const derived = useMemo(() => mergeSiteContent(buildOverride(state.values)), [state.values]);
+  const snapshot = useMemo(
+    () =>
+      selectPublicSnapshot({ values: state.values, projects: state.projects }, process.env.NODE_ENV === 'development'),
+    [state.values, state.projects],
+  );
 
   const value = useMemo<Ctx>(
     () => ({
       state,
-      derived,
+      derived: snapshot.content,
+      snapshot,
       hydrated: state.ready,
       setEditLang: (lang) => dispatch({ type: 'editLang', lang }),
       setPreviewLang: (lang) => dispatch({ type: 'previewLang', lang }),
@@ -186,10 +213,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'reset' });
         toast('Demo sıfırlandı (simülasyon).');
       },
+      seedSamples: (records) => {
+        dispatch({ type: 'seedSamples', records });
+        toast('Örnek veriler yüklendi (simülasyon). Geliştirme örneği olarak işaretlidir.');
+      },
+      clearSamples: () => {
+        dispatch({ type: 'clearSamples' });
+        toast('Örnekler kaldırıldı (simülasyon).');
+      },
       toast,
       dismiss: (id) => dispatch({ type: 'dismiss', id }),
     }),
-    [state, derived, toast],
+    [state, snapshot, toast],
   );
 
   return <AdminCtx.Provider value={value}>{children}</AdminCtx.Provider>;

@@ -122,6 +122,18 @@ export function ErrorState({ title, children, action }: { title: string; childre
 
 const FOCUSABLE = 'button:not([disabled]),[href],input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])';
 
+/** Hidden elements cannot take focus: [hidden] / inert ancestors, `display: none` on the element or an ancestor, or
+ *  `visibility: hidden`. (The palette's Close button is `display: none` from 768px up.) */
+export function isVisible(el: HTMLElement, root: HTMLElement): boolean {
+  if (el.closest('[hidden],[inert]')) return false;
+  if (getComputedStyle(el).visibility === 'hidden') return false;
+  for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+    if (getComputedStyle(n).display === 'none') return false;
+    if (n === root) break;
+  }
+  return true;
+}
+
 /** Modal behaviour for any container: focus moves in, Tab stays inside, Esc closes, focus returns to the invoker.
  *  `yieldToDialogs` leaves the keys to a Dialog opened above it (the palette over the preview). */
 export function useModalFocus(
@@ -140,7 +152,8 @@ export function useModalFocus(
     if (!active || !ref.current) return;
     const el = ref.current;
     const opener = document.activeElement as HTMLElement | null;
-    const focusables = () => Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE));
+    const focusables = () =>
+      Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((n) => n.tabIndex >= 0 && isVisible(n, el));
     const first0 = (initialFocus ? el.querySelector<HTMLElement>(initialFocus) : null) ?? focusables()[0];
     first0?.focus();
     const key = (e: KeyboardEvent) => {

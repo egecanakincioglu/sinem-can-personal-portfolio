@@ -52,7 +52,7 @@ describe('toolbar', () => {
     setup();
     expect(toolbar().getByRole('button', { name: 'Kaydet (sim.)' })).toBeTruthy();
     expect(toolbar().getByRole('button', { name: /^Vazgeç/ })).toBeTruthy();
-    expect(toolbar().getByRole('button', { name: 'Önizle' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Önizle' })).toBeTruthy();
     expect(toolbar().getByRole('button', { name: 'Yayınla (sim.)' })).toBeTruthy();
     expect(toolbar().getByRole('status').textContent).toBe('Değişiklik yok');
   });
@@ -84,11 +84,55 @@ describe('toolbar', () => {
   });
 });
 
+describe('section drawer', () => {
+  it('is a modal dialog below 1024: focus moves in, Tab wraps, Esc closes and focus returns to the opener', () => {
+    media(true, true);
+    setup();
+    const opener = screen.getByRole('button', { name: /Bölümler ve ekranlar/, expanded: false });
+    opener.focus();
+    fireEvent.click(opener);
+    const drawer = screen.getByRole('dialog', { name: 'Çalışma alanı gezinmesi' });
+    expect(drawer.getAttribute('aria-modal')).toBe('true');
+    const close = within(drawer).getAllByRole('button')[0];
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+    expect(drawer.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(close);
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Çalışma alanı gezinmesi' })).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('is not a dialog on a wide screen', () => {
+    media(false);
+    setup();
+    expect(screen.queryByRole('dialog', { name: 'Çalışma alanı gezinmesi' })).toBeNull();
+  });
+});
+
+describe('phone action bar', () => {
+  it('comes after the content in DOM order on a phone and inside the strip elsewhere', () => {
+    media(true, true);
+    setup();
+    const bar = screen.getByRole('toolbar', { name: 'Eylemler' });
+    const field = screen.getByLabelText('Alan');
+    expect(field.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(toolbar().queryByRole('button', { name: 'Yayınla (sim.)' })).toBeNull();
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true });
+    expect(toolbar().getByRole('status').textContent).toBe('Kaydedildi (sim.)');
+    cleanup();
+    media(false);
+    setup();
+    expect(screen.queryByRole('toolbar', { name: 'Eylemler' })).toBeNull();
+    expect(toolbar().getByRole('button', { name: 'Yayınla (sim.)' })).toBeTruthy();
+  });
+});
+
 describe('preview overlay', () => {
   it('is a labelled modal dialog on a narrow screen: focus moves in, Tab wraps, Esc closes and focus returns', () => {
     media(true, true);
     setup();
-    const opener = toolbar().getByRole('button', { name: 'Önizle' });
+    const opener = screen.getByRole('button', { name: 'Önizle' });
     opener.focus();
     expect(screen.queryByRole('dialog', { name: 'Canlı önizleme' })).toBeNull();
     fireEvent.click(opener);
@@ -110,7 +154,7 @@ describe('preview overlay', () => {
   it('closes with its own button and returns focus to the opener', () => {
     media(true, true);
     setup();
-    const opener = toolbar().getByRole('button', { name: 'Önizle' });
+    const opener = screen.getByRole('button', { name: 'Önizle' });
     opener.focus();
     fireEvent.click(opener);
     fireEvent.click(screen.getByRole('button', { name: 'Düzenlemeye dön' }));
@@ -129,7 +173,7 @@ describe('preview overlay', () => {
     media(true, true);
     window.innerWidth = 390;
     setup();
-    fireEvent.click(toolbar().getByRole('button', { name: 'Önizle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Önizle' }));
     expect(screen.getByTitle(/390 piksel/)).toBeTruthy();
     cleanup();
     sessionStorage.clear();
@@ -137,14 +181,43 @@ describe('preview overlay', () => {
     media(true, false);
     window.innerWidth = 820;
     setup();
-    fireEvent.click(toolbar().getByRole('button', { name: 'Önizle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Önizle' }));
     expect(screen.getByTitle(/768 piksel/)).toBeTruthy();
+  });
+
+  describe('Escape from inside the frame', () => {
+    const closeFrom = (source: unknown, origin = window.location.origin, data: unknown = { type: 'close', v: 1 }) =>
+      act(() => {
+        window.dispatchEvent(new MessageEvent('message', { data, origin, source: source as MessageEventSource }));
+      });
+
+    it('closes the open overlay when the frame itself sends it', () => {
+      media(true, true);
+      setup();
+      fireEvent.click(screen.getByRole('button', { name: 'Önizle' }));
+      const frame = screen.getByTitle(/Canlı önizleme/) as HTMLIFrameElement;
+      closeFrom(window);
+      closeFrom(frame.contentWindow, 'https://example.test');
+      closeFrom(frame.contentWindow, undefined, { type: 'close', v: 2 });
+      expect(screen.getByRole('dialog', { name: 'Canlı önizleme' })).toBeTruthy();
+      closeFrom(frame.contentWindow);
+      expect(screen.queryByRole('dialog', { name: 'Canlı önizleme' })).toBeNull();
+    });
+
+    it('does nothing on a wide screen, where the preview is not an overlay', () => {
+      media(false);
+      setup();
+      const frame = screen.getByTitle(/Canlı önizleme/) as HTMLIFrameElement;
+      closeFrom(frame.contentWindow);
+      expect(screen.getByRole('complementary', { name: 'Canlı önizleme' }).getAttribute('data-open')).toBeNull();
+      expect(document.querySelector('.a-frame')?.getAttribute('data-preview-open')).toBeNull();
+    });
   });
 
   it('leaves Escape to a dialog opened above it', () => {
     media(true, true);
     setup();
-    fireEvent.click(toolbar().getByRole('button', { name: 'Önizle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Önizle' }));
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
     const palette = screen.getByRole('dialog', { name: 'Komut paleti' });
     fireEvent.keyDown(within(palette).getByRole('combobox'), { key: 'Escape' });

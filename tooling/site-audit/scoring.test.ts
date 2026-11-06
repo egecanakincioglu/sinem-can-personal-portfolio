@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
-  agenticFailures,
+  browsingFailures,
   discardReason,
   nextStep,
   judge,
@@ -60,15 +60,15 @@ test('transferOf sums by resource type and counts fonts', () => {
   assert.deepEqual(transferOf(r), { scriptKB: 3, stylesheetKB: 1, fontFiles: 1, fontKB: 2, totalKB: 7 });
 });
 
-test('agenticFailures ignores not applicable, informative and passing audits', () => {
+test('browsingFailures ignores not applicable, informative and passing audits', () => {
   const r = lhr(100);
   r.categories['agentic-browsing'] = { score: null, auditRefs: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }] };
   r.audits.a = { title: 'A', score: 0, scoreDisplayMode: 'binary' };
   r.audits.b = { title: 'B', score: null, scoreDisplayMode: 'notApplicable' };
   r.audits.c = { title: 'C', score: 1, scoreDisplayMode: 'binary' };
   r.audits.d = { title: 'D', score: 0, scoreDisplayMode: 'informative' };
-  assert.deepEqual(agenticFailures(r), ['A']);
-  assert.deepEqual(agenticFailures(lhr(100)), []);
+  assert.deepEqual(browsingFailures(r), ['A']);
+  assert.deepEqual(browsingFailures(lhr(100)), []);
 });
 
 test('judge: at or above expected is clean', () => {
@@ -93,7 +93,7 @@ test('judge: each budget fails only above its limit', () => {
   }
 });
 
-test('judge: a failed agentic audit is red', () => {
+test('judge: a failed browsing audit is red', () => {
   const v = judge('p', scores, small, ['agent-accessibility-tree'], t);
   assert.equal(v.failures.length, 1);
   assert.match(v.failures[0]!, /agent-accessibility-tree/);

@@ -70,7 +70,7 @@ Every pull request to `main` runs these checks:
 | `zizmor` | Security audit of the workflow files |
 | `test` | Vitest tests with the coverage gate |
 | `build` | `pnpm build` |
-| `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | Page audit: overflow, axe, console errors, and Lighthouse on mobile and desktop |
+| `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | Page audit: overflow, axe, console errors, and Lighthouse on mobile and desktop, including its browsing audits |
 
 The `build` and `site-audit` jobs skip themselves while the site is not in the repository.
 

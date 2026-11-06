@@ -69,7 +69,7 @@ export function medianScores(runs: LhrLike[]): Record<CategoryId, number> {
   >;
 }
 
-/** The run whose performance score is the median; budgets and agentic audits are read from it. */
+/** The run whose performance score is the median; budgets and browsing audits are read from it. */
 export function medianRun(runs: LhrLike[]): LhrLike {
   const sorted = [...runs].sort((a, b) => categoryScore(a, 'performance') - categoryScore(b, 'performance'));
   return sorted[Math.floor((sorted.length - 1) / 2)]!;
@@ -98,7 +98,7 @@ export function transferOf(lhr: LhrLike): Transfer {
 }
 
 /** Titles of applicable audits of the Agentic Browsing category that did not pass. */
-export function agenticFailures(lhr: LhrLike): string[] {
+export function browsingFailures(lhr: LhrLike): string[] {
   const refs = lhr.categories['agentic-browsing']?.auditRefs ?? [];
   const failed: string[] = [];
   for (const { id } of refs) {
@@ -119,7 +119,7 @@ export function judge(
   where: string,
   scores: Record<CategoryId, number>,
   transfer: Transfer,
-  agentic: string[],
+  browsing: string[],
   t: Thresholds,
 ): Verdict {
   const failures: string[] = [];
@@ -139,6 +139,6 @@ export function judge(
   for (const [key, max] of limits) {
     if (transfer[key] > max) failures.push(`${where}: ${key} ${transfer[key]} exceeds ${max}`);
   }
-  for (const title of agentic) failures.push(`${where}: agentic browsing audit failed: ${title}`);
+  for (const title of browsing) failures.push(`${where}: browsing audit failed: ${title}`);
   return { failures, warnings };
 }

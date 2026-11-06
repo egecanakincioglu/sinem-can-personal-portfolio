@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { NoteContent } from '@/content/notes/types';
-import { Inline, blockStrings, buildCtx, plain, type Ctx } from './inline';
+import { Inline, blockStrings, buildCtx, citeTokens, plain, type Ctx } from './inline';
 
 const baseCtx = (over: Partial<Ctx> = {}): Ctx => ({
   locale: 'en',
@@ -157,5 +157,17 @@ describe('blockStrings and buildCtx', () => {
     expect(ctx.labels.get('f1')).toEqual({ kind: 'fig', n: 1 });
     const { container } = render(<Inline text="see [[f1]]" ctx={ctx} />);
     expect(container.textContent).toContain('1');
+  });
+});
+
+describe('citeTokens', () => {
+  it('returns ids and link targets, nested markup included', () => {
+    expect(citeTokens('a[^f] **b[@r]** *[[eq]]* [see](https://x.test) [^g] `[^no]` $[^no]$')).toEqual([
+      { kind: 'fn', value: 'f' },
+      { kind: 'ref', value: 'r' },
+      { kind: 'xref', value: 'eq' },
+      { kind: 'link', value: 'https://x.test' },
+      { kind: 'fn', value: 'g' },
+    ]);
   });
 });

@@ -16,6 +16,7 @@ import {
 } from './profile-fields';
 import type { Copy, Locale, Platform, Process } from '@/content/types';
 import { num } from '@/lib/format';
+import { isGlbId } from '@/lib/glb';
 import { beamMaxMidspanOffset } from '@/lib/physics';
 
 /* ------------------------------------------------------------------------------------------------
@@ -44,7 +45,11 @@ export type StateMessage = {
   lang: Locale;
   override: SiteContentOverride;
   projects?: string[];
+  probe?: ModelProbe;
 };
+
+/** A 3D preview to try: the record id, a model library id (never a URL) and the approval flag. Nothing else crosses. */
+export type ModelProbe = { id: string; glb: string | null; approved: boolean };
 
 type DictGroup =
   | 'meta'
@@ -839,17 +844,27 @@ export function sanitizeProjectIds(raw: unknown): string[] | undefined {
   return [...new Set(ids)].slice(0, MAX_PROJECT_IDS);
 }
 
+/** A well-formed record id, a known library id (unknown ones become no model) and a literal boolean; otherwise none. */
+export function sanitizeProbe(raw: unknown): ModelProbe | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const d = raw as Record<string, unknown>;
+  if (typeof d.id !== 'string' || !PROJECT_ID.test(d.id)) return undefined;
+  return { id: d.id, glb: isGlbId(d.glb) ? d.glb : null, approved: d.approved === true };
+}
+
 /** Iframe side: validate an incoming message. Returns null for anything that is not a well-formed state message. */
 export function parseStateMessage(data: unknown): StateMessage | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
   if (d.type !== 'state' || d.v !== PREVIEW_PROTOCOL || !isLocale(d.lang)) return null;
   const projects = sanitizeProjectIds(d.projects);
+  const probe = sanitizeProbe(d.probe);
   return {
     type: 'state',
     v: PREVIEW_PROTOCOL,
     lang: d.lang,
     override: sanitizeOverride(d.override),
     ...(projects ? { projects } : {}),
+    ...(probe ? { probe } : {}),
   };
 }

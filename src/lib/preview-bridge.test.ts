@@ -24,6 +24,7 @@ import {
   parseBeamLoad,
   parseForceNumber,
   parseStateMessage,
+  sanitizeProbe,
   sanitizeProjectIds,
   platformFieldId,
   portraitFields,
@@ -456,5 +457,40 @@ describe('project ids on the bridge', () => {
       'projects',
     );
     expect(parseStateMessage(msg({ id: 'x' }))).not.toHaveProperty('projects');
+  });
+});
+
+describe('model probe on the bridge', () => {
+  const msg = (probe: unknown) => ({ type: 'state', v: PREVIEW_PROTOCOL, lang: 'tr', override: {}, probe });
+
+  it('keeps a record id, a known library id and the approval flag', () => {
+    expect(sanitizeProbe({ id: 'fixture-a', glb: 'dev-flange', approved: true })).toEqual({
+      id: 'fixture-a',
+      glb: 'dev-flange',
+      approved: true,
+    });
+  });
+  it('turns an unknown or non-string model id into no model, and anything but true into not approved', () => {
+    expect(sanitizeProbe({ id: 'p', glb: '/dev-model/flange.glb', approved: 'yes' })).toEqual({
+      id: 'p',
+      glb: null,
+      approved: false,
+    });
+    expect(sanitizeProbe({ id: 'p', glb: 5 })?.glb).toBeNull();
+  });
+  it('drops extra keys, so no address or record can cross', () => {
+    const p = sanitizeProbe({ id: 'p', glb: null, approved: true, url: 'https://x.test/a.glb', record: {} });
+    expect(Object.keys(p ?? {}).sort()).toEqual(['approved', 'glb', 'id']);
+  });
+  it.each([undefined, null, 'p', 7, [], { id: '../x' }, { id: '' }, { id: 5 }])('is undefined for %j', (v) => {
+    expect(sanitizeProbe(v)).toBeUndefined();
+  });
+  it('is carried by a state message and absent otherwise', () => {
+    expect(parseStateMessage(msg({ id: 'p', glb: 'size-18', approved: true }))?.probe).toEqual({
+      id: 'p',
+      glb: 'size-18',
+      approved: true,
+    });
+    expect(parseStateMessage(msg('p'))).not.toHaveProperty('probe');
   });
 });

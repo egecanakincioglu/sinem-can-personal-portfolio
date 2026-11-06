@@ -239,6 +239,9 @@ jobs:
       - name: Build
         if: steps.site.outputs.present == 'true'
         run: pnpm build
+      - name: Check the build output for sample data
+        if: steps.site.outputs.present == 'true'
+        run: node tooling/scripts/check-build-output.ts
 
   site-audit:
     name: site-audit (${{ matrix.leg }})

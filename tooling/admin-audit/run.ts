@@ -11,7 +11,6 @@ import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import type AxeCore from 'axe-core';
 import puppeteer, { type Page } from 'puppeteer-core';
-import { screens } from '../../src/app/admin/screens.ts';
 import { consoleProblems, hasHorizontalOverflow, type ConsoleEntry } from '../site-audit/checks.ts';
 import { findChrome } from '../site-audit/chrome.ts';
 import {
@@ -19,6 +18,7 @@ import {
   VIEWPORTS,
   h1Problem,
   inputFontProblems,
+  navRoutes,
   paletteProblems,
   renderReport,
   screenRoutes,
@@ -166,10 +166,17 @@ async function main(): Promise<number> {
     return 2;
   }
   const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
-  const routes = screenRoutes(screens.map((s) => s.slug));
+  let routes: string[] = [];
   let server: { base: string; child?: ChildProcess } | undefined;
   try {
     server = await startServer();
+    const overview = await (await fetch(`${server.base}/admin`)).text();
+    const found = navRoutes(overview);
+    if (found.length === 0) {
+      console.error('admin-audit: no sidebar links found on /admin');
+      return 2;
+    }
+    routes = screenRoutes(found);
     const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
     try {
       const page = await browser.newPage();

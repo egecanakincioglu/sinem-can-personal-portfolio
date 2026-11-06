@@ -17,7 +17,7 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/content/media-manifest', async (orig) => {
   const actual = await orig<typeof import('@/content/media-manifest')>();
   const { fixtureProjects } = await import('@/content/fixtures/projects');
-  return { ...actual, devFixtureProjects: () => fixtureProjects };
+  return { ...actual, devFixtureProjects: () => fixtureProjects, devFixtureNotes: () => [] };
 });
 
 afterEach(() => {

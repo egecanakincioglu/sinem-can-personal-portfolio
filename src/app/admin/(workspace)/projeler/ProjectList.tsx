@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { FILTER_THRESHOLD } from '@/components/projects/ArchiveList';
 import { listRow, projectCounts, workLayout } from '@/lib/public-snapshot';
@@ -12,7 +13,7 @@ import { screenBySlug } from '../../screens';
 const screen = screenBySlug('projeler')!;
 
 /** Project list ("pafta listesi"): hairline records, header counts, the Homepage Work state, development samples. */
-export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
+export function ProjectList({ samples, noteSamples = [] }: { samples: ProjectRecord[]; noteSamples?: NoteRecord[] }) {
   const { state, snapshot, seedSamples, clearSamples } = useAdmin();
   const records = state.projects;
   const publicCount = snapshot.publicProjects.length;
@@ -52,7 +53,7 @@ export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
               type="button"
               className="a-btn"
               disabled={state.seeded || samples.length === 0}
-              onClick={() => seedSamples(samples)}
+              onClick={() => seedSamples(samples, noteSamples)}
             >
               Örnek verileri yükle
             </button>

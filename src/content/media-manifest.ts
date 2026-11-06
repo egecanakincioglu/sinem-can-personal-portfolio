@@ -1,3 +1,4 @@
+import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { fixtureMediaAssets, type MediaAsset } from '@/lib/media';
 import { portrait } from './portrait';
@@ -36,6 +37,13 @@ const fixtureModule = (): FixtureModule | null =>
 
 /** Development-only sample projects, for usage lookups. Empty in production. */
 export const devFixtureProjects = (): ProjectRecord[] => fixtureModule()?.fixtureProjects ?? [];
+
+/** Development-only sample notes, for the admin note list. Empty in production. */
+export const devFixtureNotes = (): NoteRecord[] =>
+  process.env.NODE_ENV === 'development'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports -- a static import would put the sample data into production bundles
+      (require('./fixtures/notes') as typeof import('@/content/fixtures/notes')).fixtureNotes
+    : [];
 
 /** Development-only sample images: the sample projects' media and the sample note plot. Empty in production. */
 export function devMediaAssets(): MediaAsset[] {

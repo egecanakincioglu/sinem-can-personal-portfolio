@@ -76,7 +76,7 @@ button {
 sub,
 sup {
   line-height: 0;
-  font-size: 0.72em;
+  font-size: max(0.72em, 12px);
 }
 sub {
   vertical-align: baseline;
@@ -358,7 +358,7 @@ em {
   display: inline;
 }
 .sn-mark {
-  font-size: 0.7em;
+  font-size: max(0.7em, 12px);
   line-height: 0;
   position: relative;
   top: -0.55em;
@@ -376,6 +376,13 @@ em {
 }
 .sn-label {
   font-size: 15px;
+}
+/* a plain mark stays on the line of the word before it; the opened note is ordinary text again */
+.sn-nowrap {
+  white-space: nowrap;
+}
+.sn-nowrap .sn-body {
+  white-space: normal;
 }
 /* labelled disclosure (hero): a real ≥44px touch target below 1024px, hidden in the rail layout */
 .sn-mark--label {
@@ -796,7 +803,7 @@ html:not([data-js]) .beam-range {
 }
 .fnmark {
   font-family: var(--font-sans);
-  font-size: 0.78em;
+  font-size: max(0.78em, 12px);
   font-weight: 600;
   padding: 0 2px;
 }
@@ -805,7 +812,7 @@ html:not([data-js]) .beam-range {
   text-decoration-thickness: 2px;
 }
 .refmark {
-  font-size: 0.72em;
+  font-size: max(0.72em, 12px);
   vertical-align: baseline;
 }
 
@@ -946,6 +953,10 @@ math.display {
 mtext {
   font-family: var(--font-sans);
   font-size: 0.82em;
+}
+/* MathML scripts shrink with the font; keep them readable on small screens */
+:is(msub, msup, msubsup) > :not(:first-child) {
+  font-size: max(0.71em, 12px);
 }
 /* keep variables in Newsreader italic instead of the browser's Unicode math-italic fallback glyphs */
 mi {

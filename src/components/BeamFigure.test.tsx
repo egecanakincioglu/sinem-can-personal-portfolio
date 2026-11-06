@@ -98,4 +98,15 @@ describe('BeamFigure', () => {
       }
     }
   });
+
+  it('keeps every figure label of the phone composition at 12px or more on a 360px screen', () => {
+    const { container } = render(<BeamFigure locale="en" />);
+    const svg = container.querySelector('.md\\:hidden svg') as SVGSVGElement;
+    const scale = 320 / Number(svg.getAttribute('viewBox')!.split(' ')[2]);
+    const sizes = Array.from(svg.querySelectorAll('text, tspan'))
+      .map((t) => Number(t.getAttribute('font-size')))
+      .filter(Boolean);
+    expect(sizes.length).toBeGreaterThan(5);
+    for (const px of sizes) expect(px * scale).toBeGreaterThanOrEqual(12);
+  });
 });

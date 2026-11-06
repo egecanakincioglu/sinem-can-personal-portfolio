@@ -16,7 +16,7 @@ export const fieldMeta: Partial<Record<CopyKey, FieldMeta>> = {
   graduation: { label: 'Mezuniyet etiketi' },
   internship: { label: 'Staj etiketi' },
   direction: { label: '“Yönelim:” etiketi' },
-  resultantAlt: { label: 'Bileşke vektörü erişilebilirlik metni' },
+  resultantAlt: { label: 'Bileşke vektörü alternatif metni' },
   statement: { label: 'Tanıtım cümlesi' },
   forcesHeading: { label: 'Kuvvetler: Bölüm başlığı' },
   forcesText: { label: 'Kuvvetler: Giriş paragrafı' },
@@ -36,7 +36,7 @@ export const fieldMeta: Partial<Record<CopyKey, FieldMeta>> = {
   beamReset: { label: 'Yaklaşım: Sıfırla düğmesi' },
   beamResetLabel: { label: 'Yaklaşım: Sıfırla düğmesi erişilebilir adı' },
   beamValueText: { label: 'Yaklaşım: Kaydırıcı değer metni' },
-  beamFigAlt: { label: 'Yaklaşım: Diyagram açıklaması' },
+  beamFigAlt: { label: 'Yaklaşım: Diyagram alternatif metni' },
   // Kısaca
   introHeading: { label: 'Bölüm başlığı', helper: 'Kısaca bölümünün küçük başlığı.' },
   introSummary: { label: 'Özet başlığı', helper: 'Özet satırlarının üzerindeki etiket.' },

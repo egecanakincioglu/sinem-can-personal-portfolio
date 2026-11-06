@@ -62,7 +62,6 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
           k === 'zoom'
             ? '1 = yakınlaştırma yok. Kırpma 4:5 çerçevede odak noktasına göre yapılır.'
             : '0 sol/üst, 100 sağ/alt kenar.',
-        counter: { value: num(k).length, max: 6 },
       }}
     />
   );
@@ -89,6 +88,7 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
         </p>
         <Segmented
           label="Portre göster"
+          title="Portre"
           options={onOff}
           value={show ? '1' : '0'}
           onChange={(x) => setValue(portraitSlotFields.show, x)}

@@ -199,7 +199,7 @@ export function HeroEditor({ seed }: { seed: HeroSeed }) {
         {pair('direction', '“Yönelim:” etiketi', 'İlgi alanları listesinin önündeki etiket.')}
         {pair(
           'resultantAlt',
-          'Bileşke vektörü erişilebilirlik metni',
+          'Bileşke vektörü alternatif metni',
           'Ekran okuyucular için; görsel olarak görünmez. {deg} belirteci yerine yatayla yapılan açı konur ve silinemez.',
         )}
       </Disclosure>

@@ -213,7 +213,8 @@ function EducationEditor() {
                 </p>
               ) : (
                 <Segmented
-                  label={`${r.id}: dönem duyarlılığı`}
+                  label={`${r.id}: Dönem duyarlığı`}
+                  title="Dönem duyarlığı"
                   value={r.precision}
                   options={[
                     { value: 'year', label: 'Yıl' },
@@ -229,7 +230,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={7}
               />
               <Txt
                 name={`egitim.${r.id}.end`}
@@ -238,7 +238,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
                 required={r.id === 'dogus'}
-                max={7}
                 helper={
                   r.id === 'dogus'
                     ? 'Beklenen mezuniyet ayı; Hero, Kısaca ve Profil ile Kuvvetler F3 bu değerden türetilir.'
@@ -249,7 +248,8 @@ function EducationEditor() {
                 <div className="a-field">
                   <p className="a-label">Beklenen bitiş</p>
                   <Segmented
-                    label={`${r.id}: beklenen`}
+                    label={`${r.id}: Mezuniyet durumu`}
+                    title="Mezuniyet durumu"
                     value={r.expected ? '1' : '0'}
                     options={[
                       { value: '0', label: 'Tamamlandı' },
@@ -336,7 +336,6 @@ function ExperienceEditor() {
                 onChange={(v) => patch(i, { month: v })}
                 error={e.month}
                 required
-                max={7}
                 helper="Hero staj satırı, Kısaca özeti, Kuvvetler F6 dönemi ve metin içindeki staj ayı bu değerden türetilir."
               />
               <Bi
@@ -465,7 +464,6 @@ function CommunityEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={4}
               />
               <Txt
                 name={`topluluk.${r.id}.end`}
@@ -473,7 +471,6 @@ function CommunityEditor() {
                 value={r.end}
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
-                max={4}
               />
               <Bi
                 name={`topluluk.${r.id}.text`}
@@ -601,7 +598,8 @@ function SkillsEditor() {
                       helper="Yalnızca bilindiği yerde: ad yanında parantez içinde görünür."
                     />
                     <Segmented
-                      label={`${g.id} ${ii + 1}: özet`}
+                      label={`${g.id} ${ii + 1}: Özet`}
+                      title="Özet"
                       value={it.summary}
                       options={[...SUMMARY_OPTS]}
                       onChange={(v) =>
@@ -801,7 +799,6 @@ function ActivitiesEditor() {
               value={r.start}
               onChange={(v) => patch(i, { start: v })}
               error={errs[i].start}
-              max={4}
             />
             <Txt
               name={`etk.${r.id}.end`}
@@ -809,7 +806,6 @@ function ActivitiesEditor() {
               value={r.end}
               onChange={(v) => patch(i, { end: v })}
               error={errs[i].end}
-              max={4}
             />
           </RecordRow>
         ))}

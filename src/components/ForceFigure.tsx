@@ -6,7 +6,7 @@ import { dict } from '@/content/dictionary';
 type ForcesCopy = typeof dict.forces;
 import type { ForceRecord, Locale } from '@/content/types';
 import { arrowHead, chain, partialResultant, resultant } from '@/lib/physics';
-import { num } from '@/lib/format';
+import { angleText } from '@/lib/format';
 import { DirectionGlyph, V } from './linework';
 
 type Layout = {
@@ -350,8 +350,8 @@ export function ForcesInteractive({
             </span>
             <span className="tnum text-kursun">
               {' '}
-              (<V n="θ" s="R" /> = {num(shown.angleDeg, locale, 1)}°{reversed ? `, ${copy.reversedNote[locale]}` : ''})
-              {isFinal ? ': ' : ''}
+              (<V n="θ" s="R" /> = {angleText(shown.angleDeg, locale)}
+              {reversed ? `, ${copy.reversedNote[locale]}` : ''}){isFinal ? ': ' : ''}
             </span>
             {isFinal && <span className="text-kursun">{copy.resultText[locale]}</span>}
           </p>

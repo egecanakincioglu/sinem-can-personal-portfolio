@@ -48,7 +48,7 @@ export function Overview() {
       </Section>
       <Section id="saglik" title="Site sağlığı" note="Çalışma değerlerinden hesaplanır; elle yazılmaz.">
         <dl className="a-readouts">
-          <Readout derived label="Boş alt metin" value={altGaps} />
+          <Readout derived label="Boş alternatif metin" value={altGaps} />
           <Readout derived label="Onay bekleyen metinler" value={unapproved} />
         </dl>
       </Section>

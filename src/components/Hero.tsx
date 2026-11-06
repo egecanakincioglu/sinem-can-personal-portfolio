@@ -1,6 +1,6 @@
 import type { SiteContent } from '@/content/site-content';
 import { pick, type Locale } from '@/content/types';
-import { num } from '@/lib/format';
+import { angleText, glueLastWords } from '@/lib/format';
 import { resultant } from '@/lib/physics';
 import { RVector, SupportLine, V } from './linework';
 import { Sidenote } from './Sidenote';
@@ -19,12 +19,16 @@ export function Hero({ locale, content }: { locale: Locale; content: SiteContent
   ];
 
   return (
-    <section id="top" aria-labelledby="hero-title" className="flex min-h-[80svh] flex-col pt-[104px] md:pt-[128px]">
+    <section
+      id="top"
+      aria-labelledby="hero-title"
+      className="flex min-h-[80svh] flex-col pt-[104px] md:pt-[128px] lg:min-h-0"
+    >
       <div className="shell g12 flex-1 content-start gap-y-0">
         {/* meta */}
         <div className="i-meta col-[1/-1] text-[14px] leading-snug text-kursun lg:col-[1/9]">
           <p>{h.meta1[locale]}</p>
-          <p>{h.meta2[locale]}</p>
+          <p>{glueLastWords(h.meta2[locale])}</p>
         </div>
 
         {/* isolation boundary around name + lead */}
@@ -112,15 +116,15 @@ export function Hero({ locale, content }: { locale: Locale; content: SiteContent
                   animate
                 />
               </div>
-              <p className="tnum shrink-0 whitespace-nowrap pb-1 text-[14px] text-kursun">
-                <V n="θ" s="R" /> = {num(R.angleDeg, locale, 0)}°
+              <p className="hero-theta tnum shrink-0 whitespace-nowrap pb-1 text-[16px] text-kursun">
+                <V n="θ" s="R" /> = {angleText(R.angleDeg, locale)}
               </p>
             </div>
             <div className="flex gap-4 md:pb-0.5">
               <div aria-hidden className="ghost-v md:hidden" />
               <div>
                 <p className="t-meta">{h.direction[locale]}</p>
-                <ul className="dot-sep mt-1 text-[15px] italic">
+                <ul className="dot-sep dot-sep--stack mt-1 text-[15px] italic">
                   {interests.map((it, i) => (
                     <li key={`${i}-${it.en}`} className="font-serif text-[17px] md:text-[16px]">
                       {it[locale]}
@@ -133,7 +137,7 @@ export function Hero({ locale, content }: { locale: Locale; content: SiteContent
         </div>
       </div>
 
-      <div className="shell mt-14 w-full pb-10 lg:mt-16">
+      <div className="shell mt-14 w-full pb-10 lg:mt-16 lg:pb-0">
         <SupportLine />
       </div>
     </section>

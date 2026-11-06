@@ -58,6 +58,8 @@ When a project or note list is empty, the pages show a designed empty state.
 
 The calculations are pure functions in `src/lib/physics.ts` and `src/lib/math.ts`, so they are unit tested without a browser. Animation respects the reduced motion setting.
 
+The resultant angle is shown with one decimal. The hero and the force figure use one shared helper in `src/lib/format.ts`. The hero keeps the month and year of the graduation date on one line.
+
 ## 3D viewer
 
 Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model.
@@ -100,6 +102,8 @@ The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private 
 The project editor (`/admin/projeler/[id]`) has sections for identity, title block, images, body, figures, 3D and CAD, relations, revisions and publishing. Slugs are suggested from the title and checked inline. Measurements and results need the verified mark. Only one project is featured. Approval is a manual toggle. Removing a project asks for confirmation. Save and discard include project records. A preview of unsaved drafts is not part of this step.
 
 Publishing in the panel is a simulation. The publish dialog lists the changes, blocks on errors and asks for one acknowledgement per warning group. The boxes are unticked each time the dialog opens. Each publish stores a revision, at most ten, with its change list and a snapshot. A revision can be restored behind a confirmation. The demo reset clears the session. The preview can show the draft or the last simulated publish. The footer date comes from the publish date. A text check flags self-praise, language levels, percentages next to skills and mixed-up applied and observed wording. Change and issue lists always show field labels, never content paths.
+
+The shared form controls in `src/app/admin/ui` follow the panel line style. Checkboxes and radios are square, and fieldsets have no default border. Every segmented control has a visible label, and text areas grow with their content. Fixed-format fields have no character counter, and counters are not announced to screen readers. One remove control is used everywhere. Alt text is called `Alternatif metin` in the panel.
 
 The task queue groups field issues in a fixed order and hides empty groups. The header count, the sidebar index and the queue read the same list. Each row opens its field through a `?alan=` link and focuses it. The command palette searches actions, screens, fields, projects, notes and records with Turkish-aware matching. On an empty query it shows the last five commands. The overview (`/admin`) reads task counts, site health, recent revisions and derived values from the panel state.
 

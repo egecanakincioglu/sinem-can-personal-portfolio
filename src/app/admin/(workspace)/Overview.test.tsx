@@ -38,7 +38,7 @@ describe('Overview', () => {
     expect(row('Bileşke açısı θR').textContent).toMatch(/\d+,\d °/);
     expect(screen.getByText('Bekleyen görev yok.')).toBeTruthy();
     expect(screen.getByText('Henüz simüle edilmiş yayın yok.')).toBeTruthy();
-    expect(within(row('Boş alt metin')).getByText('0')).toBeTruthy();
+    expect(within(row('Boş alternatif metin')).getByText('0')).toBeTruthy();
   });
 
   it('counts tasks per group from the same issues as the title block', () => {
@@ -74,7 +74,7 @@ describe('Overview', () => {
     const [p] = fixtureProjects;
     seed({ projects: [{ ...p, cover: { ...p.cover!, alt: { tr: '', en: ' ' } } }] });
     show();
-    expect(within(row('Boş alt metin')).getByText('2')).toBeTruthy();
+    expect(within(row('Boş alternatif metin')).getByText('2')).toBeTruthy();
   });
 
   it('stays closed outside development', () => {

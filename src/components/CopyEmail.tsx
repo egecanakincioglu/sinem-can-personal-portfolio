@@ -24,7 +24,12 @@ export function CopyEmail({ email, label, copied, failed, ariaLabel }: Props) {
 
   return (
     <span className="inline-flex items-center gap-3">
-      <button type="button" onClick={copy} aria-label={ariaLabel} className="cta min-h-11 px-1 text-[15px]">
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={ariaLabel}
+        className="cta -mx-[3px] min-h-11 min-w-11 justify-center text-[15px]"
+      >
         <span className="label">{label}</span>
       </button>
       <span role="status" aria-live="polite" className="t-caption min-w-[6.5rem]">

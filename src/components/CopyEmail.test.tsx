@@ -49,4 +49,12 @@ describe('CopyEmail', () => {
     });
     expect(screen.getByRole('status').textContent).toBe('Could not copy');
   });
+
+  it('keeps a 44px wide hit area around a short label', () => {
+    render(<CopyEmail {...props} />);
+    const className = screen.getByRole('button', { name: props.ariaLabel }).className;
+    expect(className).toContain('min-h-11');
+    expect(className).toContain('min-w-11');
+    expect(className).toContain('justify-center');
+  });
 });

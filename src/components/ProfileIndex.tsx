@@ -35,7 +35,7 @@ export function ProfileIndex({ items, title }: { items: Item[]; title: string })
               href={`#${i.id}`}
               aria-current={on ? 'location' : undefined}
               onClick={() => details.current?.removeAttribute('open')}
-              className={`inline-flex items-center ${touch ? 'min-h-11' : 'min-h-9'} ${
+              className={`inline-flex items-center ${touch ? 'min-h-11 min-w-11' : 'min-h-9'} ${
                 on ? 'font-serif text-[18px] italic' : 'text-[15px] font-medium ulink'
               }`}
             >

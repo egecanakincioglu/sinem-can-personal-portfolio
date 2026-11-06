@@ -18,7 +18,7 @@ const onOff = [
   { value: '0', label: 'Gizle' },
 ];
 
-function Thumb({ a }: { a: MediaAsset }) {
+export function Thumb({ a }: { a: MediaAsset }) {
   return (
     <Image
       src={a.src}

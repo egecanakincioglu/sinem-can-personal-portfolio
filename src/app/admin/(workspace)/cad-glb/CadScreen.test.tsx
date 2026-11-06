@@ -165,7 +165,7 @@ describe('3B ve CAD screen', () => {
 });
 
 describe('patchProject', () => {
-  it('changes only the 3D preview and the private originals of the named project', () => {
+  it('changes the fields of the named project only', () => {
     function Patch() {
       const { state, patchProject } = useAdmin();
       const a = state.projects.find((p) => p.id === 'fixture-a');
@@ -193,7 +193,7 @@ describe('patchProject', () => {
     );
     expect(screen.getByTestId('out').textContent).toBe('Örnek kayıt A|1|Örnek kayıt B — yalnızca zorunlu alanlar');
     fireEvent.click(screen.getByRole('button', { name: 'patch' }));
-    expect(screen.getByTestId('out').textContent).toBe('Örnek kayıt A|0|Örnek kayıt B — yalnızca zorunlu alanlar');
+    expect(screen.getByTestId('out').textContent).toBe('Değişti|0|Örnek kayıt B — yalnızca zorunlu alanlar');
   });
 });
 

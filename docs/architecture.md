@@ -62,6 +62,8 @@ Project pages can show a 3D model with three.js. The viewer is optional and load
 
 Note pages render formulas as MathML, code blocks and figures. Figures come from a registry of components chosen by `figureId` ([ADR 0009](adr/0009-svg-boundary.md)). A table of contents is built from the headings.
 
+`src/lib/note-blocks.ts` pairs the Turkish and English block lists of a note into one list for editing and splits it back. Language-neutral fields must match in both languages: ids, TeX, code and its language, figure id, image file and size, table alignment and callout kind. The file name of a code block is translated. List items, paragraphs and table rows must have the same count in both languages. An empty string marks an absent optional field, and a note may have one language only. A validation step reports missing heading ids, bad or duplicate ids, unknown figure ids, missing image alt text, table limits (8 columns, 30 rows) and ragged rows. It warns on pull quotes.
+
 ## Admin interface
 
 The admin interface lives under `src/app/admin`. It works on mock data and has a live preview of the public pages.

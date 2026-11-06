@@ -7,7 +7,7 @@ export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up
   const p = {
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: name === 'check' ? 1.5 : 1.25,
+    strokeWidth: name === 'check' || name === 'bang' ? 1.5 : 1.25,
     strokeLinecap: 'square' as const,
     strokeLinejoin: 'miter' as const,
   };
@@ -15,7 +15,7 @@ export function Glyph({ name }: { name: 'check' | 'bang' | 'lock' | 'plus' | 'up
     check: <path d="M2.5 8.5 6.2 12 13.5 4" />,
     bang: (
       <>
-        <path d="M8 3v6" strokeDasharray="2 1.5" />
+        <path d="M8 2.5v7" strokeDasharray="2.5 1.5" />
         <path d="M8 12v1.5" />
       </>
     ),

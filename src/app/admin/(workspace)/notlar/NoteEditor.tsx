@@ -132,7 +132,6 @@ export function NoteEditor({
           ))}
         </dl>
         <div className="a-field">
-          <span className="a-label">Durum</span>
           <Segmented
             label="Durum"
             value={note.status}

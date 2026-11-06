@@ -1,9 +1,12 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { NoteContent } from '@/content/notes/types.ts';
+import { getSiteContent } from '@/content/site-content.ts';
 import { ArticleBody } from './ArticleBody.tsx';
 
 afterEach(cleanup);
+
+const { dict } = getSiteContent();
 
 const note = (blocks: NoteContent['blocks'], extra: Partial<NoteContent> = {}): NoteContent => ({
   slug: 'test-note',
@@ -18,6 +21,7 @@ describe('ArticleBody', () => {
     render(
       <ArticleBody
         locale="en"
+        dict={dict}
         content={note([
           { type: 'h2', id: 'first', text: 'First section' },
           { type: 'p', text: 'Plain paragraph.' },
@@ -37,6 +41,7 @@ describe('ArticleBody', () => {
     const { container } = render(
       <ArticleBody
         locale="en"
+        dict={dict}
         content={note([
           { type: 'p', text: payload },
           { type: 'ul', items: [payload] },
@@ -57,6 +62,7 @@ describe('ArticleBody', () => {
     render(
       <ArticleBody
         locale="en"
+        dict={dict}
         content={note([{ type: 'p', text: 'Second cited[^b] and then first[^a].' }], {
           footnotes: [
             { id: 'a', text: 'Note A' },
@@ -74,6 +80,7 @@ describe('ArticleBody', () => {
     render(
       <ArticleBody
         locale="en"
+        dict={dict}
         content={note([
           { type: 'table', caption: 'Values', head: ['Name', 'Value'], rows: [['a', '1']], align: ['l', 'r'] },
         ])}
@@ -86,7 +93,7 @@ describe('ArticleBody', () => {
 
   it('renders a registry figure with default alt and caption, and overrides', () => {
     const { container, rerender } = render(
-      <ArticleBody locale="en" content={note([{ type: 'figure', id: 'b', figureId: 'beam' }])} />,
+      <ArticleBody locale="en" dict={dict} content={note([{ type: 'figure', id: 'b', figureId: 'beam' }])} />,
     );
     const svg = container.querySelector('svg[role="img"]');
     expect(svg?.getAttribute('aria-label')).toMatch(/Simply supported beam/);
@@ -95,6 +102,7 @@ describe('ArticleBody', () => {
     rerender(
       <ArticleBody
         locale="en"
+        dict={dict}
         content={note([{ type: 'figure', figureId: 'beam', alt: 'Custom alt', caption: 'Custom caption' }])}
       />,
     );
@@ -103,7 +111,9 @@ describe('ArticleBody', () => {
   });
 
   it('renders nothing for an unknown figure id', () => {
-    const { container } = render(<ArticleBody locale="en" content={note([{ type: 'figure', figureId: 'missing' }])} />);
+    const { container } = render(
+      <ArticleBody locale="en" dict={dict} content={note([{ type: 'figure', figureId: 'missing' }])} />,
+    );
     expect(container.querySelector('figure')).toBeNull();
   });
 });

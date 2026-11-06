@@ -42,7 +42,7 @@ Tailwind CSS 4 with design tokens defined in `src/app/globals.css` ([ADR 0002](a
 
 Components receive content only as typed props. Pages read content through accessors in `src/lib` (for example `projects.ts` and `notes.ts`). Data lives in `src/content` ([ADR 0003](adr/0003-content-layer-and-visibility-rule.md)).
 
-Pages read site content once with `getSiteContent()` and pass it to server components as props (Hero, Sections, Footer, ProfileSections, Portrait and HomePage). Interactive client components (Header, BeamFigure, ForceFigure, NoteList and ArchiveList) keep the bundled interface dictionary as their default. They take edited copy only through optional props. This keeps the prerendered HTML small, because props to client components are serialised into the page.
+Pages read site content once with `getSiteContent()` and pass it to server components as props (Hero, Sections, Footer, ProfileSections, Portrait and HomePage). The note article and its body receive the interface dictionary, the owner name and the contact email from the page (`src/lib/detail-route.tsx`). The import check allows the figure registry, because it holds drawing components, not copy. Interactive client components (Header, BeamFigure, ForceFigure, NoteList and ArchiveList) keep the bundled interface dictionary as their default. They take edited copy only through optional props. This keeps the prerendered HTML small, because props to client components are serialised into the page.
 
 HomePage, Forces and Approach take a `preview` flag. Only in preview are edited values forwarded to client components. A test (`src/components/content-imports.test.ts`) blocks new content imports in components. Its allowlist only shrinks.
 

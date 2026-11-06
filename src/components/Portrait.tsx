@@ -1,11 +1,10 @@
 import Image from 'next/image';
-import { portrait, type PortraitSource } from '@/content/portrait';
+import type { PortraitSource } from '@/content/portrait';
 import type { Locale } from '@/content/types';
 
 /**
- * Editorial 4:5 portrait. Shows the real photograph from content/portrait.ts (or an explicit `source`
- * override for development preview); when none has been
- * supplied it shows a deliberate typographic frame (initials on drawing-sheet construction lines) —
+ * Editorial 4:5 portrait. Shows the real photograph from content/portrait.ts (passed in as `source`);
+ * when none has been supplied it shows a deliberate typographic frame (initials on drawing-sheet construction lines) —
  * never a stand-in person. `priority` is for above-the-fold use only (Profile).
  */
 export function Portrait({
@@ -13,13 +12,13 @@ export function Portrait({
   priority = false,
   sizes,
   className = '',
-  source = portrait,
+  source,
 }: {
   locale: Locale;
   priority?: boolean;
   sizes: string;
   className?: string;
-  source?: PortraitSource | null;
+  source: PortraitSource | null;
 }) {
   return (
     <figure className={className}>

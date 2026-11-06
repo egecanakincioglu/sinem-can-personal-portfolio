@@ -6,7 +6,7 @@ import { Header } from '@/components/Header';
 import { HomePage } from '@/components/HomePage';
 import { ProfileLayout } from '@/components/ProfileSections';
 import { Contact } from '@/components/Sections';
-import { mergeSiteContent, type SiteContentOverride } from '@/content/site-content';
+import { getSiteContent, mergeSiteContent, type SiteContentOverride } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import type { NoteItem } from '@/lib/notes';
 import { PREVIEW_PROTOCOL, parseStateMessage, type ReadyMessage } from '@/lib/preview-bridge';
@@ -58,6 +58,7 @@ export function LiveHome({
   }, [locale]);
 
   const content = useMemo(() => (override ? mergeSiteContent(override) : undefined), [override]);
+  const shown = content ?? getSiteContent();
   if (page === 'profile') {
     // The real Profile page tree (same composition as app/[locale]/[slug]/page.tsx), fed by the same merged content.
     return (
@@ -70,12 +71,12 @@ export function LiveHome({
           copy={content?.dict}
         />
         <main id="main">
-          <ProfileLayout locale={locale} content={content} />
-          <Contact locale={locale} content={content} />
+          <ProfileLayout locale={locale} content={shown} />
+          <Contact locale={locale} content={shown} />
         </main>
-        <Footer locale={locale} page="profile" content={content} />
+        <Footer locale={locale} page="profile" content={shown} />
       </>
     );
   }
-  return <HomePage locale={locale} content={content} projects={projects} notes={notes} />;
+  return <HomePage locale={locale} content={shown} projects={projects} notes={notes} preview />;
 }

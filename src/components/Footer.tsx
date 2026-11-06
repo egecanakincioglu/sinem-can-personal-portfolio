@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteContent } from '@/content/site-content';
+import type { SiteContent } from '@/content/site-content';
 import { navKeys, sheetKeys } from '@/content/structure';
 import { locales, type Copy, type Locale } from '@/content/types';
 import { fullDate } from '@/lib/format';
@@ -10,12 +10,12 @@ export function Footer({
   locale,
   page = 'home',
   paths,
-  content = getSiteContent(),
+  content,
 }: {
   locale: Locale;
   page?: PageKey;
   paths?: AltPaths;
-  content?: SiteContent;
+  content: SiteContent;
 }) {
   const { dict, contact, lastRevision, ownerName, platforms } = content;
   const sections = dict.sections as Record<string, Copy>;

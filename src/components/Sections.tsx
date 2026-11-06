@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteContent } from '@/content/site-content';
+import type { SiteContent } from '@/content/site-content';
 import { type Locale, type Process } from '@/content/types';
 import { fullDate, monthYear, num } from '@/lib/format';
 import type { NoteItem } from '@/lib/notes';
@@ -14,11 +14,13 @@ import { ForcesInteractive } from './ForceFigure';
 import { Cta, RVector, SupportLine, V } from './linework';
 import { Sidenote } from './Sidenote';
 
-/** `content` defaults to the authoritative public content; Admin preview passes an explicit override. */
-type P = { locale: Locale; content?: SiteContent };
+/** The page passes the content to render: the authoritative public content, or a merged override in preview. */
+type P = { locale: Locale; content: SiteContent };
+/** Parts that hand an edited dictionary slice to a client figure only in preview, so the public payload stays unchanged. */
+type PreviewP = P & { preview?: boolean };
 
 /* 02 — Kısaca: statement, intro paragraph with a rail note, recruiter summary */
-export function Intro({ locale, content = getSiteContent() }: P) {
+export function Intro({ locale, content }: P) {
   const { dict, draft, summaryRows } = content;
   return (
     <section id="profile" aria-labelledby="intro-h" className="sec">
@@ -65,7 +67,7 @@ export function Intro({ locale, content = getSiteContent() }: P) {
 }
 
 /* 03 — Kuvvetler: ordered list (real content) + static force polygon (conceptual summary) */
-export function Forces({ locale, content = getSiteContent() }: P) {
+export function Forces({ locale, content, preview }: PreviewP) {
   const { dict, draft, forceRecords } = content;
   return (
     <section id="forces" aria-labelledby="forces-h" className="band on-pafta">
@@ -78,11 +80,7 @@ export function Forces({ locale, content = getSiteContent() }: P) {
         </p>
 
         {/* list + figure are grid items of this container; they share one client state (step, order, highlight) */}
-        <ForcesInteractive
-          records={forceRecords}
-          locale={locale}
-          copy={dict.forces === getSiteContent().dict.forces ? undefined : dict.forces}
-        />
+        <ForcesInteractive records={forceRecords} locale={locale} copy={preview ? dict.forces : undefined} />
       </div>
     </section>
   );
@@ -113,7 +111,7 @@ export function ProcessList({
 }
 
 /* 04 — Atölye: typographic only, no imagery */
-export function Workshop({ locale, content = getSiteContent() }: P) {
+export function Workshop({ locale, content }: P) {
   const { dict, applied, observed } = content;
   const internship = content.experience[0];
   const w = dict.workshop;
@@ -151,7 +149,7 @@ export function Workshop({ locale, content = getSiteContent() }: P) {
 }
 
 /* 05 — Yaklaşım: static beam composition; B2 adds the live slider */
-export function Approach({ locale, content = getSiteContent() }: P) {
+export function Approach({ locale, content, preview }: PreviewP) {
   const { dict, academicInterests, draft } = content;
   const a = dict.approach;
   return (
@@ -178,7 +176,7 @@ export function Approach({ locale, content = getSiteContent() }: P) {
             key={content.beam.defaultLoad}
             locale={locale}
             defaultLoad={content.beam.defaultLoad}
-            copy={a === getSiteContent().dict.approach ? undefined : a}
+            copy={preview ? a : undefined}
           />
           <p className="t-note mt-8 max-w-[46ch]">{draft.beamTeaching[locale]}</p>
         </div>
@@ -193,7 +191,7 @@ export function Work({
   locale,
   notes = [],
   projects = [],
-  content = getSiteContent(),
+  content,
 }: P & { notes?: NoteItem[]; projects?: ProjectCard[] }) {
   const { dict, ownerName, workView } = content;
   const w = dict.work;
@@ -329,7 +327,7 @@ export function Work({
 }
 
 /* 07a — Yönelim */
-export function Direction({ locale, content = getSiteContent() }: P) {
+export function Direction({ locale, content }: P) {
   const { dict, draft, forceRecords, interests } = content;
   const R = resultant(forceRecords);
   const deg = Math.round(R.angleDeg);
@@ -368,7 +366,7 @@ export function Direction({ locale, content = getSiteContent() }: P) {
 }
 
 /* 07b — İletişim */
-export function Contact({ locale, content = getSiteContent() }: P) {
+export function Contact({ locale, content }: P) {
   const { dict, contact, platforms } = content;
   const c = dict.contact;
   return (

@@ -1,7 +1,8 @@
 import type { SiteContent } from '@/content/site-content';
 import type { ImageMedia, PublicProject } from '@/content/projects/types';
 import type { Copy, Locale } from '@/content/types';
-import { num, fullDate, monthYear, periodText } from '@/lib/format';
+import { num, fullDate } from '@/lib/format';
+import { titleBlockCells } from '@/lib/project-view';
 import { pagePath } from '@/lib/routes';
 import { nextProject, relatedProjects, toCard } from '@/lib/projects';
 import { Cta } from '../linework';
@@ -103,29 +104,8 @@ export function ProjectDetail({
 }) {
   const d = dict.projects;
   const v = d.viewer;
-  const latestRev = p.revisions?.[p.revisions.length - 1];
 
-  // Title block: only cells that carry a real value.
-  const cells = [
-    [d.kind[locale], d.kinds[p.kind][locale]],
-    [d.discipline[locale], p.disciplines.map((x) => d.disciplines[x][locale]).join(', ')],
-    [d.context[locale], p.context && d.contexts[p.context][locale]],
-    [
-      d.period[locale],
-      p.period &&
-        (p.period.end
-          ? periodText(p.period, locale)
-          : p.status === 'in-progress'
-            ? periodText(p.period, locale)
-            : p.period.precision === 'year'
-              ? p.period.start
-              : monthYear(p.period.start, locale)),
-    ],
-    [d.status[locale], d.statuses[p.status][locale]],
-    [d.tools[locale], p.tools?.join(', ')],
-    [d.materials[locale], p.materials?.map((m) => m[locale]).join(', ')],
-    [d.revision[locale], latestRev?.rev],
-  ].filter((c): c is [string, string] => !!c[1]);
+  const cells = titleBlockCells(p, locale, dict);
 
   const hero = p.hero === 'render' && p.cover ? 'render' : p.hero === 'figure' && p.cover ? 'figure' : 'text';
   const figures = p.figures ?? [];

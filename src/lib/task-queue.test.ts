@@ -67,6 +67,21 @@ describe('taskRow', () => {
     });
   });
 
+  it('uses the record label, place and link of a record-level issue', () => {
+    const i: Issue = {
+      ...issue(GROUP_VALIDATION, 'project.p1.title', 'error', 'Proje “Kiriş”: Bu alan boş bırakılamaz.'),
+      label: 'Proje “Kiriş”',
+      where: 'Projeler',
+      href: '/admin/projeler/p1#bolum-kimlik',
+    };
+    expect(taskRow(i, [entry], screens)).toEqual({
+      label: 'Proje “Kiriş”',
+      where: 'Projeler',
+      text: 'Bu alan boş bırakılamaz.',
+      href: '/admin/projeler/p1#bolum-kimlik',
+    });
+  });
+
   it('falls back to the raw id when the registry has no entry', () => {
     expect(taskRow(issue(GROUP_DRAFT, 'zzz', 'warning', 'sorun'), [entry], screens)).toEqual({
       label: 'zzz',

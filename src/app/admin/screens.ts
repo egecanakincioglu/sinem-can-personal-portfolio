@@ -144,7 +144,7 @@ export const screenHref = (s: ScreenDef) => (s.slug ? `/admin/${s.slug}` : '/adm
 export const screenBySlug = (slug: string) => screens.find((s) => s.slug === slug);
 /** @public Used by the editor screens. */
 export const stubSlugs = screens
-  .filter((s) => s.slug && !['ana-sayfa', 'profil', 'ayarlar'].includes(s.slug))
+  .filter((s) => s.slug && !['ana-sayfa', 'profil', 'ayarlar', 'kapsam'].includes(s.slug))
   .map((s) => s.slug);
 export const subRecordScreens = ['projeler', 'notlar'];
 

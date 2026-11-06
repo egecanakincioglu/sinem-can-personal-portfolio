@@ -186,3 +186,20 @@ export function Inline({ text, ctx, keyPrefix = 'i' }: { text: string; ctx: Ctx;
   if (last < text.length) out.push(text.slice(last));
   return <>{out}</>;
 }
+
+/** Footnote, reference and cross-reference ids and link targets found in marked-up text, nested markup included. */
+export function citeTokens(text: string): { kind: 'fn' | 'ref' | 'xref' | 'link'; value: string }[] {
+  const found: { kind: 'fn' | 'ref' | 'xref' | 'link'; value: string }[] = [];
+  for (const m of text.matchAll(TOKEN)) {
+    const tok = m[0];
+    if (m[3]) found.push({ kind: 'fn', value: tok.slice(2, -1) });
+    else if (m[4]) found.push({ kind: 'ref', value: tok.slice(2, -1) });
+    else if (m[5]) found.push({ kind: 'xref', value: tok.slice(2, -2) });
+    else if (m[6]) {
+      const [, label, href] = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok)!;
+      found.push({ kind: 'link', value: href }, ...citeTokens(label));
+    } else if (m[7]) found.push(...citeTokens(tok.slice(2, -2)));
+    else if (m[8]) found.push(...citeTokens(tok.slice(1, -1)));
+  }
+  return found;
+}

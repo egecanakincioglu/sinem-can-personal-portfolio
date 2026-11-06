@@ -68,6 +68,8 @@ Note pages render formulas as MathML, code blocks and figures. Figures come from
 
 `src/lib/note-blocks.ts` pairs the Turkish and English block lists of a note into one list for editing and splits it back. Language-neutral fields must match in both languages: ids, TeX, code and its language, figure id, image file and size, table alignment and callout kind. The file name of a code block is translated. List items, paragraphs and table rows must have the same count in both languages. An empty string marks an absent optional field, and a note may have one language only. A validation step reports missing heading ids, bad or duplicate ids, unknown figure ids, missing image alt text, table limits (8 columns, 30 rows) and ragged rows. It warns on pull quotes.
 
+`src/lib/note-record.ts` turns a note into an editable record with both languages side by side, and back, without loss for every sample note. A language that is switched off keeps its text in the editor but is not stored. Language status is complete, missing (with a count) or absent. The checks cover required heading ids, dates, summary and category length, cover alt text, reference links (https only), footnote and reference ids, cross-references, unknown TeX commands and link targets (https, a site path or an anchor). An undefined cross-reference id is an error and an unused one is a warning. Labels resolve only against numbered blocks.
+
 ## Admin interface
 
 The admin interface lives under `src/app/admin`. It works on mock data and has a live preview of the public pages.
@@ -77,11 +79,24 @@ The admin interface lives under `src/app/admin`. It works on mock data and has a
 
 One field registry (`src/app/admin/registry.ts`) lists every editable field of the public site. Each entry names the public page and section, the admin screen and editor that edit the field, its status (`ready` or `planned`), its language behaviour and its type. Pure helpers in `src/lib/field-registry.ts` match registry entries to public fields. A coverage test fails when a public field has no entry, or when an entry points to a field that does not exist. This keeps the site and the panel in step. The Kapsam screen (`/admin/kapsam`, development only) shows the registry as a matrix with the ready and planned counts per screen.
 
+The `Uyguladım` and `Gözlemledim` headings and the beam figure label are locked. The home editor shows them read-only, and the preview bridge no longer accepts them. Each panel screen's sheet number is its sidebar number minus one.
+
 The Medya screen (`/admin/medya`) lists the real image files from `src/content/media-manifest.ts` and edits the portrait slot. The slot has a show switch, a choice limited to eligible photos (a real photo whose shorter side is at least 1000 px), a focal point, a zoom from 1 to 2.5, alt text in both languages and a 4:5 preview. A consent checkbox is stored as a value and does not change the preview. While a third-party clearance is open, the status reads "Onay bekliyor". Sample images exist only in development, in a separate group, and cannot be the portrait. Upload is disabled until the backend exists. The Profil screen shows a thumbnail with a link to Medya, and the portrait field ids are unchanged. Pure checks live in `src/lib/media.ts`.
 
 The Projeler screen (`/admin/projeler`) lists project records with counts, the work-section layout, status chips and marks for missing languages. In development, sample records can be loaded and removed. The "Yeni proje" button stays disabled until the editor exists.
 
+The interface strings screen (`/admin/metinler`) lists every dictionary string by group. Search covers both languages and the key path, and a filter shows missing translations. Each string is editable, derived from records, locked with a reason, or owned by another screen (then it links there). A string shared by several places is one value: editing it on any screen changes every place. An edit that drops a required placeholder is rejected.
+
+The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private originals. The size gauge counts 1 MB as 1,000,000 bytes and shows the byte count. Up to 5 MB is fine, up to 15 MB is a warning, and above that is an error, shown without the brand red. Only `.glb` and `.gltf` models can be selected, and the portrait cannot be a poster. In development, the model library holds a generated sample model and three labelled size samples without files. The test button opens the project preview at the 3D section. The bridge carries only the project id, a library model id and the approval flag. Private originals are metadata only, with no link or file field, and never reach the public site.
+
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
+
+### Guards
+
+- Every admin page, the admin layout and the route checks that the app runs in development. A test (`src/app/admin/gating.test.ts`) reads these sources and fails when one lacks the check.
+- Lint stops public code from importing the panel, the development preview and the panel-only libraries. The list is in `eslint.config.ts`. A new panel-only library is added there.
+- A style test (`src/app/admin/style-rules.test.ts`) checks the panel styles. It fails on the brand red, shadows, rounded corners, gradients, backdrop filters and file inputs.
+- The `build` job scans the production build output for sample data: the sample label, fixture ids and titles. It runs `node tooling/scripts/check-build-output.ts` and fails on a hit.
 
 ## Backend (planned)
 

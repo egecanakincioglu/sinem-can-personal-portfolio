@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import type { ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
+import { sharedFieldIds } from '@/lib/preview-bridge';
 import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import type { DeviceId } from '../screens';
 
@@ -17,6 +18,7 @@ type AdminState = {
   savedValues: Record<string, string>; // snapshot of the last mock Save: what "Discard" returns to
   projects: ProjectRecord[]; // mock project records; only development samples can be added for now
   seeded: boolean; // development samples loaded
+  probe: string | null; // project id whose 3D preview is being tried in the live preview; never stored
   dirty: boolean;
   saveCount: number;
   rev: number; // 0 = A, 1 = B …
@@ -33,6 +35,7 @@ const initial: AdminState = {
   savedValues: {},
   projects: [],
   seeded: false,
+  probe: null,
   dirty: false,
   saveCount: 0,
   rev: 0,
@@ -41,6 +44,9 @@ const initial: AdminState = {
   ready: false,
 };
 const KEY = 'antet-admin';
+
+/** The only record fields a screen may change through the store for now: the 3D preview and the private originals. */
+type ProjectPatch = Partial<Pick<ProjectRecord, 'preview3d' | 'privateOriginals'>>;
 
 type Action =
   | { type: 'hydrate'; state: Partial<AdminState> }
@@ -54,6 +60,8 @@ type Action =
   | { type: 'reset' }
   | { type: 'seedSamples'; records: ProjectRecord[] }
   | { type: 'clearSamples' }
+  | { type: 'patchProject'; id: string; patch: ProjectPatch }
+  | { type: 'probe'; id: string | null }
   | { type: 'toast'; id: number; text: string }
   | { type: 'dismiss'; id: number };
 
@@ -67,6 +75,7 @@ function reducer(s: AdminState, a: Action): AdminState {
         ...a.state,
         projects: Array.isArray(a.state.projects) ? a.state.projects : [],
         seeded: a.state.seeded === true,
+        probe: null,
         ready: true,
         toasts: [],
       };
@@ -77,7 +86,12 @@ function reducer(s: AdminState, a: Action): AdminState {
     case 'device':
       return { ...s, device: a.device };
     case 'value':
-      return { ...s, values: { ...s.values, [a.id]: a.value }, dirty: true };
+      // Editors that show one shared string (hero.briefly, intro.heading ...) hold one value.
+      return {
+        ...s,
+        values: { ...s.values, ...Object.fromEntries(sharedFieldIds(a.id).map((id) => [id, a.value])) },
+        dirty: true,
+      };
     case 'save':
       return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
     case 'discard':
@@ -90,6 +104,21 @@ function reducer(s: AdminState, a: Action): AdminState {
       return { ...s, projects: [...s.projects.filter((p) => !p.fixture), ...a.records], seeded: true };
     case 'clearSamples':
       return { ...s, projects: s.projects.filter((p) => !p.fixture), seeded: false };
+    case 'patchProject':
+      return {
+        ...s,
+        projects: s.projects.map((p) =>
+          p.id === a.id
+            ? {
+                ...p,
+                ...('preview3d' in a.patch ? { preview3d: a.patch.preview3d } : {}),
+                ...('privateOriginals' in a.patch ? { privateOriginals: a.patch.privateOriginals } : {}),
+              }
+            : p,
+        ),
+      };
+    case 'probe':
+      return { ...s, probe: a.id };
     case 'toast':
       return withLog({ ...s, toasts: [...s.toasts, { id: a.id, text: a.text }] }, a.text);
     case 'dismiss':
@@ -124,6 +153,8 @@ type Ctx = {
   reset: () => void;
   seedSamples: (records: ProjectRecord[]) => void;
   clearSamples: () => void;
+  patchProject: (id: string, patch: ProjectPatch) => void;
+  probeProject: (id: string | null) => void;
   toast: (text: string) => void;
   dismiss: (id: number) => void;
 };
@@ -221,6 +252,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'clearSamples' });
         toast('Örnekler kaldırıldı (simülasyon).');
       },
+      patchProject: (id, patch) => dispatch({ type: 'patchProject', id, patch }),
+      probeProject: (id) => dispatch({ type: 'probe', id }),
       toast,
       dismiss: (id) => dispatch({ type: 'dismiss', id }),
     }),

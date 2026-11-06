@@ -75,17 +75,20 @@ export function Readout({
   value,
   unit,
   derived,
+  locked,
 }: {
   label: string;
   value: ReactNode;
   unit?: string;
   derived?: boolean;
+  locked?: boolean;
 }) {
   return (
     <div className="a-readout">
       <dt>
         {label}
         {derived && <span className="a-sfx"> · türetilmiş</span>}
+        {locked && <span className="a-sfx"> · korumalı</span>}
       </dt>
       <dd>
         <span className="a-num">{value}</span>

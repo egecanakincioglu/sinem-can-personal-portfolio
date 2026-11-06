@@ -6,6 +6,7 @@ import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
 import { collectIssues, type Issue } from '@/lib/admin-issues';
 import { fold } from '@/lib/fold';
+import type { MediaAsset } from '@/lib/media';
 import type { PairedBlock } from '@/lib/note-blocks';
 import { pairNote, type MockNote } from '@/lib/note-record';
 import { sharedFieldIds } from '@/lib/preview-bridge';
@@ -411,7 +412,11 @@ export const useAdmin = () => {
   return c;
 };
 
-export function AdminProvider({ children }: { children: ReactNode }) {
+/** The media library and figure ids the record checks resolve against; the server passes them in. */
+export type RecordLibrary = { assets: MediaAsset[]; figureIds: string[] };
+const NO_LIBRARY: RecordLibrary = { assets: [], figureIds: [] };
+
+export function AdminProvider({ children, library = NO_LIBRARY }: { children: ReactNode; library?: RecordLibrary }) {
   const [state, dispatch] = useReducer(reducer, initial);
   const seq = useRef(0);
 
@@ -477,7 +482,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       }),
     [publishedState, state.values, state.projects, state.notes],
   );
-  const issues = useMemo(() => collectIssues(state.values, snapshot, registry), [state.values, snapshot]);
+  const issues = useMemo(
+    () =>
+      collectIssues(state.values, snapshot, registry, {
+        projects: state.projects,
+        notes: state.notes,
+        assets: library.assets,
+        figureIds: library.figureIds,
+      }),
+    [state.values, state.projects, state.notes, snapshot, library],
+  );
   const showPublished = state.previewSource === 'published' && publishedState !== null;
   const previewSnapshot = useMemo(
     () => (showPublished ? selectPublicSnapshot(publishedState, process.env.NODE_ENV === 'development') : snapshot),

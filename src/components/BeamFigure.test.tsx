@@ -76,4 +76,15 @@ describe('BeamFigure', () => {
     expect(screen.getByText(`${A.assumptionsTitle.en}.`)).toBeTruthy();
     expect(document.querySelector('figcaption')?.textContent).toContain(A.assumptions.en);
   });
+
+  it('shows "max" in English and never "maks"', () => {
+    const { container } = render(<BeamFigure locale="en" />);
+    expect(container.textContent).toContain('max');
+    expect(container.textContent).not.toContain('maks');
+  });
+
+  it('shows "maks" in Turkish', () => {
+    const { container } = render(<BeamFigure locale="tr" />);
+    expect(container.textContent).toContain('maks');
+  });
 });

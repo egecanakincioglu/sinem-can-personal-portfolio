@@ -2,6 +2,7 @@ import { getSiteContent, type SiteContent } from '@/content/site-content';
 import { navKeys, sheetKeys } from '@/content/structure';
 import { locales, type Copy, type Locale } from '@/content/types';
 import { fullDate } from '@/lib/format';
+import { HashLink } from './HashLink';
 import { navHref, switchPath, type AltPaths, type PageKey } from '@/lib/routes';
 
 /** Footer = the site's title block (antet). Every cell holds real information. */
@@ -44,7 +45,7 @@ export function Footer({
                   ·
                 </span>
               )}
-              <a
+              <HashLink
                 href={switchPath(page, l, paths)}
                 hrefLang={l}
                 lang={l}
@@ -53,7 +54,7 @@ export function Footer({
                 className={l === locale ? '' : 'ulink text-kursun'}
               >
                 {l.toUpperCase()}
-              </a>
+              </HashLink>
             </span>
           ))}
         </span>

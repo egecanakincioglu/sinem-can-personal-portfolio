@@ -1,5 +1,5 @@
 // Site audit thresholds only tighten: between base and head, tooling/site-audit/thresholds.json may raise category
-// scores and the expected score, lower budgets and add keys, but no score may drop, be removed or sit below 90, and no
+// scores and the expected score, lower budgets, switch `enabled` on and add keys, but no score may drop, be removed or sit below 90, and no
 // budget may grow or be removed.
 //
 //   node tooling/scripts/check-site-audit-thresholds.ts --base <sha> --head <sha>
@@ -13,6 +13,7 @@ const FILE = 'tooling/site-audit/thresholds.json';
 const FLOOR = 90;
 
 export interface Thresholds {
+  enabled?: boolean;
   categories?: Record<string, number>;
   expected?: number;
   budgets?: Record<string, number>;
@@ -29,6 +30,7 @@ function scores(t: Thresholds): Map<string, number> {
 /** Problems found when going from the base thresholds to the head thresholds (empty when none). */
 export function compare(base: Thresholds, head: Thresholds): string[] {
   const problems: string[] = [];
+  if (base.enabled === true && head.enabled !== true) problems.push('enabled was switched off');
   const headScores = scores(head);
   for (const [name, before] of scores(base)) {
     const after = headScores.get(name);

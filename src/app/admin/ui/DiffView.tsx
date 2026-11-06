@@ -1,26 +1,48 @@
 'use client';
 
 import { entryFor, entryLabel } from '@/lib/field-registry';
-import { excerpt, type Change, type Delta } from '@/lib/publish';
+import { excerpt, UNTITLED, type Change, type Delta } from '@/lib/publish';
 import { registry } from '../registry';
 
-/** Admin wording for a changed path: the registry label, or the record id for project fields. */
-export function changeLabel(path: string): string {
+/** The editor section a project field belongs to, for fields the registry has no label for. */
+const PROJECT_SECTIONS: Record<string, string> = {
+  title: 'Kimlik',
+  slug: 'Kimlik',
+  kind: 'Kimlik',
+  disciplines: 'Antet',
+  tools: 'Antet',
+  period: 'Antet',
+  status: 'Antet',
+  cover: 'Görsel',
+  figures: 'Şekiller',
+  preview3d: '3B ve CAD',
+  relatedIds: 'İlişkiler',
+  visibility: 'Yayın',
+  approved: 'Yayın',
+  featured: 'Yayın',
+  revisions: 'Revizyonlar',
+};
+
+/** Admin wording for a changed path: the registry label, or the field label with the record's title for project fields. */
+export function changeLabel(path: string, title?: string): string {
   const rec = /^project\.([^.]+)(?:\.(.+))?$/.exec(path);
   if (!rec) {
     const e = entryFor(registry, path);
     return e ? entryLabel(e) : path;
   }
-  if (!rec[2]) return `Proje ${rec[1]}`;
+  const name = `Proje “${title ?? UNTITLED}”`;
+  if (!rec[2]) return name;
   const e = entryFor(registry, `project.${rec[2]}`);
-  return `${e ? entryLabel(e) : rec[2]} (${rec[1]})`;
+  return `${name} · ${e ? entryLabel(e) : (PROJECT_SECTIONS[rec[2].split(/[.[]/)[0]] ?? 'Diğer alanlar')}`;
 }
 
 const SIDES = [
   ['tr', 'TR'],
   ['en', 'EN'],
-  ['shared', 'Ortak'],
+  ['shared', 'Her iki dil'],
 ] as const;
+
+const RECORD_TEXT = { added: 'Yeni kayıt', removed: 'Silindi' } as const;
 
 const shown = (text: string) => excerpt(text) || '(boş)';
 
@@ -31,7 +53,8 @@ export function DiffView({ changes, label }: { changes: readonly Change[]; label
     <ul className="a-diff" aria-label={label}>
       {changes.map((c) => (
         <li key={c.path} className="a-diff-row">
-          <p className="a-diff-path">{c.label ?? changeLabel(c.path)}</p>
+          <p className="a-diff-path">{c.label ?? changeLabel(c.path, c.title)}</p>
+          {c.record && <p className="a-diff-side">{RECORD_TEXT[c.record]}</p>}
           {SIDES.map(([key, tag]) => {
             const d: Delta | undefined = c[key];
             return d ? (

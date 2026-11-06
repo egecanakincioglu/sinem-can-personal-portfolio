@@ -252,7 +252,7 @@ export function QuantityList<T extends Quantity>({
     <div className="a-list">
       <div className="a-list-head">
         <span className="a-label">{itemLabel} listesi</span>
-        <span className="a-count a-num" role="status">
+        <span className="a-count a-num">
           {items.length} / {MAX_ITEMS}
         </span>
       </div>

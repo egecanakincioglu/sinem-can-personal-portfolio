@@ -9,7 +9,7 @@ import { BilingualField, Segmented } from '../../ui/controls';
 import { EmptyState, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { fold, screenBySlug } from '../../screens';
+import { fold, screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('metinler')!;
 type Filter = 'all' | 'missing';
@@ -136,7 +136,7 @@ export function InterfaceStrings() {
   return (
     <>
       <PageHeader
-        kicker="Pafta 07"
+        kicker={sheetLabel('metinler')}
         title={screen.title}
         lede={screen.lede}
         aside={

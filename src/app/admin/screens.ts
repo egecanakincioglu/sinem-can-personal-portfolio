@@ -3,6 +3,8 @@ export type SectionStatus = 'ok' | 'draft' | 'later';
 type SectionDef = { id: string; label: string; status: SectionStatus };
 export type ScreenDef = {
   slug: string; // "" = /admin
+  /** Rail label while the side panel is collapsed. */
+  short: string;
   title: string;
   lede: string;
   group: 'work' | 'meta';
@@ -16,6 +18,7 @@ export type ScreenDef = {
 export const screens: ScreenDef[] = [
   {
     slug: '',
+    short: 'GB',
     title: 'Genel bakış',
     lede: 'Çalışma masasının özeti: görevler, son revizyonlar ve kayıt sayıları.',
     group: 'work',
@@ -25,6 +28,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'ana-sayfa',
+    short: 'AS',
     title: 'Ana sayfa',
     lede: 'Genel sitenin ilk sayfasındaki sekiz bölümü düzenleyin; sağda önizleme görünür.',
     group: 'work',
@@ -44,6 +48,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'profil',
+    short: 'Pr',
     title: 'Profil',
     lede: 'Profil sayfasındaki kayıtlar ve metinler; Ana sayfadaki türetilmiş alanlar aynı kayıtlardan beslenir.',
     group: 'work',
@@ -64,6 +69,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'projeler',
+    short: 'Pj',
     title: 'Projeler',
     lede: 'Pafta listesi: projeler, durumları ve sayıları.',
     group: 'work',
@@ -84,6 +90,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'notlar',
+    short: 'No',
     title: 'Notlar',
     lede: 'Teknik notlar ve makaleler.',
     group: 'work',
@@ -101,6 +108,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'medya',
+    short: 'Me',
     title: 'Medya',
     lede: 'Görsel kitaplığı ve portre alanı.',
     group: 'work',
@@ -113,6 +121,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'cad-glb',
+    short: '3B',
     title: '3B ve CAD',
     lede: 'GLB önizlemeleri ve özel CAD özgün dosyaları.',
     group: 'work',
@@ -126,6 +135,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'metinler',
+    short: 'AM',
     title: 'Arayüz metinleri',
     lede: 'Sitedeki tüm arayüz metinleri, gruplanmış ve aranabilir.',
     group: 'work',
@@ -152,6 +162,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'ayarlar',
+    short: 'SA',
     title: 'Site ayarları',
     lede: 'Kimlik, iletişim, gezinme ve sayfa meta bilgisi; Ana sayfa düzenleyicisiyle aynı alanlar.',
     group: 'work',
@@ -167,6 +178,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'yayin',
+    short: 'Ya',
     title: 'Yayın',
     lede: 'Simüle edilmiş yayın: değişiklik listesi, fark görünümü ve revizyonlar.',
     group: 'meta',
@@ -181,6 +193,7 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'kapsam',
+    short: 'Ka',
     title: 'Kapsam matrisi',
     lede: 'Genel sitedeki içeriğin hangi alandan düzenlendiğini gösteren otomatik görünüm.',
     group: 'meta',
@@ -191,6 +204,9 @@ export const screens: ScreenDef[] = [
 ];
 
 export const screenHref = (s: ScreenDef) => (s.slug ? `/admin/${s.slug}` : '/admin');
+/** The sheet number of a screen is its position in the side panel, so every page header agrees with it. */
+export const sheetNumber = (slug: string) => screens.findIndex((s) => s.slug === slug) + 1;
+export const sheetLabel = (slug: string) => `Pafta ${String(sheetNumber(slug)).padStart(2, '0')}`;
 export const screenBySlug = (slug: string) => screens.find((s) => s.slug === slug);
 export const subRecordScreens = ['projeler'];
 

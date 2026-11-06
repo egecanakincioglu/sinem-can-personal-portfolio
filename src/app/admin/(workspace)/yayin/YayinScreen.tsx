@@ -6,8 +6,9 @@ import { publishChecks, revLetter } from '@/lib/publish';
 import { DiffView } from '../../ui/DiffView';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { ConfirmDialog, EmptyState, Readout } from '../../ui/feedback';
+import { ErrorLinks } from '../../ui/PublishDialog';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('yayin')!;
 const when = (at: string) => `${fullDate(at.slice(0, 10), 'tr')} (sim.)`;
@@ -22,7 +23,7 @@ export function YayinScreen() {
   return (
     <>
       <PageHeader
-        kicker="Pafta 09"
+        kicker={sheetLabel('yayin')}
         title={screen.title}
         lede={screen.lede}
         aside={<p className="a-help">Gerçek site bu işlemden etkilenmez.</p>}
@@ -53,11 +54,7 @@ export function YayinScreen() {
             {blocking.length > 0 && (
               <div className="a-field">
                 <h3 className="a-help">Yayını engelleyen hatalar ({blocking.length})</h3>
-                <ul className="a-pub-group" aria-label="Hatalar">
-                  {blocking.map((i) => (
-                    <li key={`${i.fieldId}:${i.text}`}>{i.text}</li>
-                  ))}
-                </ul>
+                <ErrorLinks issues={blocking} label="Hatalar" />
               </div>
             )}
             {acknowledge.map((g) => (

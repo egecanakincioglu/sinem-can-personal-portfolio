@@ -83,6 +83,20 @@ describe('restore', () => {
     expect(s.values).toEqual({ 'hero.lead.tr': 'Birinci' });
   });
 
+  it('discards an unsaved note edit and keeps a saved one', () => {
+    const seeded = reducer(ready, { type: 'seedSamples', records: [], notes: fixtureNotes });
+    expect(seeded.dirty).toBe(false);
+    const id = seeded.notes[0].id;
+    const original = seeded.notes[0].title.tr;
+    const edited = reducer(seeded, { type: 'patchNote', id, patch: { title: { tr: 'Değişti', en: 'Changed' } } });
+    expect(edited.dirty).toBe(true);
+    const discarded = reducer(edited, { type: 'discard' });
+    expect(discarded.notes.find((n) => n.id === id)?.title.tr).toBe(original);
+    expect(discarded.dirty).toBe(false);
+    const saved = reducer(reducer(edited, { type: 'save' }), { type: 'discard' });
+    expect(saved.notes.find((n) => n.id === id)?.title.tr).toBe('Değişti');
+  });
+
   it('ignores a revision that does not exist', () => {
     expect(reducer(ready, { type: 'restore', rev: 9 })).toBe(ready);
   });

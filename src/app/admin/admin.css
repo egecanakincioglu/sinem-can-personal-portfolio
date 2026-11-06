@@ -1660,6 +1660,19 @@ html[data-locked] body {
   gap: 6px;
   margin: 6px 0 0;
 }
+.admin-root .a-picker {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+.admin-root .a-picker-now {
+  max-width: 240px;
+}
+.admin-root ul.a-proj-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .admin-root .a-media-tasks {
   margin: 12px 0 0;
   padding-left: 18px;

@@ -160,6 +160,31 @@ describe('related and next', () => {
   });
 });
 
+describe('injected records', () => {
+  const injected = [
+    rec('inj-a', '2025-02-01'),
+    rec('inj-b', '2025-01-01'),
+    rec('inj-d', '2025-03-01', { status: 'draft' }),
+  ];
+
+  it('uses the given records instead of the published source, still filtered', async () => {
+    const m = await load('production');
+    expect(m.getPublicNotes('en', {}, injected).map((n) => n.record.id)).toEqual(['inj-a', 'inj-b']);
+    expect(m.findPublicNote('inj-a-en', 'en', injected)?.record.id).toBe('inj-a');
+    expect(m.findPublicNote('inj-d-en', 'en', injected)).toBeUndefined();
+    expect(m.findPublicNote('n1-en', 'en', injected)).toBeUndefined();
+    expect(m.noteStaticParams(injected)).toHaveLength(4);
+  });
+
+  it('relates and chains within the given records', async () => {
+    const m = await load('production');
+    const a = m.findPublicNote('inj-a-en', 'en', injected)!;
+    const linked = { ...a, record: { ...a.record, relatedIds: ['inj-b'] } };
+    expect(m.relatedNotes(linked, injected).map((n) => n.record.id)).toEqual(['inj-b']);
+    expect(m.nextNote(a, injected)?.record.id).toBe('inj-b');
+  });
+});
+
 describe('readingMinutes', () => {
   const words = (n: number) => Array.from({ length: n }, () => 'word').join(' ');
 

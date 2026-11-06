@@ -1,7 +1,7 @@
 import type { SiteContent } from '@/content/site-content';
 import type { PublicProject } from '@/content/projects/types';
 import type { Locale } from '@/content/types';
-import { monthYear, periodText } from './format';
+import { cachedMonthYear as monthYear, cachedPeriodText as periodText } from './format';
 
 /** Title block of a project page: only the cells that carry a real value, as [label, value] pairs. */
 export function titleBlockCells(p: PublicProject, locale: Locale, dict: SiteContent['dict']): [string, string][] {

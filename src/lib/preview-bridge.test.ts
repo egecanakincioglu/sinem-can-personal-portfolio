@@ -38,6 +38,17 @@ import {
 
 const site = getSiteContent();
 
+describe('buildOverride caching', () => {
+  it('derives the override once per values object and again for a new one', () => {
+    const values = { 'hero.briefly.tr': 'Bir' };
+    expect(buildOverride(values)).toBe(buildOverride(values));
+    const next = { ...values, 'hero.briefly.tr': 'İki' };
+    expect(buildOverride(next)).not.toBe(buildOverride(values));
+    expect(JSON.stringify(buildOverride(next))).toContain('İki');
+    expect(JSON.stringify(buildOverride(values))).not.toContain('İki');
+  });
+});
+
 describe('checkEmail', () => {
   it.each(['a@b.co', 'first.last+tag@sub.example.com', ' padded@example.org '])('accepts %s', (v) => {
     expect(checkEmail(v)).toBeUndefined();

@@ -1,4 +1,12 @@
-import { capFirst, fill, lower, monthYear, num, numberWord, periodText } from '@/lib/format';
+import {
+  cachedMonthYear as monthYear,
+  cachedNum as num,
+  cachedPeriodText as periodText,
+  capFirst,
+  fill,
+  lower,
+  numberWord,
+} from '@/lib/format';
 import { BEAM_REFERENCE_A, beamMaxMidspanOffset } from '@/lib/physics';
 import type {
   Activity,

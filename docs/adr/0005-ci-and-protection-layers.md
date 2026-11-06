@@ -27,7 +27,7 @@ Rules:
 4. The tooling job runs on Linux and Windows, because the repository tools must work on both.
 5. Semgrep runs the project rules and the community rule sets. The community rules are not pinned, so `semgrep-registry` is a separate job from `quality`.
 6. zizmor audits the workflow files.
-7. Dependabot proposes updates to dependencies and workflow actions.
+7. Dependency and workflow action updates are made by hand in the project's own pull requests. The `quality` job audits the dependencies on every pull request.
 8. One re-run of a failed job is allowed per pull request for infrastructure failures only.
 
 ## Consequences

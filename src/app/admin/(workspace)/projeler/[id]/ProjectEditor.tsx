@@ -254,9 +254,17 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
     if (project.featured) return setFeatured(null);
     const other = state.projects.find((p) => p.featured && p.id !== pid);
     setFeatured(pid);
-    if (other) toast(`“${other.title.tr || other.id}” artık öne çıkan değil.`);
+    if (other) toast(`“${other.title.tr || other.title.en || 'Başlıksız kayıt'}” artık öne çıkan değil.`);
   };
   const title = project.title.tr || project.title.en || 'Adsız proje';
+  // The address part follows the title until it is edited by hand or the record is published.
+  const titlePatch = (lang: 'tr' | 'en', v: string): ProjectPatch => {
+    const follows = !published && project.slug[lang] === foldSlug(project.title[lang]);
+    return {
+      title: { ...project.title, [lang]: v },
+      ...(follows ? { slug: { ...project.slug, [lang]: foldSlug(v) } } : {}),
+    };
+  };
 
   return (
     <>
@@ -266,7 +274,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
         lede="Proje kaydını bölümler halinde düzenleyin; değişiklikler Kaydet ile oturuma yazılır."
         aside={
           <div>
-            <p className="a-rec-tools">
+            <p className="a-rec-chips a-rec-tools">
               <StatusChip kind={published ? 'live' : 'draft'} />
               {published && project.approved === true && <StatusChip kind="approved" />}
               {project.fixture && <StatusChip kind="sample" />}
@@ -274,15 +282,12 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
             <p className="a-help" aria-live="polite">
               {projectCompleteness(project)}
             </p>
-            <p className="a-help">Taslak önizlemesi sonraki adımda.</p>
           </div>
         }
       />
 
       <Section id="kimlik" title="Kimlik">
-        <dl className="a-readouts">
-          <Readout derived label="Kayıt kimliği" value={pid} />
-        </dl>
+        <p className="a-help">Kayıt kimliği: {pid}</p>
         {on(
           'title',
           <BilingualField
@@ -291,8 +296,8 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
             errors={pairErrors('title')}
             tr={project.title.tr}
             en={project.title.en}
-            onTr={(v) => patch({ title: { ...project.title, tr: v } })}
-            onEn={(v) => patch({ title: { ...project.title, en: v } })}
+            onTr={(v) => patch(titlePatch('tr', v))}
+            onEn={(v) => patch(titlePatch('en', v))}
           />,
         )}
         <OptionalCopy
@@ -524,7 +529,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
               <RecordRow
                 key={i}
                 index={i}
-                meta={f.id}
+                meta={f.caption?.tr || f.alt.tr || undefined}
                 itemLabel="Şekil"
                 onUp={i > 0 ? () => patch({ figures: moved(figures, i, -1) }) : undefined}
                 onDown={i < figures.length - 1 ? () => patch({ figures: moved(figures, i, 1) }) : undefined}
@@ -533,6 +538,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
                   patch({ figures: next.length ? next : undefined });
                 }}
               >
+                <p className="a-help">Kayıt: {f.id}</p>
                 {on(
                   `figures.${i}`,
                   <MediaFields
@@ -577,7 +583,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
                       patch({ relatedIds: next.length ? next : undefined });
                     }}
                   />
-                  {o.title.tr || o.title.en || o.id}
+                  {o.title.tr || o.title.en || 'Başlıksız kayıt'}
                 </label>
               );
             })}

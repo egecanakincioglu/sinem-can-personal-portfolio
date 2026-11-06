@@ -120,7 +120,8 @@ describe('3B ve CAD screen', () => {
     open(/Örnek kayıt A/);
     const values = Array.from((screen.getByLabelText('Poster') as HTMLSelectElement).options).map((o) => o.textContent);
     expect(values.some((v) => v?.startsWith('portrait-photo'))).toBe(false);
-    expect(values.some((v) => v?.startsWith('fixture-a/'))).toBe(true);
+    expect(values.some((v) => v?.startsWith('fixture-a/'))).toBe(false);
+    expect(values.filter((v) => /\(\d+ × \d+\)$/.test(v ?? '')).length).toBeGreaterThan(0);
   });
 
   it('toggles "Yayında göster" and updates the state and the checklist', () => {
@@ -198,14 +199,14 @@ describe('patchProject', () => {
 });
 
 describe('private originals', () => {
-  it('has no address field and no file field, only a read-only key and a fixed notice', () => {
+  it('has no address field and no file field, only a file id line and a fixed notice', () => {
     const { container } = setup();
     open(/Örnek kayıt A/);
     expect(container.querySelector('input[type="file"]')).toBeNull();
     expect(container.querySelector('input[type="url"]')).toBeNull();
     expect(screen.queryByLabelText(/adres|url|yol/i)).toBeNull();
-    const key = screen.getAllByLabelText('Dosya anahtarı')[0] as HTMLInputElement;
-    expect(key.readOnly).toBe(true);
+    expect(screen.queryByLabelText('Dosya anahtarı')).toBeNull();
+    expect(screen.getAllByText(/Dosya kimliği: .*Sistem tarafından üretilir/)).toHaveLength(1);
     expect(screen.getByText(/Özel dosya\. Genel sitede hiçbir zaman bağlantı olarak görünmez\./)).toBeTruthy();
     expect(screen.getByText(/bu prototipte indirme yoktur\./)).toBeTruthy();
     expect(screen.getByText('Bu liste genel sayfaya gönderilmez ✓')).toBeTruthy();
@@ -216,9 +217,9 @@ describe('private originals', () => {
     setup();
     open(/Örnek kayıt A/);
     fireEvent.click(screen.getByRole('button', { name: 'Özel dosya ekle' }));
-    const keys = screen.getAllByLabelText('Dosya anahtarı') as HTMLInputElement[];
+    const keys = screen.getAllByText(/Dosya kimliği: /);
     expect(keys).toHaveLength(2);
-    expect(keys[1].value).toMatch(/^asset-[0-9a-f]{6}$/);
+    expect(keys[1].textContent).toMatch(/Dosya kimliği: asset-[0-9a-f]{6}\./);
     expect(screen.getByText(/2 özel dosya \(genel sitede görünmez\)/)).toBeTruthy();
     const format = screen.getAllByLabelText('Biçim')[1] as HTMLSelectElement;
     expect(Array.from(format.options).map((o) => o.textContent)).toEqual([
@@ -232,7 +233,7 @@ describe('private originals', () => {
     fireEvent.change(format, { target: { value: 'step' } });
     expect((screen.getAllByLabelText('Biçim')[1] as HTMLSelectElement).value).toBe('step');
     fireEvent.click(screen.getAllByRole('button', { name: 'Kaldır' })[1]);
-    expect(screen.getAllByLabelText('Dosya anahtarı')).toHaveLength(1);
+    expect(screen.getAllByText(/Dosya kimliği: /)).toHaveLength(1);
   });
 });
 

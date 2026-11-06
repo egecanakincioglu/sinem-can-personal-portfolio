@@ -62,19 +62,26 @@ describe('InterfaceStrings', () => {
   it('shows the counts and one section per group', () => {
     setup();
     expect(screen.getByRole('heading', { level: 1, name: 'Arayüz metinleri' })).toBeTruthy();
-    expect(counts()).toBe(`${rows.length} metin · EN eksik: 0`);
+    expect(counts()).toBe(`${rows.length} metinEN eksik: 0`);
     for (const name of ['Hero', 'Kuvvetler', 'Projeler', 'Gezinme']) expect(group(name)).toBeTruthy();
+  });
+
+  it('names a row by its text, keeps the key as a small line and the placeholder short', () => {
+    setup();
+    expect(screen.queryByText('hero.resultantLabel')).toBeNull();
+    expect(screen.getAllByText(/^Anahtar: /).length).toBeGreaterThan(10);
+    expect((screen.getByLabelText('Metin ara') as HTMLInputElement).placeholder).toBe('Metin ya da anahtar');
   });
 
   it('searches the Turkish text, the English text and the key path', () => {
     setup();
     search('bileşke');
-    expect(screen.getByText('hero.resultantLabel')).toBeTruthy();
-    expect(screen.queryByText('forces.angle')).toBeNull();
+    expect(screen.getByText(/Anahtar: hero\.resultantLabel/)).toBeTruthy();
+    expect(screen.queryByText(/Anahtar: forces\.angle/)).toBeNull();
     search('RESULTANT');
-    expect(screen.getByText('hero.resultantLabel')).toBeTruthy();
+    expect(screen.getByText(/Anahtar: hero\.resultantLabel/)).toBeTruthy();
     search('viewer.zoomin');
-    expect(screen.getByText('projects.viewer.zoomIn')).toBeTruthy();
+    expect(screen.getByText(/Anahtar: projects\.viewer\.zoomIn/)).toBeTruthy();
     search('zzzz-yok');
     expect(screen.getByText('Eşleşen metin yok')).toBeTruthy();
   });
@@ -85,7 +92,7 @@ describe('InterfaceStrings', () => {
     expect(screen.getByText('Eşleşen metin yok')).toBeTruthy();
     fireEvent.click(screen.getByRole('radio', { name: 'Tümü' }));
     fireEvent.change(field('hero.resultantLabel', 'en'), { target: { value: '' } });
-    expect(counts()).toBe(`${rows.length} metin · EN eksik: 1`);
+    expect(counts()).toBe(`${rows.length} metinEN eksik: 1`);
     fireEvent.click(screen.getByRole('radio', { name: 'Eksik' }));
     expect(field('hero.resultantLabel', 'en')).toBeTruthy();
     expect(maybeField('forces.angle', 'en')).toBeNull();

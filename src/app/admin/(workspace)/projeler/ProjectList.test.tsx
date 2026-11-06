@@ -54,8 +54,8 @@ describe('Projeler screen', () => {
     expect(screen.queryByRole('list', { name: 'Projeler' })).toBeNull();
     expect(button('Yeni proje').disabled).toBe(false);
     expect(screen.getByText(/Yeni proje taslak olarak açılır/)).toBeTruthy();
-    expect(screen.getByText('Filtre 6+ projede görünür.')).toBeTruthy();
-    expect(screen.getByText(/Düzen: tek boş çerçeve/)).toBeTruthy();
+    expect(screen.getByText(/en az 6 proje yayındayken görünür/)).toBeTruthy();
+    expect(screen.getByText(/Görünüm: tek boş çerçeve/)).toBeTruthy();
     expect(button('Örnekleri kaldır').disabled).toBe(true);
   });
 
@@ -79,7 +79,7 @@ describe('Projeler screen', () => {
   it('never counts samples as public outside development', () => {
     setup();
     fireEvent.click(button('Örnek verileri yükle'));
-    expect(screen.getByText(/Projeler: 0 · Notlar: 0/)).toBeTruthy();
+    expect(screen.getByText(/0 yayında proje, 0 not/)).toBeTruthy();
   });
 
   it('counts the published and approved samples toward the Homepage Work state in development', () => {
@@ -87,7 +87,7 @@ describe('Projeler screen', () => {
     setup();
     fireEvent.click(button('Örnek verileri yükle'));
     const n = fixtureProjects.filter((p) => p.visibility === 'published' && p.approved).length;
-    expect(screen.getByText(new RegExp(`Projeler: ${n} · Notlar: 0 → Düzen: öne çıkan \\+ 2 satır`))).toBeTruthy();
+    expect(screen.getByText(new RegExp(`${n} yayında proje, 0 not\\. Görünüm: öne çıkan \\+ 2 satır`))).toBeTruthy();
   });
 
   it('removes the samples again', () => {

@@ -25,7 +25,7 @@ const open = async (screen: string, id: string) => {
 };
 
 describe('record route', () => {
-  it('says the editor comes later for a development sample', async () => {
+  it('says there is no editor for a development sample', async () => {
     const { container } = await open('projeler', fixtureProjects[0].id);
     expect(container.textContent).toContain('geliştirme örneğidir');
     expect(container.textContent).not.toContain('bulunamadı');

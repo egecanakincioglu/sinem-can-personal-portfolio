@@ -620,7 +620,7 @@ function MathFields({
         />
       </div>
       {g.value !== '' && !g.error && (
-        <p className="a-live" aria-label="Denklem önizlemesi">
+        <p className="a-live" role="img" aria-label="Denklem önizlemesi">
           <Inline text={`$${g.value}$`} ctx={ctxs.tr} keyPrefix={`${name}-math`} />
         </p>
       )}

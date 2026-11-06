@@ -68,8 +68,8 @@ export function KapsamMatrix({ summary, uncovered }: { summary: CoverageSummary;
       <Section id="ozet" title="Özet" note="Sayılar kayıt defterinden hesaplanır; elle yazılmaz.">
         <dl className="a-readouts">
           <Readout label="Genel sitedeki alan" value={summary.total} derived />
-          <Readout label="Düzenleyicisi hazır" value={summary.ready} derived />
-          <Readout label="Düzenleyicisi planlanan" value={summary.planned} derived />
+          <Readout label="Düzenleyicisi olan alan" value={summary.ready} derived />
+          <Readout label="Düzenleyicisi henüz olmayan alan" value={summary.planned} derived />
           <Readout label="Kayıt defterinde karşılığı olmayan alan" value={uncovered.length} derived />
         </dl>
       </Section>
@@ -86,7 +86,12 @@ export function KapsamMatrix({ summary, uncovered }: { summary: CoverageSummary;
       </Section>
       {ordered.map((page) => (
         <Section key={page} id={`sayfa-${pageOrder.includes(page) ? pageOrder.indexOf(page) : page}`} title={page}>
-          <div className="a-matrix-wrap">
+          <div
+            className="a-matrix-wrap"
+            role="region"
+            aria-label={`Kapsam tablosu (yatay kaydırılır) · ${page}`}
+            tabIndex={0}
+          >
             <table className="a-matrix">
               <caption className="a-vh">{`${page}: genel sitedeki yer, alan, düzenleyici ve durum`}</caption>
               <thead>

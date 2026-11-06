@@ -77,13 +77,30 @@ describe('Notlar screen', () => {
     expect(screen.getByText('Henüz yayımlanmış bir not yok.')).toBeTruthy();
   });
 
-  it('creates a draft note from a title and opens its editor', () => {
+  it('creates a draft note from a title in a dialog and opens its editor', () => {
     setup();
     fireEvent.click(button('Yeni not'));
-    expect(button('Oluştur').disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText('Not başlığı (Türkçe)'), { target: { value: 'Kiriş Eğilmesi' } });
-    fireEvent.click(button('Oluştur'));
+    const dialog = within(screen.getByRole('dialog', { name: 'Yeni not' }));
+    fireEvent.change(dialog.getByLabelText(/Başlık \(Türkçe\)/), { target: { value: 'Kiriş Eğilmesi' } });
+    fireEvent.click(dialog.getByRole('button', { name: 'Oluştur' }));
     expect(push).toHaveBeenCalledWith('/admin/notlar/kiris-egilmesi');
+  });
+
+  it('refuses an empty title with an inline error, focuses the field, and returns focus on cancel', () => {
+    setup();
+    const opener = button('Yeni not');
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = within(screen.getByRole('dialog', { name: 'Yeni not' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Oluştur' }));
+    expect(push).not.toHaveBeenCalled();
+    const field = dialog.getByLabelText(/Başlık \(Türkçe\)/);
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(field);
+    expect(dialog.getByText(/Hata: Bu alan boş bırakılamaz\./)).toBeTruthy();
+    fireEvent.click(dialog.getByRole('button', { name: 'Vazgeç' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
   });
 
   it('tolerates a stored state without a notes list', () => {

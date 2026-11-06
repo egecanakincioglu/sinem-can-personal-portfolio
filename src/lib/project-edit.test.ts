@@ -204,9 +204,9 @@ describe('projectCompleteness', () => {
       objective: [{ tr: 'Metin', en: ' ' }],
       slug: { tr: 'a', en: '' },
     });
-    expect(projectCompleteness(p)).toBe('Eksik: EN çevirisi (3 alan)');
+    expect(projectCompleteness(p)).toBe('Eksik: EN çevirisi (3 alan: Başlık, Amaç, Adres parçası)');
     expect(projectCompleteness(rec('a', { title: { tr: '', en: '' } }))).toBe(
-      'Eksik: TR çevirisi (1 alan), EN çevirisi (1 alan)',
+      'Eksik: TR çevirisi (1 alan: Başlık), EN çevirisi (1 alan: Başlık)',
     );
   });
 
@@ -241,7 +241,7 @@ describe('projectCompleteness', () => {
       revisions: [{ rev: 'A', note: blank, reasoning: blank }],
       privateOriginals: [{ assetId: 'o', format: 'step', label: blank, access: 'private' }],
     });
-    expect(projectCompleteness(p)).toBe('Eksik: EN çevirisi (23 alan)');
+    expect(projectCompleteness(p)).toBe('Eksik: EN çevirisi (23 alan: Alt başlık, Malzemeler, Ölçümler, Hesaplar, …)');
   });
 });
 
@@ -348,7 +348,13 @@ describe('projectIssues', () => {
   it('blocks publishing on a half-translated record', () => {
     const p = rec('a', { objective: [{ tr: 'Metin', en: '' }] });
     expect(projectIssues(p, ctx([p]))).toEqual([
-      { section: 'yayin', field: 'langs', lang: 'en', severity: 'error', message: 'Eksik: EN çevirisi (1 alan).' },
+      {
+        section: 'yayin',
+        field: 'langs',
+        lang: 'en',
+        severity: 'error',
+        message: 'Eksik: EN çevirisi (1 alan: Amaç).',
+      },
     ]);
   });
 });

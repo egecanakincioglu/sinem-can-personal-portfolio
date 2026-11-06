@@ -32,11 +32,11 @@ import type { Pair } from './HeroEditor';
 const both = (p: Pair): ReactNode => (
   <span className="block text-right">
     <span className="block">
-      <span className="a-sfx">TR </span>
+      <span className="a-sfx">TR&nbsp;</span>
       {p.tr}
     </span>
     <span className="block">
-      <span className="a-sfx">EN </span>
+      <span className="a-sfx">EN&nbsp;</span>
       {p.en}
     </span>
   </span>
@@ -175,8 +175,6 @@ export function IntroEditor() {
 const WORKSHOP_KEYS = [
   'workshopHeading',
   'workshopInternship',
-  'workshopApplied',
-  'workshopObserved',
   'workshopAppliedHint',
   'workshopObservedHint',
 ] as const satisfies readonly CopyKey[];
@@ -214,6 +212,17 @@ export function WorkshopEditor() {
     <>
       <CopyStatus keys={WORKSHOP_KEYS} />
       <CopyGroup keys={WORKSHOP_KEYS} />
+
+      <Disclosure label="Korumalı başlıklar" meta={<span className="a-sfx">salt okunur</span>}>
+        <p className="a-help">
+          “Uyguladım” ve “Gözlemledim” başlıkları sabittir: kişinin kendi yaptığı işi yalnızca izlediklerinden ayıran
+          dürüstlük sınırıdır.
+        </p>
+        <dl className="a-readouts">
+          <Readout locked label="“Uyguladım” başlığı" value={both(pairOf(w.applied))} />
+          <Readout locked label="“Gözlemledim” başlığı" value={both(pairOf(w.observed))} />
+        </dl>
+      </Disclosure>
 
       <Disclosure label="Staj bilgisi (salt okunur)" meta={<span className="a-sfx">kaynak: Deneyim kaydı</span>}>
         <p className="a-help">

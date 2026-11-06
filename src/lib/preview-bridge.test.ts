@@ -30,6 +30,7 @@ import {
   portraitFields,
   portraitSlotFields,
   sanitizeOverride,
+  sharedFieldIds,
   workViewFields,
   workshopField,
   type CopyField,
@@ -206,6 +207,17 @@ describe('sanitising text', () => {
     expect(Object.keys(sanitizeOverride(null))).toEqual(['workView']);
     expect(Object.keys(sanitizeOverride('x'))).toEqual(['workView']);
     const o = sanitizeOverride({ evil: { a: 1 }, draft: { nope: { tr: 'x' } }, dict: 5 });
+    expect(Object.keys(o)).toEqual(['workView']);
+  });
+
+  it('does not accept the locked workshop and figure labels', () => {
+    const ids = Object.values(copyFields).map((f) => f.id);
+    expect(ids).not.toContain('atolye.applied');
+    expect(ids).not.toContain('atolye.observed');
+    expect(ids).not.toContain('yaklasim.figure');
+    const o = sanitizeOverride({
+      dict: { workshop: { applied: { tr: 'X', en: 'X' } }, approach: { figure: { tr: 'Y', en: 'Y' } } },
+    });
     expect(Object.keys(o)).toEqual(['workView']);
   });
 
@@ -429,6 +441,91 @@ describe('parseStateMessage', () => {
     { type: 'state', v: 1, lang: 'de' },
   ])('rejects %j', (d) => {
     expect(parseStateMessage(d)).toBeNull();
+  });
+});
+
+describe('interface strings through the override', () => {
+  const merged = (values: Record<string, string>) => mergeSiteContent(buildOverride(values)).dict;
+
+  it('keeps a deep key and an array element through the sanitiser', () => {
+    const d = mergeSiteContent(
+      sanitizeOverride({
+        dict: {
+          projects: {
+            viewer: { hint: { tr: 'Yeni ipucu', en: 'New hint' } },
+            legend: [undefined, undefined, { tr: 'Üçüncü', en: 'Third' }, undefined],
+          },
+        },
+      }),
+    ).dict;
+    expect(d.projects.viewer.hint).toMatchObject({ tr: 'Yeni ipucu', en: 'New hint' });
+    expect(d.projects.legend[2].en).toBe('Third');
+    expect(d.projects.legend[0].en).toBe(site.dict.projects.legend[0].en);
+  });
+
+  it('drops a text that loses a required token and ignores an unknown path', () => {
+    const out = sanitizeOverride({
+      dict: {
+        approach: { readoutsAt: { tr: 'Okuma değerleri', en: 'Readouts, a = {a} L' }, unknown: { tr: 'x', en: 'y' } },
+        nothing: { here: { tr: 'x', en: 'y' } },
+      },
+    });
+    const approach = out.dict?.approach as Record<string, unknown> | undefined;
+    expect(approach?.readoutsAt).toEqual({ en: 'Readouts, a = {a} L' });
+    expect(approach).not.toHaveProperty('unknown');
+    expect(out.dict).not.toHaveProperty('nothing');
+  });
+
+  it('does not override locked or derived rows', () => {
+    const d = merged({
+      'metinler.workshop.applied.en': 'I did it all',
+      'metinler.hero.programValue.en': 'Free text',
+    });
+    expect(d.workshop.applied.en).toBe(site.dict.workshop.applied.en);
+    expect(d.hero.programValue.en).toBe(site.dict.hero.programValue.en);
+  });
+
+  it('builds a deep edit from the editor values', () => {
+    const d = merged({ 'metinler.projects.viewer.hint.en': 'Edited hint', 'metinler.projects.legend[1].tr': 'Tür' });
+    expect(d.projects.viewer.hint.en).toBe('Edited hint');
+    expect(d.projects.legend[1].tr).toBe('Tür');
+    expect(d.projects.legend[1].en).toBe(site.dict.projects.legend[1].en);
+  });
+
+  it('applies one control to every place of a shared string nobody else edits', () => {
+    const d = merged({ 'metinler.notes.minRead.en': '{n} minutes' });
+    expect(d.notes.minRead.en).toBe('{n} minutes');
+  });
+
+  it('carries an edit made on Ana sayfa to every place of the shared string', () => {
+    const d = merged({ 'calismalar.emptyProjects.en': 'Nothing yet.', 'hero.briefly.en': 'Quick facts' });
+    expect(d.work.emptyProjects.en).toBe('Nothing yet.');
+    expect(d.projects.emptyTitle.en).toBe('Nothing yet.');
+    expect(d.projects.emptyTitle.tr).toBe(site.dict.projects.emptyTitle.tr);
+    for (const [g, k] of [
+      ['hero', 'briefly'],
+      ['sections', 'profile'],
+      ['intro', 'heading'],
+    ] as const)
+      expect((d[g] as Record<string, { en: string }>)[k].en, `${g}.${k}`).toBe('Quick facts');
+  });
+
+  it('binds the editor fields of a shared string to one value, canonical id first', () => {
+    expect(sharedFieldIds('profil.expected.en')).toEqual(['hero.graduation.en', 'profil.expected.en']);
+    expect(sharedFieldIds('hero.graduation.tr')).toEqual(['hero.graduation.tr', 'profil.expected.tr']);
+    const inBrief = sharedFieldIds('hero.briefly.en');
+    expect(inBrief).toHaveLength(3);
+    expect(inBrief).toEqual(
+      expect.arrayContaining(['hero.briefly.en', 'kisaca.heading.en', 'ustbilgi.sec.profile.en']),
+    );
+    expect(sharedFieldIds('hero.whatIs.en')).toEqual(['hero.whatIs.en']);
+    expect(sharedFieldIds('hero.lead.en')).toEqual(['hero.lead.en']);
+    expect(sharedFieldIds('not a field')).toEqual(['not a field']);
+  });
+
+  it('leaves a key edited on another screen to that screen', () => {
+    const d = merged({ 'metinler.hero.whatIs.en': 'Ignored here', 'hero.whatIs.en': 'Edited there' });
+    expect(d.hero.whatIs.en).toBe('Edited there');
   });
 });
 

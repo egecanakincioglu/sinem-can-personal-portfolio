@@ -401,6 +401,7 @@ html[data-locked] body {
 }
 .admin-root .a-index-empty {
   padding: 4px 16px;
+  white-space: normal;
 }
 .admin-root .a-side-close {
   display: none;
@@ -784,6 +785,12 @@ html[data-locked] body {
 .admin-root .a-readout dd {
   font-size: 14px;
 }
+.admin-root .a-readout dd .block {
+  display: block;
+}
+.admin-root .a-readout dd .text-right {
+  text-align: right;
+}
 .admin-root .a-unit {
   color: var(--a-kursun);
 }
@@ -1150,7 +1157,7 @@ html[data-locked] body {
     top: 0;
     bottom: 0;
     left: 0;
-    width: 72px;
+    width: 100%;
     overflow: hidden;
     background: var(--a-kagit);
     transition: width 180ms var(--a-ease);
@@ -1217,13 +1224,13 @@ html[data-locked] body {
     grid-template-columns: 232px minmax(0, 1fr) 0;
   }
   .admin-root .a-side-in {
-    width: 232px;
+    width: 100%;
     position: relative;
     overflow-y: auto;
   }
   .admin-root .a-side:hover .a-side-in,
   .admin-root .a-side:focus-within .a-side-in {
-    width: 232px;
+    width: 100%;
     border-right: 0;
   }
   .admin-root .a-side .a-side-in .a-panel-k,
@@ -1245,7 +1252,7 @@ html[data-locked] body {
   .admin-root .a-side-in,
   .admin-root .a-side:hover .a-side-in,
   .admin-root .a-side:focus-within .a-side-in {
-    width: 248px;
+    width: 100%;
   }
 }
 
@@ -1757,4 +1764,34 @@ html[data-locked] body {
   .admin-root .a-cad-orig {
     grid-template-columns: minmax(0, 1fr) auto;
   }
+}
+
+/* Arayüz metinleri ----------------------------------------------------------------------------------------------- */
+.admin-root .a-str-bar {
+  display: grid;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+@media (min-width: 720px) {
+  .admin-root .a-str-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+.admin-root .a-str-pair {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 15px;
+}
+.admin-root .a-str-pair dt {
+  color: var(--a-kursun);
+}
+.admin-root .a-str-pair dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-nowrap {
+  white-space: nowrap;
 }

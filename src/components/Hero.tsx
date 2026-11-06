@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteContent } from '@/content/site-content';
+import type { SiteContent } from '@/content/site-content';
 import { pick, type Locale } from '@/content/types';
 import { num } from '@/lib/format';
 import { resultant } from '@/lib/physics';
@@ -6,7 +6,7 @@ import { RVector, SupportLine, V } from './linework';
 import { Sidenote } from './Sidenote';
 
 /** Hero "Cisim", typographic Variant B: no portrait, the isolation boundary encloses the name itself. */
-export function Hero({ locale, content = getSiteContent() }: { locale: Locale; content?: SiteContent }) {
+export function Hero({ locale, content }: { locale: Locale; content: SiteContent }) {
   const { dict, draft, forceRecords, identity, interests, ownerName } = content;
   const h = dict.hero;
   const R = resultant(forceRecords);

@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { NotesArchive } from '@/components/notes/NotesArchive';
 import { Contact } from '@/components/Sections';
 import { dict } from '@/content/dictionary';
+import { getSiteContent } from '@/content/site-content';
 import { locales, type Locale } from '@/content/types';
 import { getPublicNotes } from '@/lib/notes';
 
@@ -25,6 +26,7 @@ export default async function DevNotesPreview({
   const { many } = await searchParams;
   if (!locales.includes(locale as Locale)) notFound();
   const l = locale as Locale;
+  const content = getSiteContent();
 
   return (
     <>
@@ -37,9 +39,9 @@ export default async function DevNotesPreview({
           {dict.notes.fixtureLabel[l]} · /dev-preview/notes
         </p>
         <NotesArchive locale={l} notes={getPublicNotes(l, { includeFixtures: true, many: many === '1' })} />
-        <Contact locale={l} />
+        <Contact locale={l} content={content} />
       </main>
-      <Footer locale={l} page="notes" />
+      <Footer locale={l} page="notes" content={content} />
     </>
   );
 }

@@ -9,7 +9,7 @@ const content = getSiteContent();
 
 describe('Footer', () => {
   it('links the contact address and marks the active language', () => {
-    render(<Footer locale="tr" page="profile" />);
+    render(<Footer locale="tr" page="profile" content={getSiteContent()} />);
     const mail = screen.getByRole('link', { name: content.contact.email });
     expect(mail.getAttribute('href')).toBe(`mailto:${content.contact.email}`);
 
@@ -24,7 +24,7 @@ describe('Footer', () => {
 
   it('keeps the current hash when switching language', () => {
     window.location.hash = '#iletisim';
-    render(<Footer locale="tr" page="profile" />);
+    render(<Footer locale="tr" page="profile" content={getSiteContent()} />);
     const en = screen.getByRole('link', { name: `EN, ${content.dict.langNames.en}` }) as HTMLAnchorElement;
     en.addEventListener('click', (e) => e.preventDefault());
     fireEvent.click(en);
@@ -33,14 +33,14 @@ describe('Footer', () => {
   });
 
   it('opens external profile links safely', () => {
-    render(<Footer locale="en" />);
+    render(<Footer locale="en" content={getSiteContent()} />);
     const external = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]'));
     expect(external.length).toBeGreaterThan(0);
     for (const a of external) expect(a.rel).toBe('noopener noreferrer');
   });
 
   it('offers the primary navigation in the active language', () => {
-    render(<Footer locale="en" />);
+    render(<Footer locale="en" content={getSiteContent()} />);
     const nav = screen.getByRole('navigation', { name: content.dict.nav.label.en });
     expect(within(nav).getByRole('link', { name: content.dict.nav.projects.en }).getAttribute('href')).toBe(
       '/en/projects',

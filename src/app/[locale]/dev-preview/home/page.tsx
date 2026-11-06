@@ -51,7 +51,8 @@ export default async function HomeHarness({
       </p>
       <HomePage
         locale={l}
-        content={content === getSiteContent() ? undefined : content}
+        content={content}
+        preview={content !== getSiteContent()}
         projects={homeProjectCards(list, l)}
       />
     </>

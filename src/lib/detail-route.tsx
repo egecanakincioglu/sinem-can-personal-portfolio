@@ -7,6 +7,7 @@ import { ProjectDetail } from '@/components/projects/ProjectDetail';
 import { Contact } from '@/components/Sections';
 import { dict } from '@/content/dictionary';
 import { ownerName } from '@/content/site';
+import { getSiteContent } from '@/content/site-content';
 import { locales, type Locale } from '@/content/types';
 import { findPublicNote, notePaths, noteStaticParams } from './notes';
 import { findPublicProject, projectPaths, projectStaticParams } from './projects';
@@ -69,6 +70,7 @@ export function detailMetadata(locale: string, slug: string, entry: string): Met
 export function DetailView({ locale, slug, entry }: { locale: string; slug: string; entry: string }) {
   const r = resolve(locale, slug, entry);
   if (!r) notFound();
+  const content = getSiteContent();
 
   if (r.kind === 'note') {
     const { l, n } = r;
@@ -82,9 +84,9 @@ export function DetailView({ locale, slug, entry }: { locale: string; slug: stri
         <Header locale={l} page="note" paths={paths} sections={sections} />
         <main id="main">
           <NoteArticle note={n} locale={l} />
-          <Contact locale={l} />
+          <Contact locale={l} content={content} />
         </main>
-        <Footer locale={l} page="note" paths={paths} />
+        <Footer locale={l} page="note" paths={paths} content={content} />
       </>
     );
   }
@@ -95,9 +97,9 @@ export function DetailView({ locale, slug, entry }: { locale: string; slug: stri
       <Header locale={l} page="project" paths={projectPaths(p)} />
       <main id="main">
         <ProjectDetail project={p} locale={l} />
-        <Contact locale={l} />
+        <Contact locale={l} content={content} />
       </main>
-      <Footer locale={l} page="project" paths={projectPaths(p)} />
+      <Footer locale={l} page="project" paths={projectPaths(p)} content={content} />
     </>
   );
 }

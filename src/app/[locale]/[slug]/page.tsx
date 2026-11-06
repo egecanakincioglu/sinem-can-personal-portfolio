@@ -7,6 +7,7 @@ import { ProjectsArchive } from '@/components/projects/ProjectsArchive';
 import { NotesArchive } from '@/components/notes/NotesArchive';
 import { Contact } from '@/components/Sections';
 import { dict } from '@/content/dictionary';
+import { getSiteContent } from '@/content/site-content';
 import { locales, type Locale } from '@/content/types';
 import { getPublicNotes } from '@/lib/notes';
 import { getPublicProjects } from '@/lib/projects';
@@ -54,21 +55,22 @@ export default async function TopLevelPage({ params }: Params) {
   const r = resolve(locale, slug);
   if (!r) notFound();
   const { l, page } = r;
+  const content = getSiteContent();
 
   return (
     <>
       <Header locale={l} page={page} />
       <main id="main">
         {page === 'profile' ? (
-          <ProfileLayout locale={l} />
+          <ProfileLayout locale={l} content={content} />
         ) : page === 'projects' ? (
           <ProjectsArchive locale={l} projects={getPublicProjects()} />
         ) : (
           <NotesArchive locale={l} notes={getPublicNotes(l)} />
         )}
-        <Contact locale={l} />
+        <Contact locale={l} content={content} />
       </main>
-      <Footer locale={l} page={page} />
+      <Footer locale={l} page={page} content={content} />
     </>
   );
 }

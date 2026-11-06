@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteContent } from '@/content/site-content';
+import type { SiteContent } from '@/content/site-content';
 import { profileIndexIds } from '@/content/structure';
 import type { Copy, Locale } from '@/content/types';
 import { monthYear, num, periodText } from '@/lib/format';
@@ -9,7 +9,7 @@ import { ProfileIndex } from './ProfileIndex';
 import { Sidenote } from './Sidenote';
 
 /** `content` defaults to the authoritative public content; the Admin live preview passes the edited, derived content. */
-type P = { locale: Locale; content?: SiteContent };
+type P = { locale: Locale; content: SiteContent };
 
 /** Record pattern: meta column, then title and detail, separated by hairlines. */
 function Rec({ meta, children }: { meta?: React.ReactNode; children: React.ReactNode }) {
@@ -46,7 +46,7 @@ const Title = ({ children }: { children: React.ReactNode }) => (
   <h3 className="serif text-[24px] leading-[1.15] tracking-[-0.01em] md:text-[26px]">{children}</h3>
 );
 
-function ProfileIntro({ locale, content = getSiteContent() }: P) {
+function ProfileIntro({ locale, content }: P) {
   const { dict, draft, cvPdf } = content;
   const p = dict.profile;
   return (
@@ -85,7 +85,7 @@ function ProfileIntro({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileEducation({ locale, content = getSiteContent() }: P) {
+function ProfileEducation({ locale, content }: P) {
   const { dict, draft } = content;
   const p = dict.profile;
   return (
@@ -133,7 +133,7 @@ function ProfileEducation({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileExperience({ locale, content = getSiteContent() }: P) {
+function ProfileExperience({ locale, content }: P) {
   const { dict, draft } = content;
   const w = dict.workshop;
   return (
@@ -174,7 +174,7 @@ function ProfileExperience({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileCommunity({ locale, content = getSiteContent() }: P) {
+function ProfileCommunity({ locale, content }: P) {
   const { dict, draft } = content;
   return (
     <Block id="community" locale={locale} dict={dict}>
@@ -194,7 +194,7 @@ function ProfileCommunity({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileSkills({ locale, content = getSiteContent() }: P) {
+function ProfileSkills({ locale, content }: P) {
   return (
     <Block id="skills" locale={locale} dict={content.dict}>
       {content.skillGroups.map((g) => (
@@ -217,7 +217,7 @@ function ProfileSkills({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileLanguages({ locale, content = getSiteContent() }: P) {
+function ProfileLanguages({ locale, content }: P) {
   return (
     <Block id="languages" locale={locale} dict={content.dict}>
       {content.languages.map((l) => (
@@ -234,7 +234,7 @@ function ProfileLanguages({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileInterests({ locale, content = getSiteContent() }: P) {
+function ProfileInterests({ locale, content }: P) {
   return (
     <Block id="interests" locale={locale} dict={content.dict}>
       <ul className="max-w-[28rem]">
@@ -251,7 +251,7 @@ function ProfileInterests({ locale, content = getSiteContent() }: P) {
   );
 }
 
-function ProfileOffField({ locale, content = getSiteContent() }: P) {
+function ProfileOffField({ locale, content }: P) {
   const { draft } = content;
   return (
     <Block id="off-field" locale={locale} dict={content.dict}>
@@ -273,7 +273,7 @@ function ProfileOffField({ locale, content = getSiteContent() }: P) {
 }
 
 /** Index + content columns of the Profile page: index 1–2, content 3–9, notes 10–12. */
-export function ProfileLayout({ locale, content = getSiteContent() }: P) {
+export function ProfileLayout({ locale, content }: P) {
   const { dict } = content;
   const items = profileIndexIds.map((id) => ({
     id,

@@ -36,6 +36,10 @@ Rules:
 - Negative: the visibility rule must be tested for every accessor that lists records ([ADR 0004](0004-testing-strategy.md)).
 - Open item: private files need server-side authorization when the backend exists (planned). A flag in the front end is not a security boundary.
 
+## Amendment (2026-11-06)
+
+Client islands keep the static interface dictionary as their default and accept edited copy through optional props. Server components receive all content as props from the page. Props passed to client components are serialised into the page HTML, so passing the full content to them would make every page larger.
+
 ## Sources
 
 - https://nextjs.org/docs/app/getting-started/server-and-client-components

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { HomePage } from '@/components/HomePage';
+import { getSiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import { getPublicNotes, toItem } from '@/lib/notes';
 import { getPublicProjects, homeProjectCards } from '@/lib/projects';
@@ -15,5 +16,5 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const notes = getPublicNotes(locale).slice(0, 3).map(toItem);
   // Published AND approved records only (no fixtures, no drafts): the same visibility rule as the archive.
   const projects = homeProjectCards(getPublicProjects(), locale);
-  return <HomePage locale={locale} projects={projects} notes={notes} />;
+  return <HomePage locale={locale} content={getSiteContent()} projects={projects} notes={notes} />;
 }

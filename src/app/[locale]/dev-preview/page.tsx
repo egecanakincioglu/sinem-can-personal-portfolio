@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { ProjectsArchive } from '@/components/projects/ProjectsArchive';
 import { Contact } from '@/components/Sections';
 import { dict } from '@/content/dictionary';
+import { getSiteContent } from '@/content/site-content';
 import { locales, type Locale } from '@/content/types';
 import { getPublicProjects } from '@/lib/projects';
 
@@ -25,6 +26,7 @@ export default async function DevPreview({
   const { many } = await searchParams;
   if (!locales.includes(locale as Locale)) notFound();
   const l = locale as Locale;
+  const content = getSiteContent();
 
   return (
     <>
@@ -37,9 +39,9 @@ export default async function DevPreview({
           {dict.projects.fixtureLabel[l]} · /dev-preview
         </p>
         <ProjectsArchive locale={l} projects={getPublicProjects({ includeFixtures: true, many: many === '1' })} />
-        <Contact locale={l} />
+        <Contact locale={l} content={content} />
       </main>
-      <Footer locale={l} page="projects" />
+      <Footer locale={l} page="projects" content={content} />
     </>
   );
 }

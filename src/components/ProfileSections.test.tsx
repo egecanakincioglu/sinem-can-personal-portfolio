@@ -25,7 +25,7 @@ const sections = content.dict.sections as Record<string, Copy>;
 
 describe('ProfileLayout', () => {
   it.each(['tr', 'en'] as const)('has one page heading and a headed section for every index entry (%s)', (locale) => {
-    const { container } = render(<ProfileLayout locale={locale} />);
+    const { container } = render(<ProfileLayout locale={locale} content={getSiteContent()} />);
     expect(container.querySelectorAll('h1')).toHaveLength(1);
 
     for (const id of profileIndexIds) {
@@ -39,7 +39,7 @@ describe('ProfileLayout', () => {
   });
 
   it('does not offer a CV download while no file is supplied', () => {
-    const { container } = render(<ProfileLayout locale="en" />);
+    const { container } = render(<ProfileLayout locale="en" content={getSiteContent()} />);
     expect(content.cvPdf).toBeNull();
     expect(container.querySelector('a[href$=".pdf"]')).toBeNull();
   });

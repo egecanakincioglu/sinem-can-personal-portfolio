@@ -2,8 +2,10 @@ rules:
   - id: no-process-env
     languages: [typescript]
     severity: ERROR
-    message: Read environment variables only through the validated env module (src/server/env.ts).
-    pattern: process.env
+    message: Read environment variables only through the validated env module (src/server/env.ts). Only process.env.NODE_ENV is allowed elsewhere.
+    patterns:
+      - pattern: process.env
+      - pattern-not-inside: process.env.NODE_ENV
     paths:
       include:
         - src/

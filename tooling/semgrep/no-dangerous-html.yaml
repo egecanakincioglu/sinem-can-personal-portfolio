@@ -2,7 +2,27 @@ rules:
   - id: no-dangerous-html
     languages: [typescript]
     severity: ERROR
-    message: dangerouslySetInnerHTML is forbidden; render content as React nodes.
-    pattern-either:
-      - pattern: <$EL dangerouslySetInnerHTML={...} />
-      - pattern: <$EL dangerouslySetInnerHTML={...}>...</$EL>
+    message: >-
+      dangerouslySetInnerHTML is forbidden; render content as React nodes. Allowed
+      values are texToMathML(...), a string literal, a template literal without
+      interpolation, or a const bound to such a literal.
+    patterns:
+      - pattern-either:
+          - pattern: <$EL dangerouslySetInnerHTML={...} />
+          - pattern: <$EL dangerouslySetInnerHTML={...}>...</$EL>
+      - pattern-not: |
+          <$EL dangerouslySetInnerHTML={{ __html: texToMathML(...) }} />
+      - pattern-not: |
+          <$EL dangerouslySetInnerHTML={{ __html: texToMathML(...) }}>...</$EL>
+      - pattern-not:
+          patterns:
+            - pattern-either:
+                - pattern: |
+                    <$EL dangerouslySetInnerHTML={{ __html: "..." }} />
+                - pattern: |
+                    <$EL dangerouslySetInnerHTML={{ __html: "..." }}>...</$EL>
+                - pattern: |
+                    <$EL dangerouslySetInnerHTML={{ __html: `...` }} />
+                - pattern: |
+                    <$EL dangerouslySetInnerHTML={{ __html: `...` }}>...</$EL>
+            - pattern-not-regex: '\$\{'

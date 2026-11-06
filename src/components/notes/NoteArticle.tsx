@@ -1,5 +1,4 @@
-import { dict } from '@/content/dictionary';
-import { contact, ownerName } from '@/content/site';
+import type { SiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import { fullDate } from '@/lib/format';
 import { headingsOf, nextNote, readingMinutes, relatedNotes, toItem, type PublicNote } from '@/lib/notes';
@@ -9,11 +8,10 @@ import { ArticleBody } from './ArticleBody';
 import { ArticleToc, type TocItem } from './ArticleToc';
 import { NoteList } from './NoteList';
 
-const d = dict.notes;
 const TOP = 'pt-[calc(72px+clamp(40px,6vw,96px))]';
 
 /** Table-of-contents entries: H2 and H3 headings, plus the end sections when the article has them. */
-export function tocOf(n: PublicNote, locale: Locale): TocItem[] {
+export function tocOf(n: PublicNote, locale: Locale, dict: SiteContent['dict']): TocItem[] {
   const { content } = n;
   let parent = '';
   const items: TocItem[] = headingsOf(content).map((h) => {
@@ -37,10 +35,23 @@ function BackLink({ href, children }: { href: string; children: React.ReactNode 
   );
 }
 
-export function NoteArticle({ note, locale }: { note: PublicNote; locale: Locale }) {
+export function NoteArticle({
+  note,
+  locale,
+  dict,
+  ownerName,
+  email,
+}: {
+  note: PublicNote;
+  locale: Locale;
+  dict: SiteContent['dict'];
+  ownerName: string;
+  email: string;
+}) {
+  const d = dict.notes;
   const { record, content } = note;
   const minutes = readingMinutes(content, locale);
-  const toc = tocOf(note, locale);
+  const toc = tocOf(note, locale, dict);
   const related = relatedNotes(note);
   const next = nextNote(note);
   const fixture = !!record.fixture;
@@ -72,7 +83,7 @@ export function NoteArticle({ note, locale }: { note: PublicNote; locale: Locale
     ],
   ];
 
-  const mailto = `mailto:${contact.email}?subject=${encodeURIComponent(`${d.errorSubject[locale]}: ${content.title}`)}`;
+  const mailto = `mailto:${email}?subject=${encodeURIComponent(`${d.errorSubject[locale]}: ${content.title}`)}`;
 
   return (
     <article aria-labelledby="note-title" className="notes-scope">
@@ -118,7 +129,7 @@ export function NoteArticle({ note, locale }: { note: PublicNote; locale: Locale
           />
         </div>
         <div className="col-[1/-1] mt-10 lg:col-[4/-1] lg:mt-0">
-          <ArticleBody content={content} locale={locale} />
+          <ArticleBody content={content} locale={locale} dict={dict} />
         </div>
       </div>
 

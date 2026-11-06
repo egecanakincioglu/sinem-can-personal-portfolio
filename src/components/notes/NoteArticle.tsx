@@ -103,7 +103,7 @@ export function NoteArticle({ note, locale }: { note: PublicNote; locale: Locale
           ))}
         </dl>
         {fixture && (
-          <p className="t-meta col-[1/-1] mt-5 border border-dashed border-grafit px-3 py-2 text-grafit md:justify-self-start">
+          <p className="t-meta col-[1/-1] mt-5 border border-grafit px-3 py-2 text-grafit md:justify-self-start">
             {d.fixtureLabel[locale]}
           </p>
         )}

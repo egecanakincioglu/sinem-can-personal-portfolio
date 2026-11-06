@@ -1,4 +1,5 @@
 import { dict } from '@/content/dictionary';
+import { getFigure } from '@/content/figures/registry';
 import type { Block, NoteContent } from '@/content/notes/types';
 import { Inline, buildCtx, plain, type Ctx } from '@/lib/inline';
 import { texToMathML } from '@/lib/math';
@@ -119,22 +120,18 @@ function renderBlock(
         </figure>
       );
     }
-    case 'svg': {
+    case 'figure': {
+      const f = getFigure(b.figureId);
+      if (!f) return null;
       const n = ++counters.fig;
       return (
         <figure key={i} id={b.id ? `fig-${b.id}` : undefined} className="art-wide art-fig">
           <div className="art-fig-media art-fig-svg">
-            {/* nosemgrep: tooling.semgrep.no-dangerous-html -- authored SVG from the repository's own notes; replaced by the figure registry later */}
-            <svg
-              viewBox={b.viewBox}
-              role="img"
-              aria-label={b.alt}
-              className="block h-auto w-full"
-              // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- authored SVG from the repository's own notes; replaced by the figure registry later
-              dangerouslySetInnerHTML={{ __html: b.svg }}
-            />
+            <svg viewBox={f.viewBox} role="img" aria-label={b.alt ?? f.alt[locale]} className="block h-auto w-full">
+              <f.Component />
+            </svg>
           </div>
-          {cap('fig', n, b.caption)}
+          {cap('fig', n, b.caption ?? f.caption[locale])}
         </figure>
       );
     }

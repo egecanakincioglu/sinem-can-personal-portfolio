@@ -106,7 +106,24 @@ export const screens: ScreenDef[] = [
     group: 'work',
     preview: 'ana-sayfa',
     stage: 4,
-    sections: [],
+    sections: [
+      { id: 'meta', label: 'Sayfa meta bilgisi', status: 'ok' },
+      { id: 'nav', label: 'Gezinme', status: 'ok' },
+      { id: 'sections', label: 'Bölüm adları', status: 'ok' },
+      { id: 'notes', label: 'Notlar', status: 'ok' },
+      { id: 'profile', label: 'Profil', status: 'ok' },
+      { id: 'hero', label: 'Hero', status: 'ok' },
+      { id: 'intro', label: 'Kısaca', status: 'ok' },
+      { id: 'forces', label: 'Kuvvetler', status: 'ok' },
+      { id: 'workshop', label: 'Atölye', status: 'ok' },
+      { id: 'approach', label: 'Yaklaşım', status: 'ok' },
+      { id: 'work', label: 'Çalışmalar', status: 'ok' },
+      { id: 'projects', label: 'Projeler', status: 'ok' },
+      { id: 'notFound', label: 'Bulunamadı sayfası', status: 'ok' },
+      { id: 'direction', label: 'Yönelim', status: 'ok' },
+      { id: 'contact', label: 'İletişim', status: 'ok' },
+      { id: 'footer', label: 'Alt bilgi', status: 'ok' },
+    ],
   },
   {
     slug: 'ayarlar',
@@ -147,7 +164,7 @@ export const screenHref = (s: ScreenDef) => (s.slug ? `/admin/${s.slug}` : '/adm
 export const screenBySlug = (slug: string) => screens.find((s) => s.slug === slug);
 /** @public Used by the editor screens. */
 export const stubSlugs = screens
-  .filter((s) => s.slug && !['ana-sayfa', 'profil', 'ayarlar', 'kapsam', 'medya'].includes(s.slug))
+  .filter((s) => s.slug && !['ana-sayfa', 'profil', 'ayarlar', 'kapsam', 'medya', 'metinler'].includes(s.slug))
   .map((s) => s.slug);
 export const subRecordScreens = ['projeler', 'notlar'];
 

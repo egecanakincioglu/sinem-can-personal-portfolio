@@ -1652,3 +1652,33 @@ html[data-locked] body {
   margin: 12px 0 0;
   padding-left: 18px;
 }
+
+/* Arayüz metinleri ----------------------------------------------------------------------------------------------- */
+.admin-root .a-str-bar {
+  display: grid;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+@media (min-width: 720px) {
+  .admin-root .a-str-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+.admin-root .a-str-pair {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 15px;
+}
+.admin-root .a-str-pair dt {
+  color: var(--a-kursun);
+}
+.admin-root .a-str-pair dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-nowrap {
+  white-space: nowrap;
+}

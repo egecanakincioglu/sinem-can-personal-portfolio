@@ -1,9 +1,37 @@
 /** ANTET screen registry. Pure data, safe to import from server and client. */
 export type SectionStatus = 'ok' | 'draft' | 'later';
 type SectionDef = { id: string; label: string; status: SectionStatus };
+/**
+ * Rail labels while the side panel is collapsed: two capitals from the Turkish title, unique across the list.
+ * A first word of exactly two characters is used whole ("ve" and "&" are skipped). Otherwise, several words: the first letters of the first two words. One word: its first two letters. When a label is taken,
+ * the first letter plus the next consonant of the title that gives a free label.
+ */
+export function railLabels(titles: string[]): string[] {
+  const up = (s: string) => s.toLocaleUpperCase('tr');
+  const vowels = 'AEIİOÖUÜ';
+  const taken = new Set<string>();
+  return titles.map((title) => {
+    const words = title
+      .trim()
+      .split(/\s+/)
+      .filter((w) => w !== '&' && w.toLocaleLowerCase('tr') !== 've');
+    const letters = Array.from(up(title.replace(/\s+/g, '')));
+    const first = Array.from(up(words[0]))[0];
+    const whole = Array.from(words[0]).length === 2;
+    const base = whole ? up(words[0]) : words.length > 1 ? first + Array.from(up(words[1]))[0] : first + letters[1];
+    let label = base;
+    if (taken.has(label)) {
+      const consonants = letters.slice(1).filter((c) => !vowels.includes(c));
+      label = consonants.map((c) => first + c).find((c) => !taken.has(c)) ?? base;
+    }
+    taken.add(label);
+    return label;
+  });
+}
+
 export type ScreenDef = {
   slug: string; // "" = /admin
-  /** Rail label while the side panel is collapsed. */
+  /** Rail label while the side panel is collapsed; derived by `railLabels`, never typed. */
   short: string;
   title: string;
   lede: string;
@@ -15,10 +43,9 @@ export type ScreenDef = {
   stage: number;
 };
 
-export const screens: ScreenDef[] = [
+const defs: Omit<ScreenDef, 'short'>[] = [
   {
     slug: '',
-    short: 'GB',
     title: 'Genel bakış',
     lede: 'Çalışma masasının özeti: görevler, son revizyonlar ve kayıt sayıları.',
     group: 'work',
@@ -28,7 +55,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'ana-sayfa',
-    short: 'AS',
     title: 'Ana sayfa',
     lede: 'Genel sitenin ilk sayfasındaki sekiz bölümü düzenleyin; değişiklikler önizlemede görünür.',
     group: 'work',
@@ -48,7 +74,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'profil',
-    short: 'Pr',
     title: 'Profil',
     lede: 'Profil sayfasındaki kayıtlar ve metinler; Ana sayfadaki türetilmiş alanlar aynı kayıtlardan beslenir.',
     group: 'work',
@@ -69,7 +94,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'projeler',
-    short: 'Pj',
     title: 'Projeler',
     lede: 'Projeleri ekleyin, düzenleyin ve hangilerinin yayında olduğunu görün.',
     group: 'work',
@@ -90,7 +114,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'notlar',
-    short: 'No',
     title: 'Notlar',
     lede: 'Teknik notlar ve makaleler.',
     group: 'work',
@@ -108,7 +131,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'medya',
-    short: 'Me',
     title: 'Medya',
     lede: 'Görsel kitaplığı ve portre alanı.',
     group: 'work',
@@ -121,7 +143,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'cad-glb',
-    short: '3B',
     title: '3B ve CAD',
     lede: 'GLB önizlemeleri ve özel CAD özgün dosyaları.',
     group: 'work',
@@ -135,7 +156,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'metinler',
-    short: 'AM',
     title: 'Arayüz metinleri',
     lede: 'Sitedeki tüm arayüz metinleri, gruplanmış ve aranabilir.',
     group: 'work',
@@ -162,7 +182,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'ayarlar',
-    short: 'SA',
     title: 'Site ayarları',
     lede: 'Kimlik, iletişim, gezinme ve sayfa meta bilgisi; Ana sayfa düzenleyicisiyle aynı alanlar.',
     group: 'work',
@@ -178,7 +197,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'yayin',
-    short: 'Ya',
     title: 'Yayın',
     lede: 'Simüle edilmiş yayın: değişiklik listesi, fark görünümü ve revizyonlar.',
     group: 'meta',
@@ -193,7 +211,6 @@ export const screens: ScreenDef[] = [
   },
   {
     slug: 'kapsam',
-    short: 'Ka',
     title: 'Kapsam matrisi',
     lede: 'Genel sitedeki içeriğin hangi alandan düzenlendiğini gösteren otomatik görünüm.',
     group: 'meta',
@@ -202,6 +219,9 @@ export const screens: ScreenDef[] = [
     sections: [],
   },
 ];
+
+const rail = railLabels(defs.map((d) => d.title));
+export const screens: ScreenDef[] = defs.map((d, i) => ({ ...d, short: rail[i] }));
 
 export const screenHref = (s: ScreenDef) => (s.slug ? `/admin/${s.slug}` : '/admin');
 /** The sheet number of a screen is its position in the side panel, so every page header agrees with it. */

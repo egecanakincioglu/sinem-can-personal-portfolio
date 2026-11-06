@@ -46,7 +46,7 @@ describe('TaskQueue', () => {
     const headings = within(dialog)
       .getAllByRole('heading', { level: 3 })
       .map((h) => h.textContent!.split(' · ')[0]);
-    expect(headings).toEqual(['Onay bekleyen metinler', 'Hatalar']);
+    expect(headings).toEqual(['Onay bekleyen metinler', 'Hatalar', 'Son eylemler']);
   });
 
   it('links a row to its screen with the field to focus', () => {
@@ -58,6 +58,27 @@ describe('TaskQueue', () => {
     });
     expect(link.getAttribute('href')).toBe('/admin/ana-sayfa?alan=hero.lead.tr');
     expect(link.textContent).toContain('Ana sayfa › Hero');
+  });
+
+  it('lists the stored recent actions, newest first, and says so when there are none', () => {
+    render(<Harness />);
+    openQueue();
+    const empty = within(screen.getByRole('dialog', { name: 'Görev kuyruğu' }));
+    expect(empty.getByRole('region', { name: 'Son eylemler' }).textContent).toContain('Henüz eylem yok.');
+    cleanup();
+    sessionStorage.setItem(
+      'antet-admin',
+      JSON.stringify({ schema: 1, log: ['Yayınlandı (simülasyon).', 'Kaydedildi (simülasyon).'] }),
+    );
+    render(<Harness />);
+    openQueue();
+    const log = within(
+      within(screen.getByRole('dialog', { name: 'Görev kuyruğu' })).getByRole('region', { name: 'Son eylemler' }),
+    );
+    expect(log.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'Yayınlandı (simülasyon).',
+      'Kaydedildi (simülasyon).',
+    ]);
   });
 
   it('closes when a row is followed', () => {

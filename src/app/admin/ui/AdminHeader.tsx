@@ -71,9 +71,10 @@ export function AdminHeader({ onTasks, onPalette }: { onTasks: () => void; onPal
           type="button"
           className="a-btn a-btn-quiet"
           onClick={onPalette}
-          aria-label="⌘K: komut paletini aç (Ctrl+K)"
+          aria-label="Ara, ⌘K: komut paletini aç (Ctrl+K)"
         >
           <kbd className="a-kbd">⌘K</kbd>
+          <span className="a-kbd-alt">Ara</span>
         </button>
       </div>
     </header>

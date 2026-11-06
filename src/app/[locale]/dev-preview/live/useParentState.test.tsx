@@ -41,6 +41,38 @@ describe('useParentState', () => {
     expect(result.current?.projects).toEqual(['a-1']);
   });
 
+  it('repeats its ready only a few times with growing gaps, then stops', () => {
+    vi.useFakeTimers();
+    const parent = embed();
+    renderHook(() => useParentState('tr'));
+    expect(parent.postMessage).toHaveBeenCalledTimes(1);
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(parent.postMessage).toHaveBeenCalledTimes(2);
+    act(() => {
+      vi.advanceTimersByTime(800);
+    });
+    expect(parent.postMessage).toHaveBeenCalledTimes(3);
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(parent.postMessage).toHaveBeenCalledTimes(4);
+    vi.useRealTimers();
+  });
+
+  it('stops repeating once the parent has answered', () => {
+    vi.useFakeTimers();
+    const parent = embed();
+    renderHook(() => useParentState('tr'));
+    send(state('tr'), parent);
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(parent.postMessage).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
   it('drops messages from another origin, another window, another language or malformed ones', () => {
     const parent = embed();
     const { result } = renderHook(() => useParentState('tr'));

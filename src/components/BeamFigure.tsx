@@ -182,7 +182,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
             b
           </text>
         )}
-        <path d={`M${ax} ${dimY + 6} V${loadTip - pLen - 6}`} className="svg-thin" strokeDasharray="2 3" />
+        <path d={`M${ax} ${dimY + 6} V${loadTip - pLen - 6}`} className="svg-thin" />
 
         {/* hover preview (mouse only): pencil-grey ghost load, no deflection */}
         {hover !== null && (
@@ -265,7 +265,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
         {/* bending moment diagram, tension side, pale pencil */}
         <path d={`M${x0} ${bmdY} H${x1}`} className="svg-thin" />
         <path d={`M${x0} ${bmdY} L${ax} ${apexY} L${x1} ${bmdY}`} className="svg-thin" strokeWidth={1.25} />
-        <path d={`M${ax} ${bmdY} V${apexY}`} className="svg-thin" strokeDasharray="2 3" />
+        <path d={`M${ax} ${bmdY} V${apexY}`} className="svg-thin" />
         {m.mmax > 0.03 && (
           <text
             x={flipM ? ax - 10 : ax + 10}

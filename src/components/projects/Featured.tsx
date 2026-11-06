@@ -65,7 +65,9 @@ export function Featured({
         </H>
         {card.subtitle && <p className="t-lead mt-4 max-w-[34ch] text-kursun">{card.subtitle}</p>}
         <MiniAntet card={card} locale={locale} />
-        {card.fixture && <p className="t-meta mt-3 text-kirmizi">{d.fixtureLabel[locale]}</p>}
+        {card.fixture && (
+          <p className="t-meta mt-3 w-fit border border-grafit px-2 py-1 text-grafit">{d.fixtureLabel[locale]}</p>
+        )}
         <div className="mt-6">
           <Cta href={card.href}>{d.view[locale]}</Cta>
         </div>

@@ -31,11 +31,11 @@ import { screens } from './screens';
    Coverage against the public content model is checked by registry.test.ts and shown at /admin/kapsam.
    ------------------------------------------------------------------------------------------------ */
 
-/** Screens that exist only as placeholders; an entry pointing here is `planned`. */
+/** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
 export const plannedScreens = ['projeler', 'notlar', 'medya', 'cad-glb', 'yayin'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
-export const partlyBuiltScreens = ['medya'] as const;
+export const partlyBuiltScreens = ['medya', 'projeler'] as const;
 
 const ALL = 'Tüm sayfalar';
 const sectionLabel = (screen: string, id: string) =>
@@ -141,6 +141,20 @@ const profile = (sec: string): Where => ({
   section: sectionLabel('profil', sec),
   screen: 'profil',
   editorSection: sec,
+});
+
+// Locked copy: shown read-only in the editor, not accepted by the preview bridge.
+ready('atolye.applied', 'dict.workshop.applied', home('atolye'), 'text', 'bilingual', {
+  label: 'Uyguladım başlığı',
+  derived: true,
+});
+ready('atolye.observed', 'dict.workshop.observed', home('atolye'), 'text', 'bilingual', {
+  label: 'Gözlemledim başlığı',
+  derived: true,
+});
+ready('yaklasim.figure', 'dict.approach.figure', home('yaklasim'), 'text', 'bilingual', {
+  label: 'Şekil numarası',
+  derived: true,
 });
 
 ready(summaryLabelField(0).id.replace(/\d+/, '*'), 'summaryRows[].label', home('kisaca'), 'text', 'bilingual', {
@@ -365,12 +379,28 @@ const noteContentFields: Record<keyof NoteContent, RecordMeta> = {
   coverAlt: ['notlar', 'text', 'bilingual', 'Kapak alternatif metni'],
 };
 
-function recordFields(prefix: string, page: string, section: string, table: Record<string, RecordMeta>) {
+function recordFields(
+  prefix: string,
+  page: string,
+  section: string,
+  table: Record<string, RecordMeta>,
+  skip: readonly string[] = [],
+) {
   for (const [key, [screen, type, locale, label]] of Object.entries(table)) {
+    if (skip.includes(key)) continue;
     planned(`${screen}.${prefix}.${key}`, `${prefix}.${key}`, { page, section, screen }, type, locale, label);
   }
 }
-recordFields('project', 'Projeler', 'Proje kaydı', projectFields);
+recordFields('project', 'Projeler', 'Proje kaydı', projectFields, ['fixture']);
+// Shown as a read-only chip in the project list; set by the sample loader, never edited.
+ready(
+  'projeler.project.fixture',
+  'project.fixture',
+  { page: 'Projeler', section: 'Proje kaydı', screen: 'projeler' },
+  'toggle',
+  'shared',
+  { label: 'Geliştirme örneği işareti', derived: true },
+);
 recordFields('note', 'Notlar', 'Not kaydı', noteFields);
 recordFields('note.content', 'Notlar', 'Not içeriği', noteContentFields);
 

@@ -24,6 +24,7 @@ import {
   parseBeamLoad,
   parseForceNumber,
   parseStateMessage,
+  sanitizeProjectIds,
   platformFieldId,
   portraitFields,
   portraitSlotFields,
@@ -205,6 +206,17 @@ describe('sanitising text', () => {
     expect(Object.keys(sanitizeOverride(null))).toEqual(['workView']);
     expect(Object.keys(sanitizeOverride('x'))).toEqual(['workView']);
     const o = sanitizeOverride({ evil: { a: 1 }, draft: { nope: { tr: 'x' } }, dict: 5 });
+    expect(Object.keys(o)).toEqual(['workView']);
+  });
+
+  it('does not accept the locked workshop and figure labels', () => {
+    const ids = Object.values(copyFields).map((f) => f.id);
+    expect(ids).not.toContain('atolye.applied');
+    expect(ids).not.toContain('atolye.observed');
+    expect(ids).not.toContain('yaklasim.figure');
+    const o = sanitizeOverride({
+      dict: { workshop: { applied: { tr: 'X', en: 'X' } }, approach: { figure: { tr: 'Y', en: 'Y' } } },
+    });
     expect(Object.keys(o)).toEqual(['workView']);
   });
 
@@ -513,5 +525,33 @@ describe('interface strings through the override', () => {
   it('leaves a key edited on another screen to that screen', () => {
     const d = merged({ 'metinler.hero.whatIs.en': 'Ignored here', 'hero.whatIs.en': 'Edited there' });
     expect(d.hero.whatIs.en).toBe('Edited there');
+  });
+});
+
+describe('project ids on the bridge', () => {
+  const msg = (projects: unknown) => ({ type: 'state', v: PREVIEW_PROTOCOL, lang: 'tr', override: {}, projects });
+
+  it('keeps well-formed unique ids and drops everything else', () => {
+    const ids = ['fixture-a', 'fixture-a', 'a_b-9', '', 'x'.repeat(81), 'has space', '../etc', 7, null, { id: 'z' }];
+    expect(sanitizeProjectIds(ids)).toEqual(['fixture-a', 'a_b-9']);
+  });
+  it('caps the list at 50 ids', () => {
+    const many = Array.from({ length: 80 }, (_, i) => `p-${i}`);
+    expect(sanitizeProjectIds(many)).toHaveLength(50);
+  });
+  it('is undefined when the value is not a list', () => {
+    expect(sanitizeProjectIds('fixture-a')).toBeUndefined();
+    expect(sanitizeProjectIds(undefined)).toBeUndefined();
+    expect(sanitizeProjectIds({ 0: 'a' })).toBeUndefined();
+  });
+  it('is carried by a state message, an empty list included', () => {
+    expect(parseStateMessage(msg(['fixture-a']))?.projects).toEqual(['fixture-a']);
+    expect(parseStateMessage(msg([]))?.projects).toEqual([]);
+  });
+  it('is absent from the parsed message when the sender left it out or sent a non-list', () => {
+    expect(parseStateMessage({ type: 'state', v: PREVIEW_PROTOCOL, lang: 'tr', override: {} })).not.toHaveProperty(
+      'projects',
+    );
+    expect(parseStateMessage(msg({ id: 'x' }))).not.toHaveProperty('projects');
   });
 });

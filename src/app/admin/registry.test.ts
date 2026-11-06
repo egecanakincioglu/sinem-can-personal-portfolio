@@ -81,7 +81,8 @@ describe('field registry entries', () => {
     for (const d of interfaceStrings()) {
       const entry = own.get(`dict.${d.path.replace(/\[\d+\]/g, '[]')}`);
       expect(entry, d.path).toBeDefined();
-      expect(entry?.screen === 'metinler', d.path).toBe(!d.owner);
+      // the three honesty labels keep their read-only Ana sayfa entries
+      if (d.kind !== 'locked') expect(entry?.screen === 'metinler', d.path).toBe(!d.owner);
     }
   });
 
@@ -90,6 +91,13 @@ describe('field registry entries', () => {
     expect(byPath.get('dict.hero.programValue')?.derived).toBe(true);
     expect(byPath.get('dict.forces.caption')?.derived).toBe(true);
     expect(byPath.get('dict.hero.meta1')?.derived).toBeUndefined();
+  });
+
+  it('mark the sample flag of a project as a ready, derived field of the Projeler screen', () => {
+    const flag = registry.filter((e) => e.path === 'project.fixture');
+    expect(flag).toHaveLength(1);
+    expect(flag[0]).toMatchObject({ screen: 'projeler', status: 'ready', derived: true });
+    expect(registry.filter((e) => e.screen === 'projeler' && e.status === 'ready')).toHaveLength(1);
   });
 
   it('sum to the summary totals', () => {

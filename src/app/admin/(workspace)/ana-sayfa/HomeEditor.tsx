@@ -12,7 +12,6 @@ import {
   TopicsEditor,
   WorkEditor,
   WorkshopEditor,
-  type ProjectOption,
 } from './SectionEditors';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { screenBySlug } from '../../screens';
@@ -25,7 +24,6 @@ type Seed = {
   beam: BeamSeed;
   lead: Pair;
   interests: Pair[];
-  projects: ProjectOption[];
 };
 
 const screen = screenBySlug('ana-sayfa')!;
@@ -110,7 +108,7 @@ export function HomeEditor({ seed }: { seed: Seed }) {
         title="Çalışmalar"
         note="Bölüm metinleri, görünürlük ve öne çıkan proje. Yalnızca yayımlanmış ve onaylı projeler görünür; hiç proje yoksa tasarlanmış boş durum korunur."
       >
-        <WorkEditor projects={seed.projects} />
+        <WorkEditor />
       </Section>
 
       <Section id="yonelim" title="Yönelim" note="Tek liste, bir kez düzenlenir; Hero, Yönelim ve Profil’de görünür.">

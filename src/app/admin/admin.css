@@ -401,6 +401,7 @@ html[data-locked] body {
 }
 .admin-root .a-index-empty {
   padding: 4px 16px;
+  white-space: normal;
 }
 .admin-root .a-side-close {
   display: none;
@@ -740,6 +741,11 @@ html[data-locked] body {
   font-size: 20px;
   text-underline-offset: 3px;
 }
+.admin-root .a-proj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .admin-root .a-inline-confirm {
   display: inline-flex;
   align-items: center;
@@ -778,6 +784,12 @@ html[data-locked] body {
 }
 .admin-root .a-readout dd {
   font-size: 14px;
+}
+.admin-root .a-readout dd .block {
+  display: block;
+}
+.admin-root .a-readout dd .text-right {
+  text-align: right;
 }
 .admin-root .a-unit {
   color: var(--a-kursun);
@@ -1145,7 +1157,7 @@ html[data-locked] body {
     top: 0;
     bottom: 0;
     left: 0;
-    width: 72px;
+    width: 100%;
     overflow: hidden;
     background: var(--a-kagit);
     transition: width 180ms var(--a-ease);
@@ -1212,13 +1224,13 @@ html[data-locked] body {
     grid-template-columns: 232px minmax(0, 1fr) 0;
   }
   .admin-root .a-side-in {
-    width: 232px;
+    width: 100%;
     position: relative;
     overflow-y: auto;
   }
   .admin-root .a-side:hover .a-side-in,
   .admin-root .a-side:focus-within .a-side-in {
-    width: 232px;
+    width: 100%;
     border-right: 0;
   }
   .admin-root .a-side .a-side-in .a-panel-k,
@@ -1240,7 +1252,7 @@ html[data-locked] body {
   .admin-root .a-side-in,
   .admin-root .a-side:hover .a-side-in,
   .admin-root .a-side:focus-within .a-side-in {
-    width: 248px;
+    width: 100%;
   }
 }
 

@@ -11,10 +11,6 @@ const allowed = new Set([
   'notes/NoteList.tsx',
   'projects/ArchiveList.tsx',
   'projects/ProjectRow.tsx',
-  'projects/ProjectsArchive.tsx',
-  'projects/Featured.tsx',
-  'projects/ProjectDetail.tsx',
-  'notes/NotesArchive.tsx',
   'notes/NoteArticle.tsx',
   'notes/ArticleBody.tsx',
 ]);

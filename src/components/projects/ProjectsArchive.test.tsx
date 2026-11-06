@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { dict } from '@/content/dictionary.ts';
+import { getSiteContent, mergeSiteContent } from '@/content/site-content.ts';
 import { ProjectsArchive } from './ProjectsArchive.tsx';
 
 afterEach(cleanup);
@@ -8,7 +9,7 @@ afterEach(cleanup);
 describe('ProjectsArchive', () => {
   it.each(['tr', 'en'] as const)('shows the designed empty state when there are no projects (%s)', (locale) => {
     const d = dict.projects;
-    const { container } = render(<ProjectsArchive locale={locale} projects={[]} />);
+    const { container } = render(<ProjectsArchive locale={locale} projects={[]} content={getSiteContent()} />);
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(d.title[locale]);
     expect(screen.getByRole('heading', { level: 2, name: d.emptyTitle[locale] })).toBeTruthy();
@@ -19,5 +20,11 @@ describe('ProjectsArchive', () => {
     );
     // the placeholder drawing is decorative
     expect(container.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('renders the copy it is given', () => {
+    const content = mergeSiteContent({ dict: { projects: { title: { tr: 'Arsiv§', en: 'Archive§' } } } });
+    render(<ProjectsArchive locale="en" projects={[]} content={content} />);
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Archive§');
   });
 });

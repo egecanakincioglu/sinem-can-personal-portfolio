@@ -1,5 +1,6 @@
 import type { ProjectRecord } from '@/content/projects/types';
 import { locales, type Copy, type Locale } from '@/content/types';
+import { LIMIT_BYTES } from './glb';
 import { parseForceNumber } from './preview-bridge';
 
 /* ------------------------------------------------------------------------------------------------
@@ -305,6 +306,8 @@ export function projectIssues(
   if (p.cover) out.push(...altIssues(p, ctx.assetIds, 'gorsel', 'cover', p.cover));
   (p.figures ?? []).forEach((m, i) => out.push(...altIssues(p, ctx.assetIds, 'sekiller', `figures.${i}`, m)));
   if (p.preview3d) out.push(...altIssues(p, ctx.assetIds, 'model', 'preview3d.poster', p.preview3d.poster));
+  if (p.preview3d?.sizeBytes !== undefined && p.preview3d.sizeBytes > LIMIT_BYTES)
+    add('model', 'preview3d.sizeBytes', 'error', 'Hata: 3B model 15 MB sınırını aştı; genel sitede gösterilmez.');
 
   const counts = missingCounts(p);
   for (const l of locales)

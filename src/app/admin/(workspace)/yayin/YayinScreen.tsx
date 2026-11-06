@@ -6,6 +6,7 @@ import { publishChecks, revLetter } from '@/lib/publish';
 import { DiffView } from '../../ui/DiffView';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { ConfirmDialog, EmptyState, Readout } from '../../ui/feedback';
+import { ErrorLinks } from '../../ui/PublishDialog';
 import { useAdmin } from '../../ui/store';
 import { screenBySlug, sheetLabel } from '../../screens';
 
@@ -53,11 +54,7 @@ export function YayinScreen() {
             {blocking.length > 0 && (
               <div className="a-field">
                 <h3 className="a-help">Yayını engelleyen hatalar ({blocking.length})</h3>
-                <ul className="a-pub-group" aria-label="Hatalar">
-                  {blocking.map((i) => (
-                    <li key={`${i.fieldId}:${i.text}`}>{i.text}</li>
-                  ))}
-                </ul>
+                <ErrorLinks issues={blocking} label="Hatalar" />
               </div>
             )}
             {acknowledge.map((g) => (

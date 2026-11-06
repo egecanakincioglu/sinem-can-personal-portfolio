@@ -13,7 +13,7 @@ import { PublishDialog } from './PublishDialog';
 import { Toolbar } from './Toolbar';
 import { TaskQueue } from './TaskQueue';
 import { ConfirmDialog, Toasts } from './feedback';
-import { AdminProvider, useAdmin } from './store';
+import { AdminProvider, useAdmin, type RecordLibrary } from './store';
 import { useFieldFocus } from './useFieldFocus';
 
 function FieldFocus() {
@@ -26,13 +26,15 @@ export function AdminShell({
   children,
   samples = [],
   noteSamples = [],
+  library,
 }: {
   children: ReactNode;
   samples?: ProjectRecord[];
   noteSamples?: NoteRecord[];
+  library?: RecordLibrary;
 }) {
   return (
-    <AdminProvider>
+    <AdminProvider library={library}>
       <Frame samples={samples} noteSamples={noteSamples}>
         {children}
       </Frame>

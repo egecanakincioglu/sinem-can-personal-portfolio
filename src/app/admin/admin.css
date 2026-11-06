@@ -1066,6 +1066,10 @@ html[data-locked] body {
   font-size: 22px;
   line-height: 1.25;
 }
+.admin-root .a-dialog-title:focus,
+.admin-root .a-pub-summary:focus {
+  outline: none;
+}
 .admin-root .a-dialog-bar {
   display: flex;
   justify-content: space-between;
@@ -1885,7 +1889,7 @@ html[data-locked] body {
 }
 .admin-root .a-diff-tag {
   display: inline-block;
-  min-width: 2.5em;
+  min-width: 5.5em;
   color: var(--a-kursun);
   font-size: 12px;
 }
@@ -1895,6 +1899,18 @@ html[data-locked] body {
 .admin-root .a-diff-after {
   text-decoration: none;
   font-weight: 600;
+}
+.admin-root .a-pub-changes {
+  max-height: min(40dvh, 360px);
+  overflow: auto;
+}
+.admin-root .a-dialog-actions.is-sticky {
+  position: sticky;
+  bottom: -24px;
+  margin: 0 -24px -24px;
+  padding: 12px 24px;
+  background: var(--a-kagit);
+  border-top: 1px solid var(--a-cizgi);
 }
 .admin-root .a-pub-group {
   margin: 8px 0 0;
@@ -1908,10 +1924,6 @@ html[data-locked] body {
 .admin-root .a-pub-summary {
   padding: 12px;
   border: 1.5px solid var(--a-grafit);
-}
-.admin-root .a-pub-summary:focus-visible {
-  outline: 2px solid var(--a-grafit);
-  outline-offset: 2px;
 }
 .admin-root .a-rev-row {
   display: grid;

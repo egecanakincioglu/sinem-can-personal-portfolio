@@ -101,6 +101,12 @@ describe('beam default load', () => {
     expect(beamLoadField).toMatchObject({ min: 0, max: 1, decimals: 2 });
     expect(parseBeamLoad(undefined)).toBeUndefined();
   });
+  it('carries only a plain ISO date as the last revision', () => {
+    expect(sanitizeOverride({ lastRevision: '2026-11-06' }).lastRevision).toBe('2026-11-06');
+    expect(sanitizeOverride({ lastRevision: '6 Kasım' }).lastRevision).toBeUndefined();
+    expect(sanitizeOverride({ lastRevision: 20261106 }).lastRevision).toBeUndefined();
+  });
+
   it('only lets a value with at most two decimals into the sanitised override', () => {
     expect(sanitizeOverride({ beam: { defaultLoad: 0.35 } }).beam).toEqual({ defaultLoad: 0.35 });
     expect(sanitizeOverride({ beam: { defaultLoad: 0 } }).beam).toEqual({ defaultLoad: 0 });

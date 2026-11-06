@@ -46,7 +46,7 @@ function Probe() {
 }
 
 function setup(projects: ProjectRecord[] = fixtureProjects) {
-  sessionStorage.setItem('antet-admin', JSON.stringify({ projects, seeded: true }));
+  sessionStorage.setItem('antet-admin', JSON.stringify({ schema: 1, projects, seeded: true }));
   return render(
     <AdminProvider>
       <CadScreen assets={assets} portraitId="portrait-photo" library={library} projectCount={fixtureProjects.length} />
@@ -185,7 +185,7 @@ describe('patchProject', () => {
         </>
       );
     }
-    sessionStorage.setItem('antet-admin', JSON.stringify({ projects: fixtureProjects, seeded: true }));
+    sessionStorage.setItem('antet-admin', JSON.stringify({ schema: 1, projects: fixtureProjects, seeded: true }));
     render(
       <AdminProvider>
         <Patch />
@@ -243,7 +243,7 @@ describe('3B ve CAD page', () => {
 
   it('renders in development with the measured demo model in the library', () => {
     vi.stubEnv('NODE_ENV', 'development');
-    sessionStorage.setItem('antet-admin', JSON.stringify({ projects: fixtureProjects, seeded: true }));
+    sessionStorage.setItem('antet-admin', JSON.stringify({ schema: 1, projects: fixtureProjects, seeded: true }));
     render(
       <AdminProvider>
         <CadScreenPage />

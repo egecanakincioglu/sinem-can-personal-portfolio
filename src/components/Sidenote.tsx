@@ -12,7 +12,7 @@ export function Sidenote({ n, label, children }: { n: string; label?: string; ch
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
-    <span className="sn">
+    <span className={label ? 'sn' : 'sn sn-nowrap'}>
       {/* word joiner: the mark never wraps onto a line of its own */}
       {WORD_JOINER}
       <button

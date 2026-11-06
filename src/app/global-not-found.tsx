@@ -37,19 +37,27 @@ export default function GlobalNotFound() {
           </p>
           <nav aria-label={ownerName} className="mt-8 flex flex-wrap gap-x-8">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- renders outside the app router, so a full page load is required */}
-            <a href="/tr/projeler" hrefLang="tr" className="ulink inline-flex min-h-11 items-center font-medium">
+            <a
+              href="/tr/projeler"
+              hrefLang="tr"
+              className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium"
+            >
               Projeler
             </a>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- renders outside the app router, so a full page load is required */}
-            <a href="/en/projects" hrefLang="en" className="ulink inline-flex min-h-11 items-center font-medium">
+            <a
+              href="/en/projects"
+              hrefLang="en"
+              className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium"
+            >
               Projects
             </a>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- renders outside the app router, so a full page load is required */}
-            <a href="/tr" hrefLang="tr" className="ulink inline-flex min-h-11 items-center font-medium">
+            <a href="/tr" hrefLang="tr" className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium">
               Ana sayfa
             </a>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- renders outside the app router, so a full page load is required */}
-            <a href="/en" hrefLang="en" className="ulink inline-flex min-h-11 items-center font-medium">
+            <a href="/en" hrefLang="en" className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium">
               Home
             </a>
           </nav>

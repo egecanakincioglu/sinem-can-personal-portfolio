@@ -76,4 +76,15 @@ describe('ForcesInteractive', () => {
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
     expect(angle()).toBe(before);
   });
+
+  it('keeps every label of the phone polygon at 12px or more on a 360px screen', () => {
+    const { container } = render(<ForcesInteractive records={records} locale="en" />);
+    const svg = container.querySelector('svg[viewBox="0 0 360 250"]') as SVGSVGElement;
+    const scale = 320 / 360;
+    const sizes = Array.from(svg.querySelectorAll('text, tspan'))
+      .map((t) => Number(t.getAttribute('font-size')))
+      .filter(Boolean);
+    expect(sizes.length).toBeGreaterThan(3);
+    for (const px of sizes) expect(px * scale).toBeGreaterThanOrEqual(12);
+  });
 });

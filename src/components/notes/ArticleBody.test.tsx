@@ -116,4 +116,15 @@ describe('ArticleBody', () => {
     );
     expect(container.querySelector('figure')).toBeNull();
   });
+
+  it('draws the phone composition below 768px and the full one above it', () => {
+    const { container } = render(
+      <ArticleBody locale="en" dict={dict} content={note([{ type: 'figure', figureId: 'beam' }])} />,
+    );
+    const [phone, wide] = Array.from(container.querySelectorAll('svg[role="img"]'));
+    expect(phone.getAttribute('class')).toContain('md:hidden');
+    expect(wide.getAttribute('class')).toContain('hidden md:block');
+    expect(phone.getAttribute('aria-label')).toBe(wide.getAttribute('aria-label'));
+    expect(phone.getAttribute('viewBox')).not.toBe(wide.getAttribute('viewBox'));
+  });
 });

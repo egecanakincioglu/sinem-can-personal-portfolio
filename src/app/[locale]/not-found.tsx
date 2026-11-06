@@ -20,10 +20,10 @@ export default function NotFound() {
         <span lang="en">{n.text.en}</span>
       </p>
       <nav aria-label={ownerName} className="mt-8 flex flex-wrap gap-x-8">
-        <Link href="/tr" hrefLang="tr" className="ulink inline-flex min-h-11 items-center font-medium">
+        <Link href="/tr" hrefLang="tr" className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium">
           Türkçe
         </Link>
-        <Link href="/en" hrefLang="en" className="ulink inline-flex min-h-11 items-center font-medium">
+        <Link href="/en" hrefLang="en" className="ulink -mx-2 inline-flex min-h-11 items-center px-2 font-medium">
           English
         </Link>
       </nav>

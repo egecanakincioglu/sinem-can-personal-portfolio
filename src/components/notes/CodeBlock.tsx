@@ -43,7 +43,7 @@ export function CodeBlock({ code, lang, filename, copy, copied, failed, label }:
             type="button"
             onClick={onCopy}
             aria-label={`${copy}: ${filename ?? lang ?? label}`}
-            className="cta min-h-11 px-2 text-[14px]"
+            className="cta min-h-11 min-w-11 justify-center text-[14px]"
           >
             <span className="label">{copy}</span>
           </button>

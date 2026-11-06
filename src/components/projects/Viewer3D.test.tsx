@@ -94,4 +94,15 @@ describe('Viewer3D', () => {
     fireEvent.click(screen.getByRole('button', { name: labels.retry }));
     await waitFor(() => expect(loads.requested).toHaveLength(2));
   });
+
+  it('lays the demo badge above the poster and gives the poster bar an opaque paper ground', () => {
+    const { container } = render(
+      <Viewer3D modelSrc="/models/test.glb" poster={poster} labels={{ ...labels, demo: 'Development demo' }} />,
+    );
+    const badge = screen.getByText('Development demo');
+    expect(badge.className).toContain('z-10');
+    const bar = container.querySelector('img')?.nextElementSibling as HTMLElement;
+    expect(bar.className).toContain('bg-kagit');
+    expect(bar.className).not.toContain('bg-kagit/');
+  });
 });

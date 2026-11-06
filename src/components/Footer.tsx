@@ -87,7 +87,11 @@ export function Footer({
           <p className="serif max-w-[24ch] text-[clamp(1.5rem,2.4vw,2.25rem)] leading-[1.2]">{f.sentence[locale]}</p>
           <nav aria-label={dict.nav.label[locale]} className="mt-8 flex flex-wrap gap-x-6 text-[15px] font-medium">
             {navKeys.map((key) => (
-              <a key={key} href={navHref(key, page, locale)} className="ulink inline-flex min-h-11 items-center">
+              <a
+                key={key}
+                href={navHref(key, page, locale)}
+                className="ulink -mx-2 inline-flex min-h-11 items-center px-2"
+              >
                 {dict.nav[key][locale]}
               </a>
             ))}

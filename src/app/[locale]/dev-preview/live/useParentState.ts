@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import type { Locale } from '@/content/types';
-import { PREVIEW_PROTOCOL, parseStateMessage, type ReadyMessage, type StateMessage } from '@/lib/preview-bridge';
+import {
+  PREVIEW_PROTOCOL,
+  forwardEscapeToParent,
+  parseStateMessage,
+  type ReadyMessage,
+  type StateMessage,
+} from '@/lib/preview-bridge';
 
 const RETRY_MS = 400;
 const MAX_REPEATS = 3;
@@ -25,6 +31,7 @@ export function useParentState(locale: Locale): StateMessage | undefined {
       setMessage(msg);
     };
     window.addEventListener('message', on);
+    const stopEscape = forwardEscapeToParent();
     // The parent may still be hydrating (page refresh) and miss the first "ready": repeat a few times, with growing
     // gaps (0.4, 0.8, 1.6 s), until it answers with a state. Then stop; the frame never pings in a loop.
     const ready: ReadyMessage = { type: 'ready', v: PREVIEW_PROTOCOL };
@@ -46,6 +53,7 @@ export function useParentState(locale: Locale): StateMessage | undefined {
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener('message', on);
+      stopEscape();
     };
   }, [locale]);
 

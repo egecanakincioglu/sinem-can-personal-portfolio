@@ -944,6 +944,28 @@ export function sanitizeProbe(raw: unknown): ModelProbe | undefined {
   return { id: d.id, glb: isGlbId(d.glb) ? d.glb : null, approved: d.approved === true };
 }
 
+/** iframe -> parent. Escape was pressed while the frame had focus; the parent decides whether that closes anything. */
+export type CloseMessage = { type: 'close'; v: typeof PREVIEW_PROTOCOL };
+
+/** Parent side: true only for a well-formed close message. */
+export function isCloseMessage(data: unknown): data is CloseMessage {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return d.type === 'close' && d.v === PREVIEW_PROTOCOL;
+}
+
+/** Iframe side: forward Escape to the embedding window (same origin). Returns the cleanup; a no-op when not embedded. */
+export function forwardEscapeToParent(): () => void {
+  if (window.parent === window) return () => undefined;
+  const on = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return;
+    const msg: CloseMessage = { type: 'close', v: PREVIEW_PROTOCOL };
+    window.parent.postMessage(msg, window.location.origin);
+  };
+  document.addEventListener('keydown', on);
+  return () => document.removeEventListener('keydown', on);
+}
+
 /** Iframe side: validate an incoming message. Returns null for anything that is not a well-formed state message. */
 export function parseStateMessage(data: unknown): StateMessage | null {
   if (!data || typeof data !== 'object') return null;

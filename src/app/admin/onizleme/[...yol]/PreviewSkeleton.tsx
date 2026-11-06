@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { PREVIEW_PROTOCOL, type ReadyMessage } from '@/lib/preview-bridge';
+import { PREVIEW_PROTOCOL, forwardEscapeToParent, type ReadyMessage } from '@/lib/preview-bridge';
 
 /** Placeholder for screens without a live preview. It speaks the same handshake and ignores state. */
 export function PreviewSkeleton({ path }: { path: string }) {
@@ -9,6 +9,7 @@ export function PreviewSkeleton({ path }: { path: string }) {
     if (window.parent === window) return;
     const ready: ReadyMessage = { type: 'ready', v: PREVIEW_PROTOCOL };
     window.parent.postMessage(ready, window.location.origin);
+    return forwardEscapeToParent();
   }, []);
   return (
     <main className="a-pv">

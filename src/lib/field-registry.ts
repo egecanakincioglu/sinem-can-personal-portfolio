@@ -20,6 +20,8 @@ export type RegistryEntry = {
   path: string;
   /** Admin wording (Turkish) for the field or group. */
   label?: string;
+  /** Other words the command palette matches besides the label. */
+  synonyms?: string[];
   /** Public location: page and section as visitors know them. */
   page: string;
   section: string;

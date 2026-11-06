@@ -14,6 +14,8 @@ const panelOnlyLibs = [
   'project-edit',
   'publish',
   'admin-issues',
+  'task-queue',
+  'palette',
 ];
 
 export default defineConfig([

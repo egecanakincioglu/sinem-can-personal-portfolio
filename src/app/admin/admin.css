@@ -1030,6 +1030,41 @@ html[data-locked] body {
 .admin-root .a-pal-count {
   padding: 0 2px;
 }
+.admin-root .a-pal-opt {
+  flex-wrap: wrap;
+  column-gap: 4px;
+}
+.admin-root .a-pal-opt > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-root .a-task-group {
+  margin-top: 16px;
+}
+.admin-root .a-task-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-root .a-task {
+  border-top: 1px solid var(--a-cizgi);
+}
+.admin-root .a-task-link {
+  display: block;
+  min-height: 44px;
+  padding: 10px 0;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-task-label {
+  font-family: var(--a-serif);
+  font-size: 17px;
+}
+.admin-root .a-task-link:hover .a-task-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
 .admin-root .a-toasts {
   position: fixed;

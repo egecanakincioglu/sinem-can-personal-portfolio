@@ -111,6 +111,7 @@ export function TextField({
           <textarea
             id={id}
             name={name}
+            data-field={name}
             className="a-input"
             rows={4}
             value={value}
@@ -124,6 +125,7 @@ export function TextField({
           <input
             id={id}
             name={name}
+            data-field={name}
             className="a-input"
             type="text"
             value={value}

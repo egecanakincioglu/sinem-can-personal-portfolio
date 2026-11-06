@@ -1,13 +1,13 @@
 # Architecture
 
-This document describes how the application is built today. It grows with the site. The reasons for each choice are in the [decision records](adr/README.md).
+This document describes how the application is built. Items marked "planned" do not exist yet. The reasons for each choice are in the [decision records](adr/README.md).
 
 ## Overview
 
-The project is one Next.js 16 application (App Router) with React 19 and TypeScript in strict mode. It serves a public portfolio site in Turkish and English. The admin panel and the backend come later. All source code is under `src/`.
+The project is one Next.js 16 application (App Router) with React 19 and TypeScript in strict mode. It serves a public portfolio site in Turkish and English and a private admin interface. All source code is under `src/`.
 
 ```text
-src/app/          layout, global styles, routes under [locale], the 404 page, a development-only model route
+src/app/          routes: public pages under [locale], admin pages under admin
 src/components/   presentational components (figures, sections, projects, notes)
 src/content/      typed content, the dictionary and development fixtures
 src/lib/          pure functions: routes, physics, formatting, content accessors
@@ -30,26 +30,23 @@ The project has its own `[locale]` routing. It uses no i18n library ([ADR 0001](
 - The page slugs live in one table in `src/lib/routes.ts`. Path helpers build every link, so no component writes a path by hand.
 - Interface text comes from a typed dictionary in `src/content/dictionary.ts`.
 - The language switch goes to the same record in the other language when the record exists in both.
-- The root path redirects to `/tr` (set in `next.config.ts`).
+- The root path redirects to `/tr`.
 - There is no separate contact page. Every page ends with a contact block, and the navigation link scrolls to it.
 - Unknown paths show a designed 404 page.
-- The section pages are served by one route, `src/app/[locale]/[slug]`, and the detail pages by `[slug]/[project]`.
 
 ## Styling
 
-Tailwind CSS 4 with design tokens defined in `src/app/globals.css` ([ADR 0002](adr/0002-styling-tailwind-4-with-tokens.md)).
+Tailwind CSS 4 with design tokens defined in `src/app/globals.css` ([ADR 0002](adr/0002-styling-tailwind-4-with-tokens.md)). Admin styles are kept in `src/app/admin/admin.css`.
 
 ## Content layer
 
-Components receive content only as typed props. Pages read content through accessors in `src/lib`. Data lives in `src/content` ([ADR 0003](adr/0003-content-layer-and-visibility-rule.md)).
+Components receive content only as typed props. Pages read content through accessors in `src/lib` (for example `projects.ts` and `notes.ts`). Data lives in `src/content` ([ADR 0003](adr/0003-content-layer-and-visibility-rule.md)).
 
 A record is public when it is published, approved, and either not a fixture or the app runs in development. Fixtures are example data for testing components. They are marked `fixture: true`, never carry the name or portrait of Sinem CAN, and never reach a production build.
 
-When a project or note list is empty, the pages show a designed empty state. In production only published and approved records show, so these sections show the empty state until such records exist.
+When a project or note list is empty, the pages show a designed empty state.
 
-In development, sample records from `src/content/fixtures` fill the lists. Preview pages under `/tr/dev-preview/` show them. They exist only in development.
-
-## Home figures
+## Interactions
 
 - **Free-body hero:** a body with force vectors. The resultant is computed from the vectors.
 - **Beam:** the visitor places a load. The page computes the support reactions and draws the bending moment diagram.
@@ -59,15 +56,22 @@ The calculations are pure functions in `src/lib/physics.ts` and `src/lib/math.ts
 
 ## 3D viewer
 
-Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model. A development-only route (`src/app/dev-model`) serves a sample model.
+Project pages can show a 3D model with three.js. The viewer is optional and loads only after the visitor clicks. No page depends on a model.
 
 ## Notes
 
 Note pages render formulas as MathML, code blocks and figures. Figures are SVG written in the notes themselves; a registry of figures is planned. A table of contents is built from the headings.
 
-## Planned
+## Admin interface
 
-The admin panel and the backend come in later changes.
+The admin interface lives under `src/app/admin`. It works on mock data and has a live preview of the public pages.
+
+- A server-side guard (`src/app/admin/guard.ts`) answers 404 for every request when the app is not in development. The root admin layout and every admin page call it.
+- There is no real sign-in yet. The admin stays closed in production until real authorization exists (planned).
+
+## Backend (planned)
+
+No database, API route or authentication exists yet. When the backend arrives, it replaces the data behind the content accessors. Components and pages do not change. Private files must be authorized on the server; a flag in the front end is not a security boundary.
 
 ## Quality and delivery
 

@@ -58,11 +58,11 @@ List published notes by date with a topic filter.
 
 ## CI checks
 
-Every pull request to `main` runs these checks:
+Branch protection on `main` requires a pull request and these 12 checks:
 
 | Check | What it verifies |
 |---|---|
-| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links, commands and language; secret scan; the `packageManager` pin; forbidden paths |
+| `policy` | Branch name; every commit message in the pull request; signed commits; source changes come with tests; coverage and site-audit thresholds only go up; a version bump comes with a changelog entry; documentation links and language; secret scan; the `packageManager` pin |
 | `pr-text` | Pull request title (Conventional Commits) and text |
 | `tooling (linux)`, `tooling (windows)` | Tests of the repository tools on both operating systems |
 | `quality` | Type check, Prettier, ESLint, Semgrep rule tests and scan, dependency audit, production licenses, unused code and dependencies |
@@ -72,7 +72,7 @@ Every pull request to `main` runs these checks:
 | `build` | `pnpm build` |
 | `site-audit (pages)`, `site-audit (mobile)`, `site-audit (desktop)` | Page audit: overflow, axe, console errors, and Lighthouse on mobile and desktop, including its browsing audits |
 
-The `build` job skips itself while the site is not in the repository. The `site-audit` jobs also stay off until `enabled` is `true` in `tooling/site-audit/thresholds.json`; the `policy` job rejects turning it off again.
+The `site-audit` jobs stay off until `enabled` is `true` in `tooling/site-audit/thresholds.json`; the `policy` job rejects turning it off again.
 
 The checks are strict, commits must be signed, force pushes and branch deletion are off, and administrators are included. A newer push to a pull request cancels the older CI run of that pull request.
 
@@ -91,6 +91,7 @@ The project decides when to release; merging into `main` does not deploy by itse
 4. Merge the pull request with `--auto`. Then create a signed tag on the merge commit on `main` and push it: `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`. Push exactly one full `vX.Y.Z` tag. Do not delete or force tags, and do not create the GitHub release by hand: the workflow creates it.
 5. The `release` workflow checks that the tag is on `main` and equals the `package.json` version. It deploys the tagged commit to production and creates the GitHub release from the note.
 6. Check the live site. If something is wrong, roll back to the previous production deployment. The fix ships as a new PATCH release.
+
 ## Parallel pull requests
 
 - If a branch falls behind (the checks are strict), update it with `git merge origin/main`.

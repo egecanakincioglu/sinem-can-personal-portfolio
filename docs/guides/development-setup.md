@@ -1,27 +1,24 @@
 # Development setup
 
-This guide explains how to set up the project on your machine and which commands it has today. The Git rules are in the [Git workflow guide](git-workflow.md).
+This guide explains how to set up and run the project on your machine. The Git rules are in the [Git workflow guide](git-workflow.md). The reasoning behind the technology choices is in the [architecture decision records](../adr/README.md).
 
 ## Supported environments
 
 - **Windows:** Git Bash and PowerShell 5.1. The setup script (`.sh`) runs in Git Bash. The Node tools (`node tooling/scripts/...ts`) run in both shells.
 - **Linux:** the same commands. CI runs on Linux (`ubuntu-latest`). The `tooling (windows)` job also tests the repository tools on Windows.
-- **Node:** 24 (`.node-version`). The `engines` field in `package.json` asks for Node 24.12.0 or newer, below version 25. All code in the project is TypeScript; there is no plain JavaScript.
+- **Node:** 24 (`.node-version`). The `engines` field in `package.json` asks for `>=24.12.0 <25`. Node 24 runs `.ts` files without a build step. All code in the project is TypeScript; there is no plain JavaScript.
 - **Package manager:** pnpm, pinned in the `packageManager` field of `package.json`. Corepack provides it, so you do not install pnpm yourself.
 
 ## First setup
 
-Once per clone, to install the project.
+Once per clone, to run the site.
 
 1. Clone the repository and enter the folder: `git clone https://github.com/egecanakincioglu/sinem-can-personal-portfolio.git`, then `cd sinem-can-personal-portfolio`.
 2. Enable Corepack: `corepack enable`. On Windows this can fail with `EPERM` when it writes to `C:\Program Files\nodejs`. Run it once in an administrator terminal.
 3. Install the dependencies from the lock file: `corepack pnpm install --frozen-lockfile`.
+4. Start the site with `corepack pnpm dev` and open http://localhost:3000. The root path redirects to `/tr`.
 
-The project needs no environment variables and no database today. The file `.env.example` only says so.
-
-To run the site:
-
-4. Start the development server: `corepack pnpm dev`. Open http://localhost:3000. The root path redirects to `/tr`; the English site is under `/en`.
+The site needs no environment variables and no database today. The admin interface is at `/admin` and works on mock data in development only. In any other mode it answers 404.
 
 Only if you plan to commit:
 
@@ -34,17 +31,19 @@ Only if you plan to commit:
 
 ## Daily commands
 
-| Command                                               | Purpose                                     |
-| ----------------------------------------------------- | ------------------------------------------- |
-| `corepack pnpm dev`                                   | Development server                          |
-| `corepack pnpm build`                                 | Production build                            |
-| `corepack pnpm start`                                 | Serve the production build                  |
-| `corepack pnpm lint`                                  | ESLint, with zero warnings allowed          |
-| `corepack pnpm typecheck`                             | TypeScript type check                       |
-| `corepack pnpm test`                                  | Vitest with the coverage gate               |
-| `corepack pnpm format` / `corepack pnpm format:check` | Write or check formatting with Prettier     |
-| `corepack pnpm knip`                                  | Find unused files, exports and dependencies |
+| Command | Purpose |
+|---|---|
+| `corepack pnpm dev` | Development server |
+| `corepack pnpm build` | Production build |
+| `corepack pnpm lint` | ESLint, with zero warnings allowed |
+| `corepack pnpm typecheck` | Next.js type generation, then `tsc` for the application and the tooling |
+| `corepack pnpm test` | Vitest with the coverage gate |
+| `corepack pnpm format` / `corepack pnpm format:check` | Write or check formatting with Prettier |
+| `corepack pnpm knip` | Find unused files, exports and dependencies |
+| `corepack pnpm site-audit` | Page audit: overflow, accessibility, console errors, Lighthouse |
 | `corepack pnpm release:prepare` | Prepare a release (see the [release runbook](../runbooks/release-and-rollback.md)) |
+
+The `site-audit` command is optional locally. The audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`.
 
 Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check` and `corepack pnpm test` before you open a pull request. CI runs the full set of checks.
 
@@ -53,3 +52,7 @@ Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check
 - `node tooling/scripts/check-docs-language.ts` checks that documentation is English and that file names follow the rules.
 - `node tooling/scripts/check-doc-links.ts` fails on a relative Markdown link that points to a missing file.
 - `node tooling/scripts/check-doc-commands.ts` checks that the commands named in the documentation exist.
+
+## Visual checks
+
+A change to the user interface is checked in a browser at these widths: 360, 390, 768, 1024, 1440 and 1920. The `site-audit` jobs check overflow, touch target size, accessibility and console errors automatically ([ADR 0006](../adr/0006-quality-targets-and-thresholds.md)).

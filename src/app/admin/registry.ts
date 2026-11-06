@@ -32,7 +32,7 @@ import { screens } from './screens';
    ------------------------------------------------------------------------------------------------ */
 
 /** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
-export const plannedScreens = ['projeler', 'medya', 'yayin'] as const;
+export const plannedScreens = ['projeler', 'medya'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
 export const partlyBuiltScreens = ['medya', 'projeler'] as const;

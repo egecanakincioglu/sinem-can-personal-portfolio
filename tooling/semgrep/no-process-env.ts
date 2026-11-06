@@ -2,5 +2,9 @@
 const a = process.env.DATABASE_URL;
 // ruleid: no-process-env
 const b = process.env['SECRET'];
+// ruleid: no-process-env
+const d = process.env;
 // ok: no-process-env
 const c = import.meta.url;
+// ok: no-process-env
+const dev = process.env.NODE_ENV !== 'production';

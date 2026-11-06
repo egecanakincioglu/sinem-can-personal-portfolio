@@ -27,8 +27,20 @@ There is no site to open yet. No environment variables and no database are neede
 | `corepack pnpm format`       | Format the files with Prettier              |
 | `corepack pnpm format:check` | Check the formatting without changing files |
 | `corepack pnpm knip`         | Find unused files, exports and dependencies |
+| `corepack pnpm release:prepare` | Prepare a release (version, changelog, release note draft) |
 
 More detail is in the [development setup guide](docs/guides/development-setup.md).
+
+## Deployment
+
+Production runs on Vercel. A release deploys it: a signed `vX.Y.Z` tag on the merge commit of `main` starts the `release` workflow, which deploys the tagged commit and publishes the GitHub release. There is no other route to production. Vercel's Git deployments are off in `vercel.json`. The steps are in the [release runbook](docs/runbooks/release-and-rollback.md).
+
+A copy of the project needs:
+
+- a Vercel project
+- `VERCEL_TOKEN` as a repository secret
+- `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` as repository variables
+- `ENABLE_EXPERIMENTAL_COREPACK=1` as an environment variable in the Vercel project, so that Vercel builds with the pnpm version pinned in `package.json`
 
 ## Contributing
 

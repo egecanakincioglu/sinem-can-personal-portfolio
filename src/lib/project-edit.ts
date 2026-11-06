@@ -165,56 +165,79 @@ export function heroOptions(p: Pick<ProjectRecord, 'cover'>): HeroOption[] {
 const present = (list: readonly (Copy | undefined)[] | undefined): Copy[] =>
   (list ?? []).flatMap((c) => (c ? [c] : []));
 
-/** Every Copy the record holds, so a half-translated record can be counted. */
-function allCopies(p: ProjectRecord): Copy[] {
-  const media = [p.cover, ...(p.figures ?? []), p.preview3d?.poster].flatMap((m) => (m ? [m] : []));
+type Labelled = { label: string; copy: Copy };
+const named = (label: string, copies: readonly (Copy | undefined)[] | undefined): Labelled[] =>
+  present(copies).map((copy) => ({ label, copy }));
+
+/** Every Copy the record holds with the editor name of its field, so a half-translated record can be counted and named. */
+function allCopies(p: ProjectRecord): Labelled[] {
+  const media = (label: string, m: { alt: Copy; caption?: Copy } | undefined) =>
+    m ? [...named(label, [m.alt]), ...named(label, [m.caption])] : [];
   return [
-    p.title,
-    ...present([p.subtitle]),
-    ...present(p.materials),
-    ...present(p.objective),
-    ...present(p.process),
-    ...present(p.methodology),
-    ...present(p.learnings),
-    ...present(p.results),
-    ...present(p.conclusions),
-    ...(p.measurements ?? []).flatMap((m) => [m.label, ...present([m.note])]),
-    ...(p.calculations ?? []).flatMap((c) => [
-      c.title,
-      ...(c.given ?? []).map((g) => g.label),
-      ...present(c.required),
-      ...present(c.assumptions),
-      ...present(c.method),
-      ...(c.result ? [c.result.label, ...present([c.result.note])] : []),
-    ]),
-    ...(p.decisions ?? []).flatMap((d) => [
-      d.title,
-      ...present(d.criteria),
-      ...d.alternatives.flatMap((a) => [a.name, ...present(a.evidence)]),
-      ...present([d.rationale]),
-    ]),
-    ...media.flatMap((m) => [m.alt, ...present([m.caption])]),
-    ...present([p.preview3d?.caption]),
-    ...(p.revisions ?? []).flatMap((r) => [r.note, ...present([r.reasoning])]),
-    ...(p.privateOriginals ?? []).map((o) => o.label),
+    ...named('Başlık', [p.title]),
+    ...named('Alt başlık', [p.subtitle]),
+    ...named('Malzemeler', p.materials),
+    ...named('Amaç', p.objective),
+    ...named('Süreç', p.process),
+    ...named('Yöntem', p.methodology),
+    ...named('Öğrenilenler', p.learnings),
+    ...named('Sonuçlar', p.results),
+    ...named('Çıkarımlar', p.conclusions),
+    ...(p.measurements ?? []).flatMap((m) => named('Ölçümler', [m.label, m.note])),
+    ...(p.calculations ?? []).flatMap((c) =>
+      named('Hesaplar', [
+        c.title,
+        ...(c.given ?? []).map((g) => g.label),
+        ...present(c.required),
+        ...present(c.assumptions),
+        ...present(c.method),
+        ...(c.result ? [c.result.label, c.result.note] : []),
+      ]),
+    ),
+    ...(p.decisions ?? []).flatMap((d) =>
+      named('Tasarım kararları', [
+        d.title,
+        ...present(d.criteria),
+        ...d.alternatives.flatMap((a) => [a.name, ...present(a.evidence)]),
+        d.rationale,
+      ]),
+    ),
+    ...media('Kapak görseli', p.cover),
+    ...(p.figures ?? []).flatMap((m) => media('Şekiller', m)),
+    ...media('3B önizleme', p.preview3d?.poster),
+    ...named('3B önizleme', [p.preview3d?.caption]),
+    ...(p.revisions ?? []).flatMap((r) => named('Revizyonlar', [r.note, r.reasoning])),
+    ...(p.privateOriginals ?? []).flatMap((o) => named('Özel dosyalar', [o.label])),
   ];
 }
 
 const isBlank = (s: string) => s.trim() === '';
 
-function missingCounts(p: ProjectRecord): Record<Locale, number> {
-  const out: Record<Locale, number> = { tr: 0, en: 0 };
-  for (const c of allCopies(p)) for (const l of locales) if (isBlank(c[l])) out[l]++;
-  for (const l of locales) if (isBlank(p.slug[l])) out[l]++;
+const SHOWN_NAMES = 4;
+
+type Gap = { count: number; names: string[] };
+
+/** Blank fields of one language, grouped by the editor name of the field. */
+function missingFields(p: ProjectRecord): Record<Locale, Gap> {
+  const out: Record<Locale, Gap> = { tr: { count: 0, names: [] }, en: { count: 0, names: [] } };
+  const hit = (l: Locale, label: string) => {
+    out[l].count++;
+    if (!out[l].names.includes(label)) out[l].names.push(label);
+  };
+  for (const { label, copy } of allCopies(p)) for (const l of locales) if (isBlank(copy[l])) hit(l, label);
+  for (const l of locales) if (isBlank(p.slug[l])) hit(l, 'Adres parçası');
   return out;
 }
 
 const LANG_LABEL: Record<Locale, string> = { tr: 'TR', en: 'EN' };
 
-/** One line for the list and the publish screen, e.g. "Eksik: EN çevirisi (3 alan)". */
+const translationGap = (l: Locale, g: Gap) =>
+  `${LANG_LABEL[l]} çevirisi (${g.count} alan: ${g.names.slice(0, SHOWN_NAMES).join(', ')}${g.names.length > SHOWN_NAMES ? ', …' : ''})`;
+
+/** One line for the list and the publish screen, e.g. "Eksik: EN çevirisi (3 alan: Başlık, Amaç, Adres parçası)". */
 export function projectCompleteness(p: ProjectRecord): string {
-  const counts = missingCounts(p);
-  const parts = locales.filter((l) => counts[l] > 0).map((l) => `${LANG_LABEL[l]} çevirisi (${counts[l]} alan)`);
+  const missing = missingFields(p);
+  const parts = locales.filter((l) => missing[l].count > 0).map((l) => translationGap(l, missing[l]));
   return parts.length ? `Eksik: ${parts.join(', ')}` : 'İki dil tamam';
 }
 
@@ -306,9 +329,9 @@ export function projectIssues(
   (p.figures ?? []).forEach((m, i) => out.push(...altIssues(p, ctx.assetIds, 'sekiller', `figures.${i}`, m)));
   if (p.preview3d) out.push(...altIssues(p, ctx.assetIds, 'model', 'preview3d.poster', p.preview3d.poster));
 
-  const counts = missingCounts(p);
+  const missing = missingFields(p);
   for (const l of locales)
-    if (counts[l] > 0) add('yayin', 'langs', 'error', `Eksik: ${LANG_LABEL[l]} çevirisi (${counts[l]} alan).`, l);
+    if (missing[l].count > 0) add('yayin', 'langs', 'error', `Eksik: ${translationGap(l, missing[l])}.`, l);
 
   return out;
 }

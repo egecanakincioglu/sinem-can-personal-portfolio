@@ -44,7 +44,7 @@ describe('project actions', () => {
     expect(b).not.toBe(a);
     expect(byId(api(), a)).toEqual({
       id: a,
-      slug: { tr: '', en: '' },
+      slug: { tr: 'mil', en: '' },
       title: { tr: 'Mil', en: '' },
       kind: 'fabrication',
       disciplines: [],

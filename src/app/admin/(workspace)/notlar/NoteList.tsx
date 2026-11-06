@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useCallback, useRef, useState, type FormEvent } from 'react';
 import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectRecord } from '@/content/projects/types';
 import { fullDate } from '@/lib/format';
 import { noteCounts, noteListRow } from '@/lib/note-record';
 import { TextField } from '../../ui/controls';
-import { EmptyState, StatusChip } from '../../ui/feedback';
+import { Dialog, EmptyState, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
 import { screenBySlug } from '../../screens';
@@ -16,19 +16,64 @@ import { screenBySlug } from '../../screens';
 const screen = screenBySlug('notlar')!;
 const EXCERPT = 140;
 
+/** Asks for the one thing a new note needs: its title. */
+function NewNoteDialog({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (title: string) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [tried, setTried] = useState(false);
+  const body = useRef<HTMLDivElement>(null);
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (title.trim() === '') {
+      setTried(true);
+      body.current?.querySelector<HTMLElement>('input')?.focus();
+      return;
+    }
+    onCreate(title.trim());
+  };
+  return (
+    <Dialog open={open} onClose={onClose} label="Yeni not">
+      <form noValidate onSubmit={submit}>
+        <h2 className="a-dialog-title">Yeni not</h2>
+        <div className="a-dialog-body" ref={body}>
+          <TextField
+            name="yeni-not-baslik"
+            meta={{
+              label: 'Başlık (Türkçe)',
+              required: true,
+              error: tried && title.trim() === '' ? 'Bu alan boş bırakılamaz.' : undefined,
+            }}
+            value={title}
+            onChange={setTitle}
+          />
+        </div>
+        <div className="a-dialog-actions">
+          <button type="button" className="a-btn" onClick={onClose}>
+            Vazgeç
+          </button>
+          <button type="submit" className="a-btn a-btn-primary">
+            Oluştur
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 /** Note list: hairline records with derived reading time and language chips, header counts, development samples. */
 export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; projectSamples: ProjectRecord[] }) {
   const { state, seedSamples, clearSamples, createNote } = useAdmin();
   const router = useRouter();
   const [creating, setCreating] = useState(false);
-  const [title, setTitle] = useState('');
+  const closeCreate = useCallback(() => setCreating(false), []);
   const c = noteCounts(state.notes);
-
-  const create = (e: FormEvent) => {
-    e.preventDefault();
-    if (title.trim() === '') return;
-    router.push(`/admin/notlar/${encodeURIComponent(createNote(title.trim()))}`);
-  };
 
   return (
     <>
@@ -45,7 +90,7 @@ export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; p
       <Section id="kayitlar" title="Kayıtlar">
         <div className="a-field">
           <div className="a-proj-actions">
-            <button type="button" className="a-btn" aria-expanded={creating} onClick={() => setCreating(true)}>
+            <button type="button" className="a-btn" onClick={() => setCreating(true)}>
               Yeni not
             </button>
             <button
@@ -65,31 +110,6 @@ export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; p
             işaretlenir.
           </p>
         </div>
-        {creating && (
-          <form className="a-field" onSubmit={create}>
-            <TextField
-              name="note-new-title"
-              meta={{ label: 'Not başlığı (Türkçe)' }}
-              value={title}
-              onChange={setTitle}
-            />
-            <div className="a-proj-actions">
-              <button type="submit" className="a-btn a-btn-primary" disabled={title.trim() === ''}>
-                Oluştur
-              </button>
-              <button
-                type="button"
-                className="a-btn"
-                onClick={() => {
-                  setCreating(false);
-                  setTitle('');
-                }}
-              >
-                Vazgeç
-              </button>
-            </div>
-          </form>
-        )}
         {state.notes.length === 0 ? (
           <EmptyState title="Henüz yayımlanmış bir not yok.">
             <p>Genel sitede Notlar sayfası, ilk not yayımlanana kadar boş kalır.</p>
@@ -112,7 +132,7 @@ export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; p
                     )}
                     <p className="a-help">{[r.topic, `${r.minutes} dk okuma`].filter((x) => x !== '').join(' · ')}</p>
                   </div>
-                  <div className="a-rec-tools">
+                  <div className="a-rec-tools a-rec-chips">
                     {r.langChip !== '' && <StatusChip kind="derived">{r.langChip}</StatusChip>}
                     <StatusChip kind={r.status === 'published' ? 'live' : 'draft'} />
                     {r.approved && <StatusChip kind="approved" />}
@@ -130,6 +150,16 @@ export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; p
           </ul>
         )}
       </Section>
+      <NewNoteDialog
+        key={String(creating)}
+        open={creating}
+        onClose={closeCreate}
+        onCreate={(title) => {
+          const id = createNote(title);
+          setCreating(false);
+          router.push(`/admin/notlar/${encodeURIComponent(id)}`);
+        }}
+      />
     </>
   );
 }

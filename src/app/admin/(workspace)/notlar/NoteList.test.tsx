@@ -40,7 +40,7 @@ describe('Notlar screen', () => {
   it('starts with the empty state, zero counts and both actions', () => {
     setup();
     expect(screen.getByRole('heading', { level: 1, name: 'Notlar' })).toBeTruthy();
-    expect(screen.getByText('Pafta 04')).toBeTruthy();
+    expect(screen.getByText('Pafta 05')).toBeTruthy();
     expect(screen.getByText('Henüz yayımlanmış bir not yok.')).toBeTruthy();
     expect(screen.getByText(/^0 kayıt · 0 yayında · 0 taslak/)).toBeTruthy();
     expect(button('Yeni not')).toBeTruthy();

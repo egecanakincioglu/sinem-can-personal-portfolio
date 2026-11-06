@@ -27,6 +27,7 @@ import { PageHeader, Section } from '../../../ui/PageHeader';
 import { revLetter, useAdmin, type ProjectPatch } from '../../../ui/store';
 import { ProjectBody } from './ProjectBody';
 import { CopyList, MAX_ITEMS, OptionalCopy, bare, emptyCopy, moved } from './parts';
+import { sheetLabel } from '../../../screens';
 
 const MAX_TOOLS = 12;
 const MAX_RELATED = 2;
@@ -260,7 +261,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
   return (
     <>
       <PageHeader
-        kicker="Pafta 03"
+        kicker={sheetLabel('projeler')}
         title={title}
         lede="Proje kaydını bölümler halinde düzenleyin; değişiklikler Kaydet ile oturuma yazılır."
         aside={

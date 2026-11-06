@@ -39,7 +39,7 @@ export type ForcesSeed = {
     'forcesHeading' | 'forcesText' | 'forcesList' | 'forcesResult' | 'forcesPartial' | 'forcesReverse',
     Pair
   >;
-  locked: { caption: Pair; note: Pair };
+  locked: { caption: Pair };
 };
 
 type SectionKey = keyof ForcesSeed['copy'];
@@ -435,11 +435,10 @@ export function ForcesEditor({ seed }: { seed: ForcesSeed }) {
 
       <Disclosure label="Korumalı metinler" meta={<span className="a-sfx">kodda korunur</span>}>
         <p className="a-help">
-          Bu iki cümle vektörlerin kavramsal olduğunu söyleyen dürüstlük metnidir; yalnızca kodda değişir.
+          Bu metin vektörlerin kavramsal olduğunu söyleyen dürüstlük metnidir; yalnızca kodda değişir.
         </p>
         <dl className="a-readouts">
           <Readout label="Şekil açıklaması" value={both(seed.locked.caption)} />
-          <Readout label="Kalıcı not" value={both(seed.locked.note)} />
         </dl>
       </Disclosure>
     </>

@@ -38,7 +38,6 @@ export const lockedStrings: Readonly<Record<string, string>> = {
   langNames: 'Dil adları kendi dillerinde yazılır.',
   'forces.figure': AUTO_FIGURE,
   'forces.caption': CONCEPTUAL,
-  'forces.note': CONCEPTUAL,
   'workshop.applied': SPLIT,
   'workshop.observed': SPLIT,
   'approach.figure': AUTO_FIGURE,

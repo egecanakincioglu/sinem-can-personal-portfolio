@@ -345,8 +345,12 @@ em {
   position: relative;
   top: -0.55em;
   padding: 0 3px;
-  min-width: 20px;
-  min-height: 20px;
+}
+/* 44px hit area; the negative margin gives the box back so the line and the text beside the mark stay put */
+.sn-mark:not(.sn-mark--label) {
+  min-width: 44px;
+  min-height: 44px;
+  margin: -12px;
 }
 .sn-mark:hover {
   text-decoration: underline;
@@ -395,18 +399,6 @@ html:not([data-js]) .sn-body {
   .sn-mark--label {
     display: none;
   }
-  .rail-host {
-    --c: calc((100% - 6 * var(--g)) / 7);
-  }
-  .rail-host .sn-body {
-    display: block;
-    float: right;
-    clear: right;
-    width: calc(3 * var(--c) + 2 * var(--g));
-    margin: 0 calc(-4 * var(--c) - 4 * var(--g)) 0 0;
-    position: relative;
-    top: 0.35em;
-  }
   .rail-aside .sn-body {
     display: block;
     margin: 0;
@@ -433,6 +425,10 @@ html:not([data-js]) .sn-body {
     margin: 0 calc(-5 * var(--c) - 5 * var(--g)) 0 0;
     position: relative;
     top: 0.35em;
+  }
+  /* beside a portrait that holds columns 10–12 the note takes the three columns left of it (7–9) */
+  .rail-q--near .sn-body {
+    margin-right: calc(-3 * var(--c) - 3 * var(--g));
   }
 }
 

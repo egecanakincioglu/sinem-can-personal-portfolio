@@ -36,6 +36,13 @@ afterEach(() => {
 });
 
 const F = dict.forces;
+describe('ForcesInteractive disclaimer', () => {
+  it('states that the vectors are conceptual once, in the caption only', () => {
+    const { container } = render(<ForcesInteractive records={records} locale="en" />);
+    expect(container.textContent?.match(/conceptual/g)).toHaveLength(1);
+  });
+});
+
 const resultLine = () => screen.getByText(F.result.en).parentElement as HTMLElement;
 const angle = () => parseFloat(/θ.*?=\s*(-?[\d.]+)/.exec(resultLine().textContent ?? '')?.[1] ?? 'NaN');
 

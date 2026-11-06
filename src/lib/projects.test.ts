@@ -163,6 +163,34 @@ describe('related, next and paths', () => {
   });
 });
 
+describe('injected records', () => {
+  const injected = [
+    rec('inj-a', { period: { start: '2022-01', precision: 'month' } }),
+    rec('inj-d', { visibility: 'draft' }),
+  ];
+
+  it('uses the given records instead of the published source, still filtered', async () => {
+    const m = await load('production');
+    expect(m.getPublicProjects({}, injected).map((p) => p.id)).toEqual(['inj-a']);
+    expect(m.findPublicProject('inj-a-en', 'en', injected)?.id).toBe('inj-a');
+    expect(m.findPublicProject('inj-d-en', 'en', injected)).toBeUndefined();
+    expect(m.findPublicProject('pub-a-en', 'en', injected)).toBeUndefined();
+    expect(m.projectStaticParams(injected)).toEqual([
+      { locale: 'tr', project: 'inj-a-tr' },
+      { locale: 'en', project: 'inj-a-en' },
+    ]);
+  });
+
+  it('relates and chains within the given records', async () => {
+    const two = [...injected, rec('inj-b', { period: { start: '2021-01', precision: 'month' } })];
+    const m = await load('production');
+    const [a, b] = m.getPublicProjects({}, two);
+    expect(m.relatedProjects(a, two).map((p) => p.id)).toEqual(['inj-b']);
+    expect(m.nextProject(a, two)?.id).toBe('inj-b');
+    expect(m.nextProject(b, two)?.id).toBe('inj-a');
+  });
+});
+
 describe('view models', () => {
   it('builds a localised card', async () => {
     const m = await load('production');

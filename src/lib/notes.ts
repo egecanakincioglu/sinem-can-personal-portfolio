@@ -3,6 +3,7 @@ import type { Block, NoteContent, NoteRecord } from '@/content/notes/types';
 import { locales, type Locale } from '@/content/types';
 import { blockStrings, plain } from './inline';
 import { notePath, pagePath, type AltPaths } from './routes';
+import { isPublicNote } from './visibility';
 
 /* ------------------------------------------------------------------------------------------------
    The one access layer for note data. Server-side only.
@@ -17,12 +18,10 @@ const fixtureModule = (): FixtureModule | null =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- a static import would put the sample data into production bundles
   process.env.NODE_ENV === 'development' ? (require('../content/fixtures/notes') as FixtureModule) : null;
 
-const isPublic = (n: NoteRecord) => n.status === 'published' && n.approved === true && (!n.fixture || DEV);
-
-function universe(includeFixtures: boolean, many = false): NoteRecord[] {
+function universe(includeFixtures: boolean, many = false, records: NoteRecord[] = noteRecords): NoteRecord[] {
   const fx = includeFixtures && DEV ? (fixtureModule()?.fixtureNotes ?? []) : [];
   const extra = many && DEV ? (fixtureModule()?.manyFixtureNotes ?? []) : [];
-  return [...noteRecords, ...fx, ...extra].filter(isPublic);
+  return [...records, ...fx, ...extra].filter((n) => isPublicNote(n, DEV));
 }
 
 const byRecency = (a: NoteRecord, b: NoteRecord) => b.published.localeCompare(a.published);
@@ -34,17 +33,27 @@ const inLocale = (list: NoteRecord[], locale: Locale): PublicNote[] =>
   list.flatMap((record) => (record[locale] ? [{ record, locale, content: record[locale] as NoteContent }] : []));
 
 /** Public archive for one language. `includeFixtures` / `many` are honoured only in development. */
-export function getPublicNotes(locale: Locale, opts: { includeFixtures?: boolean; many?: boolean } = {}): PublicNote[] {
-  return inLocale(universe(!!opts.includeFixtures, !!opts.many).sort(byRecency), locale);
+export function getPublicNotes(
+  locale: Locale,
+  opts: { includeFixtures?: boolean; many?: boolean } = {},
+  records: NoteRecord[] = noteRecords,
+): PublicNote[] {
+  return inLocale(universe(!!opts.includeFixtures, !!opts.many, records).sort(byRecency), locale);
 }
 
 /** Slug lookup in ONE language: unknown, draft, unapproved or other-language slugs all return undefined (→ 404). */
-export function findPublicNote(slug: string, locale: Locale): PublicNote | undefined {
-  return inLocale(universe(true), locale).find((n) => n.content.slug === slug);
+export function findPublicNote(
+  slug: string,
+  locale: Locale,
+  records: NoteRecord[] = noteRecords,
+): PublicNote | undefined {
+  return inLocale(universe(true, false, records), locale).find((n) => n.content.slug === slug);
 }
 
-export function noteStaticParams() {
-  return locales.flatMap((locale) => inLocale(universe(true), locale).map((n) => ({ locale, entry: n.content.slug })));
+export function noteStaticParams(records: NoteRecord[] = noteRecords) {
+  return locales.flatMap((locale) =>
+    inLocale(universe(true, false, records), locale).map((n) => ({ locale, entry: n.content.slug })),
+  );
 }
 
 /** Equivalent URL in each language. A language the note does not exist in falls back to the archive. */
@@ -57,8 +66,10 @@ export function notePaths(record: NoteRecord): AltPaths {
 export const noteLanguages = (record: NoteRecord): Locale[] => locales.filter((l) => !!record[l]);
 
 /** Up to two: explicit relations first, then a shared category or tag. */
-export function relatedNotes(n: PublicNote): PublicNote[] {
-  const pool = inLocale(universe(!!n.record.fixture), n.locale).filter((x) => x.record.id !== n.record.id);
+export function relatedNotes(n: PublicNote, records: NoteRecord[] = noteRecords): PublicNote[] {
+  const pool = inLocale(universe(!!n.record.fixture, false, records), n.locale).filter(
+    (x) => x.record.id !== n.record.id,
+  );
   const explicit = (n.record.relatedIds ?? []).flatMap((id) => pool.filter((x) => x.record.id === id));
   const tags = n.content.tags ?? [];
   const similar = pool.filter(
@@ -70,8 +81,8 @@ export function relatedNotes(n: PublicNote): PublicNote[] {
 }
 
 /** The next older note in archive order (wrapping), for the "Next note" link. */
-export function nextNote(n: PublicNote): PublicNote | undefined {
-  const list = inLocale(universe(!!n.record.fixture).sort(byRecency), n.locale);
+export function nextNote(n: PublicNote, records: NoteRecord[] = noteRecords): PublicNote | undefined {
+  const list = inLocale(universe(!!n.record.fixture, false, records).sort(byRecency), n.locale);
   if (list.length < 2) return undefined;
   const i = list.findIndex((x) => x.record.id === n.record.id);
   return list[(i + 1) % list.length];

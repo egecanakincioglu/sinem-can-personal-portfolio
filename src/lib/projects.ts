@@ -3,6 +3,7 @@ import { projectRecords } from '@/content/projects/published';
 import type { Discipline, ImageMedia, ProjectKind, ProjectRecord, PublicProject } from '@/content/projects/types';
 import { locales, type Locale } from '@/content/types';
 import { projectPath } from './routes';
+import { isPublicProject } from './visibility';
 
 /* ------------------------------------------------------------------------------------------------
    The one access layer for project data: swap this file's source for a database later.
@@ -18,9 +19,6 @@ const fixtureModule = (): FixtureModule | null =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- a static import would put the sample data into production bundles
   process.env.NODE_ENV === 'development' ? (require('../content/fixtures/projects') as FixtureModule) : null;
 
-/** Published AND approved — drafts and unapproved records are never public. Fixtures only exist in development. */
-const isPublic = (p: ProjectRecord) => p.visibility === 'published' && p.approved === true && (!p.fixture || DEV);
-
 /**
  * Strips what must never reach a component, the RSC payload or the browser:
  * private CAD metadata, and a 3D preview that has not been approved.
@@ -31,30 +29,39 @@ export function toPublicProject(p: ProjectRecord): PublicProject {
   return rest.preview3d && !rest.preview3d.approved ? { ...rest, preview3d: undefined } : rest;
 }
 
-function universe(includeFixtures: boolean): ProjectRecord[] {
+function universe(includeFixtures: boolean, records: ProjectRecord[] = projectRecords): ProjectRecord[] {
   const fx = includeFixtures && DEV ? (fixtureModule()?.fixtureProjects ?? []) : [];
-  return [...projectRecords, ...fx].filter(isPublic);
+  return [...records, ...fx].filter((p) => isPublicProject(p, DEV));
 }
 
 const startYear = (p: PublicProject) => (p.period ? Number(p.period.start.slice(0, 4)) : 0);
 const byRecency = (a: PublicProject, b: PublicProject) => startYear(b) - startYear(a);
 
 /** Public archive. `includeFixtures` is honoured only in development (the dev preview route). */
-export function getPublicProjects(opts: { includeFixtures?: boolean; many?: boolean } = {}): PublicProject[] {
+export function getPublicProjects(
+  opts: { includeFixtures?: boolean; many?: boolean } = {},
+  records: ProjectRecord[] = projectRecords,
+): PublicProject[] {
   const list =
-    opts.many && DEV ? (fixtureModule()?.manyFixtures ?? []).filter(isPublic) : universe(!!opts.includeFixtures);
+    opts.many && DEV
+      ? (fixtureModule()?.manyFixtures ?? []).filter((p) => isPublicProject(p, DEV))
+      : universe(!!opts.includeFixtures, records);
   return list.map(toPublicProject).sort(byRecency);
 }
 
 /** Slug lookup. Detail routes may resolve fixtures in development; in production they cannot exist. */
-export function findPublicProject(slug: string, locale: Locale): PublicProject | undefined {
-  const rec = universe(true).find((p) => p.slug[locale] === slug);
+export function findPublicProject(
+  slug: string,
+  locale: Locale,
+  records: ProjectRecord[] = projectRecords,
+): PublicProject | undefined {
+  const rec = universe(true, records).find((p) => p.slug[locale] === slug);
   return rec ? toPublicProject(rec) : undefined;
 }
 
 /** Static params for the detail route: every public record in every locale (fixtures in development only). */
-export function projectStaticParams() {
-  return universe(true).flatMap((p) => locales.map((locale) => ({ locale, project: p.slug[locale] })));
+export function projectStaticParams(records: ProjectRecord[] = projectRecords) {
+  return universe(true, records).flatMap((p) => locales.map((locale) => ({ locale, project: p.slug[locale] })));
 }
 
 /** Equivalent URL of a record in each language, for the language switch and canonical/alternates. */
@@ -64,8 +71,8 @@ export const projectPaths = (p: PublicProject) => ({
 });
 
 /** Up to two: explicit relations first, then the same type or a shared tool. */
-export function relatedProjects(p: PublicProject): PublicProject[] {
-  const pool = universe(!!p.fixture)
+export function relatedProjects(p: PublicProject, records: ProjectRecord[] = projectRecords): PublicProject[] {
+  const pool = universe(!!p.fixture, records)
     .filter((r) => r.id !== p.id)
     .map(toPublicProject);
   const explicit = (p.relatedIds ?? []).flatMap((id) => pool.filter((r) => r.id === id));
@@ -76,8 +83,8 @@ export function relatedProjects(p: PublicProject): PublicProject[] {
 }
 
 /** The next record in the archive order (wrapping), for the "Next project" link. */
-export function nextProject(p: PublicProject): PublicProject | undefined {
-  const list = universe(!!p.fixture).map(toPublicProject).sort(byRecency);
+export function nextProject(p: PublicProject, records: ProjectRecord[] = projectRecords): PublicProject | undefined {
+  const list = universe(!!p.fixture, records).map(toPublicProject).sort(byRecency);
   if (list.length < 2) return undefined;
   const i = list.findIndex((r) => r.id === p.id);
   return list[(i + 1) % list.length];

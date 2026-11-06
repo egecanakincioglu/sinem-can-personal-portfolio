@@ -19,6 +19,13 @@ id = "url-credentials"
 description = "Credentials embedded in a connection URL"
 regex = '''[a-z][a-z0-9+.-]*://[^:\s/$@]+:[^@\s/$]+@[^\s/]+'''
 
+[[rules.allowlists]]
+# Tests of URL validation use the placeholder user:pw@ to check that credentials are rejected.
+condition = "AND"
+paths = ['''\.test\.tsx?$''']
+regexTarget = "match"
+regexes = ['''://user:pw@''']
+
 [[rules]]
 id = "tr-phone-number"
 description = "Turkish mobile phone number"

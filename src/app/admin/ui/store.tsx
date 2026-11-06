@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import type { ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
+import { sharedFieldIds } from '@/lib/preview-bridge';
 import { selectPublicSnapshot, type PublicSnapshot } from '@/lib/public-snapshot';
 import type { DeviceId } from '../screens';
 
@@ -77,7 +78,12 @@ function reducer(s: AdminState, a: Action): AdminState {
     case 'device':
       return { ...s, device: a.device };
     case 'value':
-      return { ...s, values: { ...s.values, [a.id]: a.value }, dirty: true };
+      // Editors that show one shared string (hero.briefly, intro.heading ...) hold one value.
+      return {
+        ...s,
+        values: { ...s.values, ...Object.fromEntries(sharedFieldIds(a.id).map((id) => [id, a.value])) },
+        dirty: true,
+      };
     case 'save':
       return { ...s, savedValues: s.values, dirty: false, saveCount: s.saveCount + 1 };
     case 'discard':

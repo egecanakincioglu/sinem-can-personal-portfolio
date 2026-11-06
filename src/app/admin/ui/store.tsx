@@ -32,6 +32,7 @@ export type AdminState = {
   published: { rev: number; at: string } | null; // simulated publish; `at` is local "YYYY-MM-DDTHH:MM"
   revisions: Revision[]; // newest first, at most 10
   previewSource: PreviewSource;
+  recent: string[]; // last command palette commands, newest first, at most RECENT_MAX
   toasts: Toast[];
   log: string[]; // "Son eylemler"
   ready: boolean; // sessionStorage has been read; persistence is allowed only after this (never stored)
@@ -53,6 +54,7 @@ export const initialState: AdminState = {
   published: null,
   revisions: [],
   previewSource: 'draft',
+  recent: [],
   toasts: [],
   log: [],
   ready: false,
@@ -75,6 +77,7 @@ type Action =
   | { type: 'publish'; at: string }
   | { type: 'restore'; rev: number }
   | { type: 'previewSource'; source: PreviewSource }
+  | { type: 'recent'; id: string }
   | { type: 'reset' }
   | { type: 'seedSamples'; records: ProjectRecord[] }
   | { type: 'clearSamples' }
@@ -82,6 +85,8 @@ type Action =
   | { type: 'probe'; id: string | null }
   | { type: 'toast'; id: number; text: string; quiet?: boolean }
   | { type: 'dismiss'; id: number };
+
+const RECENT_MAX = 5;
 
 const withLog = (s: AdminState, text: string) => ({ ...s, log: [text, ...s.log].slice(0, 10) });
 
@@ -103,6 +108,9 @@ export function reducer(s: AdminState, a: Action): AdminState {
         revisions: Array.isArray(st.revisions) ? st.revisions : [],
         published: st.published && typeof st.published.rev === 'number' ? st.published : null,
         previewSource: st.previewSource === 'published' ? 'published' : 'draft',
+        recent: Array.isArray(st.recent)
+          ? st.recent.filter((x): x is string => typeof x === 'string').slice(0, RECENT_MAX)
+          : [],
         probe: null,
         ready: true,
         toasts: [],
@@ -155,6 +163,8 @@ export function reducer(s: AdminState, a: Action): AdminState {
     }
     case 'previewSource':
       return { ...s, previewSource: a.source };
+    case 'recent':
+      return { ...s, recent: [a.id, ...s.recent.filter((x) => x !== a.id)].slice(0, RECENT_MAX) };
     case 'reset':
       return { ...initial, ready: true, toasts: s.toasts };
     case 'seedSamples':
@@ -212,6 +222,7 @@ type Ctx = {
   restore: (rev: number) => void;
   setPreviewSource: (s: PreviewSource) => void;
   reset: () => void;
+  pushRecent: (id: string) => void;
   seedSamples: (records: ProjectRecord[]) => void;
   clearSamples: () => void;
   patchProject: (id: string, patch: ProjectPatch) => void;
@@ -336,6 +347,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         toast('Revizyona dönüldü (simülasyon). Çalışma durumu o revizyonun içeriğine döndü.');
       },
       setPreviewSource: (source) => dispatch({ type: 'previewSource', source }),
+      pushRecent: (id) => dispatch({ type: 'recent', id }),
       reset: () => {
         dispatch({ type: 'reset' });
         toast('Demo sıfırlandı (simülasyon).', true);

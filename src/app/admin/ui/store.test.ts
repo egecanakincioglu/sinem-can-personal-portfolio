@@ -116,6 +116,23 @@ describe('hydrate', () => {
     expect(s.values).toEqual({});
   });
 
+  it('keeps the recent commands, newest first, once each and at most five', () => {
+    const s = ['a', 'b', 'c', 'a', 'd', 'e', 'f'].reduce<AdminState>(
+      (acc, id) => reducer(acc, { type: 'recent', id }),
+      ready,
+    );
+    expect(s.recent).toEqual(['f', 'e', 'd', 'a', 'c']);
+  });
+
+  it('repairs a malformed recent list', () => {
+    expect(reducer(initialState, { type: 'hydrate', state: { schema: 1, recent: 'x' as never } }).recent).toEqual([]);
+    const s = reducer(initialState, {
+      type: 'hydrate',
+      state: { schema: 1, recent: ['a', 1, 'b', 'c', 'd', 'e', 'f'] as never },
+    });
+    expect(s.recent).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
   it('repairs malformed list and publish fields', () => {
     const s = reducer(initialState, {
       type: 'hydrate',

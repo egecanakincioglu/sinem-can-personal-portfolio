@@ -2,28 +2,47 @@
 
 import { useRouter } from 'next/navigation';
 import { useId, useMemo, useRef, useState } from 'react';
-import { devices, fold, screenHref, screens } from '../screens';
+import type { ProjectRecord } from '@/content/projects/types';
+import { fieldCommands, recordCommands, searchCommands, type Searchable } from '@/lib/palette';
+import { registry } from '../registry';
+import { devices, screenHref, screens } from '../screens';
 import { Dialog } from './feedback';
 import { useAdmin } from './store';
 
-type Cmd = { id: string; group: 'Eylemler' | 'Ekranlar'; label: string; run: () => void };
+type Group = 'Eylemler' | 'Ekranlar' | 'Alanlar' | 'Kayıtlar';
+type Cmd = Searchable & { id: string; group: Group; run: () => void };
 
-/** Ctrl/⌘+K palette skeleton: screens + actions. Combobox + listbox, Turkish-folded matching. */
+const GROUPS: readonly Group[] = ['Eylemler', 'Ekranlar', 'Alanlar', 'Kayıtlar'];
+const RECENT = 'Son kullanılanlar';
+
+/** Ctrl/⌘+K palette: actions, screens, registry fields and records. Combobox + listbox, Turkish-folded matching. */
 export function CommandPalette({
   open,
   onClose,
   onTasks,
   onPublish,
   onReset,
+  samples = [],
 }: {
   open: boolean;
   onClose: () => void;
   onTasks: () => void;
   onPublish: () => void;
   onReset: () => void;
+  samples?: ProjectRecord[];
 }) {
   const router = useRouter();
-  const { setEditLang, setPreviewLang, setDevice, save } = useAdmin();
+  const {
+    state,
+    setEditLang,
+    setPreviewLang,
+    setDevice,
+    setPreviewSource,
+    save,
+    seedSamples,
+    clearSamples,
+    pushRecent,
+  } = useAdmin();
   const [q, setQ] = useState('');
   const [cur, setCur] = useState(0);
   const lid = useId();
@@ -38,8 +57,11 @@ export function CommandPalette({
     }
   }
 
-  const all = useMemo<Cmd[]>(
-    () => [
+  const { seeded, projects, values, recent } = state;
+
+  const all = useMemo<Cmd[]>(() => {
+    const go = (href: string) => () => router.push(href);
+    const actions: Cmd[] = [
       { id: 'save', group: 'Eylemler', label: 'Kaydet (sim.)', run: save },
       { id: 'publish', group: 'Eylemler', label: 'Yayınla (sim.)', run: onPublish },
       { id: 'tasks', group: 'Eylemler', label: 'Görev kuyruğunu aç', run: onTasks },
@@ -51,26 +73,71 @@ export function CommandPalette({
         label: `Önizleme: ${d.label}`,
         run: () => setDevice(d.id),
       })),
+      { id: 'ps-draft', group: 'Eylemler', label: 'Önizleme: Taslak', run: () => setPreviewSource('draft') },
+      {
+        id: 'ps-published',
+        group: 'Eylemler',
+        label: 'Önizleme: Yayınlanan',
+        run: () => setPreviewSource('published'),
+      },
       { id: 'pl-tr', group: 'Eylemler', label: 'Önizleme dili: TR', run: () => setPreviewLang('tr') },
       { id: 'pl-en', group: 'Eylemler', label: 'Önizleme dili: EN', run: () => setPreviewLang('en') },
+      ...(seeded
+        ? [{ id: 'seed-off', group: 'Eylemler' as const, label: 'Örnek verileri kaldır', run: clearSamples }]
+        : samples.length
+          ? [
+              {
+                id: 'seed-on',
+                group: 'Eylemler' as const,
+                label: 'Örnek verileri yükle',
+                run: () => seedSamples(samples),
+              },
+            ]
+          : []),
       { id: 'reset', group: 'Eylemler', label: 'Demoyu sıfırla', run: onReset },
-      ...screens.map((s) => ({
-        id: `s-${s.slug}`,
-        group: 'Ekranlar' as const,
-        label: `Git: ${s.title}`,
-        run: () => router.push(screenHref(s)),
-      })),
-    ],
-    [router, save, onPublish, onTasks, onReset, setEditLang, setPreviewLang, setDevice],
-  );
+    ];
+    const links = [...fieldCommands(registry, values), ...recordCommands(projects)].map((c) => ({
+      ...c,
+      run: go(c.href),
+    }));
+    const pages = screens.map((s) => ({
+      id: `s-${s.slug}`,
+      group: 'Ekranlar' as const,
+      label: `Git: ${s.title}`,
+      run: go(screenHref(s)),
+    }));
+    return [...actions, ...pages, ...links];
+  }, [
+    router,
+    save,
+    onPublish,
+    onTasks,
+    onReset,
+    setEditLang,
+    setPreviewLang,
+    setDevice,
+    setPreviewSource,
+    seeded,
+    samples,
+    seedSamples,
+    clearSamples,
+    values,
+    projects,
+  ]);
 
+  // An empty query lists the last commands used; before any, the actions and screens.
+  const showRecent = !q.trim() && recent.length > 0;
   const results = useMemo(() => {
-    const toks = fold(q).split(/\s+/).filter(Boolean);
-    return all.filter((c) => toks.every((t) => fold(c.label).includes(t)));
-  }, [q, all]);
+    if (q.trim()) return searchCommands(all, q);
+    if (recent.length) return recent.flatMap((id) => all.filter((c) => c.id === id));
+    return all.filter((c) => c.group === 'Eylemler' || c.group === 'Ekranlar');
+  }, [q, all, recent]);
+  const listed = showRecent ? [RECENT] : GROUPS;
+  const inGroup = (g: string) => (showRecent ? results : results.filter((r) => r.group === g));
 
   const run = (c?: Cmd) => {
     if (!c) return;
+    pushRecent(c.id);
     onClose();
     window.setTimeout(c.run, 0);
   };
@@ -90,7 +157,7 @@ export function CommandPalette({
           aria-controls={`${lid}-l`}
           aria-autocomplete="list"
           aria-activedescendant={results[cur] ? `${lid}-o-${results[cur].id}` : undefined}
-          placeholder="Ekran, alan ya da eylem ara…"
+          placeholder="Ekran, alan, kayıt ya da eylem ara…"
           value={q}
           autoComplete="off"
           onChange={(e) => {
@@ -114,8 +181,8 @@ export function CommandPalette({
           {results.length ? `${results.length} sonuç` : 'Sonuç yok'}
         </p>
         <ul id={`${lid}-l`} role="listbox" aria-label="Sonuçlar" className="a-pal-list">
-          {(['Eylemler', 'Ekranlar'] as const).map((g) => {
-            const items = results.filter((r) => r.group === g);
+          {listed.map((g) => {
+            const items = inGroup(g);
             if (!items.length) return null;
             return (
               <li key={g} role="presentation">
@@ -133,7 +200,8 @@ export function CommandPalette({
                       onMouseMove={() => setCur(results.indexOf(r))}
                       onClick={() => run(r)}
                     >
-                      {r.label}
+                      <span>{r.label}</span>
+                      {r.hint && <span className="a-help a-pal-hint"> · {r.hint}</span>}
                     </li>
                   ))}
                 </ul>
@@ -141,7 +209,7 @@ export function CommandPalette({
             );
           })}
         </ul>
-        <p className="a-help a-pal-foot">↑ ↓ gez · Enter çalıştır · Esc kapat. Alan ve kayıt arama sonraki aşamada.</p>
+        <p className="a-help a-pal-foot">↑ ↓ gez · Enter çalıştır · Esc kapat</p>
       </div>
     </Dialog>
   );

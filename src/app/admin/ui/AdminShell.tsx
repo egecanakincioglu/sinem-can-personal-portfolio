@@ -1,7 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
+import type { ProjectRecord } from '@/content/projects/types';
 import { screens } from '../screens';
 import { AdminHeader } from './AdminHeader';
 import { AdminSidebar } from './AdminSidebar';
@@ -9,19 +10,27 @@ import { CommandPalette } from './CommandPalette';
 import { PreviewPanel } from './PreviewPanel';
 import { PublishDialog } from './PublishDialog';
 import { Toolbar } from './Toolbar';
-import { ConfirmDialog, Dialog, EmptyState, Toasts } from './feedback';
+import { TaskQueue } from './TaskQueue';
+import { ConfirmDialog, Toasts } from './feedback';
 import { AdminProvider, useAdmin } from './store';
+import { useFieldFocus } from './useFieldFocus';
 
-export function AdminShell({ children }: { children: ReactNode }) {
+function FieldFocus() {
+  useFieldFocus();
+  return null;
+}
+
+/** `samples` are the development sample projects the palette can load; the server passes them in. */
+export function AdminShell({ children, samples = [] }: { children: ReactNode; samples?: ProjectRecord[] }) {
   return (
     <AdminProvider>
-      <Frame>{children}</Frame>
+      <Frame samples={samples}>{children}</Frame>
     </AdminProvider>
   );
 }
 
 /** Three-panel workspace: index · editor · preview. */
-function Frame({ children }: { children: ReactNode }) {
+function Frame({ children, samples }: { children: ReactNode; samples: ProjectRecord[] }) {
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
@@ -146,23 +155,13 @@ function Frame({ children }: { children: ReactNode }) {
         onTasks={openTasks}
         onPublish={openPublish}
         onReset={openReset}
+        samples={samples}
       />
 
-      <Dialog open={tasks} onClose={() => setTasks(false)} label="Görev kuyruğu" variant="sheet">
-        <div className="a-dialog-bar">
-          <h2 className="a-dialog-title">Görev kuyruğu</h2>
-          <button type="button" className="a-link" onClick={() => setTasks(false)}>
-            Kapat
-          </button>
-        </div>
-        <EmptyState title="Bekleyen görev yok." mark="0 görev">
-          <p>
-            Eksik çeviriler, onay bekleyen metinler ve hatalar burada kayıt alanlarından türetilerek listelenecek. Bu
-            liste elle yazılmaz.
-          </p>
-          <p className="a-help">Prototip: görev kuyruğu sonraki aşamada dolar.</p>
-        </EmptyState>
-      </Dialog>
+      <TaskQueue open={tasks} onClose={() => setTasks(false)} />
+      <Suspense fallback={null}>
+        <FieldFocus />
+      </Suspense>
 
       <PublishDialog open={pub} onClose={() => setPub(false)} />
 

@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Glyph } from './feedback';
+import { entryOfIssue } from '@/lib/task-queue';
+import { registry } from '../registry';
 import { screenHref, screens, type SectionStatus } from '../screens';
+import { Glyph } from './feedback';
+import { useAdmin } from './store';
 
 const statusText: Record<SectionStatus, string> = { ok: 'tamam', draft: 'taslak metin var', later: 'sonraki aşamada' };
 
@@ -24,6 +27,13 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const path = usePathname();
   const slug = path.split('/').filter(Boolean)[1] ?? '';
   const screen = screens.find((s) => s.slug === slug) ?? screens[0];
+  const { issues } = useAdmin();
+  // The same issue list as the title block count and the task queue.
+  const open = (section: string) =>
+    issues.filter((i) => {
+      const e = entryOfIssue(i, registry);
+      return e?.screen === screen.slug && e.editorSection === section;
+    }).length;
   const [active, setActive] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
@@ -104,6 +114,12 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
                 >
                   <span className="a-idx-t">{s.label}</span>
                   <SectionGlyph s={s.status} />
+                  {open(s.id) > 0 && (
+                    <span className="a-num a-sg">
+                      {open(s.id)}
+                      <span className="a-vh"> görev</span>
+                    </span>
+                  )}
                 </a>
               </li>
             ))}

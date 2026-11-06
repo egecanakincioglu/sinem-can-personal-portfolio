@@ -202,7 +202,7 @@ export function Preview3DPanel({
               <Glyph name={c.ok ? 'check' : 'bang'} />
               <span>
                 {c.label}
-                {c.ok ? '' : ' — eksik'}
+                {c.ok ? '' : c.id === 'size' && p?.sizeBytes !== undefined ? ' — aşıldı' : ' — eksik'}
               </span>
             </li>
           ))}

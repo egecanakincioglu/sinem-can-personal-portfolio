@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import os from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
-import { fixtureMarkers, main, SAMPLE_LABEL } from './check-build-output.ts';
+import { fixtureMarkers, main, PANEL_MARKERS, SAMPLE_LABEL } from './check-build-output.ts';
 
 const root = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'build-output-'));
 let counter = 0;
@@ -39,6 +39,23 @@ describe('check-build-output', () => {
     assert.ok(markers.includes('fixture-a'));
     assert.ok(markers.includes('fx-beam'));
     assert.ok(markers.includes('Sample record A'));
+  });
+  test('the marker list holds the panel markers', () => {
+    for (const m of PANEL_MARKERS) assert.ok(fixtureMarkers().includes(m));
+  });
+  test('a panel marker in a static chunk fails', () => assert.equal(run({ 'a.js': 'x="antet-admin"' }), 1));
+  test('a panel marker in the server output fails', () => {
+    const dir = path.join(root, String(counter++));
+    mkdirSync(path.join(dir, '.next', 'static'), { recursive: true });
+    mkdirSync(path.join(dir, '.next', 'server', 'app'), { recursive: true });
+    writeFileSync(path.join(dir, '.next', 'server', 'app', 'p.js'), 'x="admin-root"');
+    const err = process.stderr.write;
+    process.stderr.write = () => true;
+    try {
+      assert.equal(main(dir), 1);
+    } finally {
+      process.stderr.write = err;
+    }
   });
   test('a clean tree passes', () => assert.equal(run({ 'chunks/a.js': 'console.log("hello")' }), 0));
   test('the sample label in a nested chunk fails', () =>

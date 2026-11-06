@@ -3,7 +3,7 @@
 import type { ProjectRecord } from '@/content/projects/types';
 import { formatSize, newAssetId } from '@/lib/glb';
 import { toPublicProject } from '@/lib/projects';
-import { BilingualField } from '../../ui/controls';
+import { BilingualField, RemoveButton } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
 import { useAdmin } from '../../ui/store';
 
@@ -83,9 +83,7 @@ export function OriginalsList({ project }: { project: ProjectRecord }) {
               </div>
             </div>
             <div className="a-rec-tools">
-              <button type="button" className="a-btn a-btn-quiet" onClick={() => write(list.filter((_, j) => j !== i))}>
-                Kaldır
-              </button>
+              <RemoveButton onClick={() => write(list.filter((_, j) => j !== i))} />
             </div>
           </li>
         ))}

@@ -257,9 +257,9 @@ function altIssues(
   for (const l of locales) {
     const alt = m.alt[l].trim();
     if (!alt) out.push(issue('Hata: Görsel için açıklama (alt) gerekli.', l));
-    else if (alt.length < MIN_ALT) out.push(issue(`Hata: Açıklama (alt) en az ${MIN_ALT} karakter olmalı.`, l));
+    else if (alt.length < MIN_ALT) out.push(issue(`Hata: Alternatif metin en az ${MIN_ALT} karakter olmalı.`, l));
     else if (file && (alt.toLowerCase() === file || alt.toLowerCase() === stem(file)))
-      out.push(issue('Hata: Açıklama (alt) dosya adı olamaz.', l));
+      out.push(issue('Hata: Alternatif metin dosya adı olamaz.', l));
   }
   return out;
 }

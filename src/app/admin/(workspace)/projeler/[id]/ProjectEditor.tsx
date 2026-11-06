@@ -137,7 +137,7 @@ function MediaFields<M extends { alt: Copy; caption?: Copy }>({
     <>
       <BilingualField
         name={`${name}.alt`}
-        label="Açıklama (alt)"
+        label="Alternatif metin"
         errors={errors}
         tr={media.alt.tr}
         en={media.alt.en}
@@ -514,7 +514,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
         <div className="a-list">
           <div className="a-list-head">
             <span className="a-label">Şekiller</span>
-            <span className="a-count a-num" role="status">
+            <span className="a-count a-num">
               {figures.length} / {MAX_ITEMS}
             </span>
           </div>

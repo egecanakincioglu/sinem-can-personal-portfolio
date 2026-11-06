@@ -66,6 +66,24 @@ function specificity(entry: RegistryEntry, leaf: string): number {
   return -1;
 }
 
+/** Admin wording for an entry: its label, or the page and section when it has none. Never a raw path. */
+export const entryLabel = (e: RegistryEntry): string => e.label ?? `${e.page} › ${e.section}`;
+
+/** The most specific entry covering `path`. Array indices (`items[2].name`) count as the shared `[]` form. */
+export function entryFor(entries: readonly RegistryEntry[], path: string): RegistryEntry | undefined {
+  const leaf = path.replace(/\[\d+\]/g, '[]');
+  let best: RegistryEntry | undefined;
+  let bestScore = -1;
+  for (const e of entries) {
+    const s = specificity(e, leaf);
+    if (s > bestScore) {
+      best = e;
+      bestScore = s;
+    }
+  }
+  return best;
+}
+
 export type Coverage = {
   /** Leaf -> the entry that owns it. */
   owner: Map<string, RegistryEntry>;
@@ -81,15 +99,7 @@ export function checkCoverage(entries: readonly RegistryEntry[], leaves: readonl
   const owner = new Map<string, RegistryEntry>();
   const uncovered: string[] = [];
   for (const leaf of leaves) {
-    let best: RegistryEntry | undefined;
-    let bestScore = -1;
-    for (const e of entries) {
-      const s = specificity(e, leaf);
-      if (s > bestScore) {
-        best = e;
-        bestScore = s;
-      }
-    }
+    const best = entryFor(entries, leaf);
     if (best) owner.set(leaf, best);
     else uncovered.push(leaf);
   }

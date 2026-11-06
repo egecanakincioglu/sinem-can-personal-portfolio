@@ -44,8 +44,8 @@ export function Intro({ locale, content = getSiteContent() }: P) {
           </p>
         </div>
 
-        <div className="col-[1/-1] mt-14 lg:col-[2/11] lg:mt-20">
-          <p className="t-meta mb-3">{dict.intro.summary[locale]}</p>
+        <div className="col-[1/-1] lg:col-[2/11]">
+          <p className="t-meta pb-3">{dict.intro.summary[locale]}</p>
           <dl className="grid grid-cols-1 gap-x-[calc(var(--g)*2)] md:grid-cols-2">
             {summaryRows.map((r) => (
               <div key={r.label.en} className="hair grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-4 py-3.5">

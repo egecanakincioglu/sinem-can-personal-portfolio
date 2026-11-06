@@ -31,4 +31,13 @@ describe('Hero', () => {
     expect(mark.getAttribute('aria-expanded')).toBe('true');
     expect(container.querySelector('.sn-body')?.textContent).toContain(content.draft.isolationNote.en);
   });
+  it('keeps only dt/dd groups directly inside the definition list', () => {
+    const { container } = render(<Hero locale="en" />);
+    for (const dl of container.querySelectorAll('dl')) {
+      for (const child of Array.from(dl.children)) {
+        expect(child.tagName).toBe('DIV');
+        expect(Array.from(child.children).map((c) => c.tagName)).toEqual(['DT', 'DD']);
+      }
+    }
+  });
 });

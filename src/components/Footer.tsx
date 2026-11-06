@@ -49,7 +49,7 @@ export function Footer({
                 href={switchPath(page, l, paths)}
                 hrefLang={l}
                 lang={l}
-                aria-label={dict.langNames[l]}
+                aria-label={`${l.toUpperCase()}, ${dict.langNames[l]}`}
                 aria-current={l === locale ? 'true' : undefined}
                 className={l === locale ? '' : 'ulink text-kursun'}
               >
@@ -68,7 +68,7 @@ export function Footer({
           {platforms
             .filter((p) => p.id === 'linkedin' || p.show.footer)
             .map((p) => (
-              <a key={p.id} href={p.url} {...ext} className="ulink">
+              <a key={p.id} href={p.url} {...ext} className="ulink inline-flex min-h-6 items-center">
                 {p.name}
               </a>
             ))}

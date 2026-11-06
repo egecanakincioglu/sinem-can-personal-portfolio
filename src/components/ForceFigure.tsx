@@ -361,7 +361,7 @@ export function ForcesInteractive({
             type="button"
             onClick={() => setReversed((r) => !r)}
             aria-pressed={reversed}
-            aria-label={copy.reverseLabel[locale]}
+            aria-label={`${copy.reverse[locale]}. ${copy.reverseLabel[locale]}`}
             className="ulink mt-4 inline-flex min-h-11 items-center px-1 text-[15px] font-medium"
           >
             {copy.reverse[locale]}

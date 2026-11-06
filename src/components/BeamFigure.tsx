@@ -436,15 +436,15 @@ export function BeamFigure({
           type="button"
           onClick={() => setA(a0)}
           disabled={a === a0}
-          aria-label={A.resetLabel[locale].replace('{a0}', n(a0))}
+          aria-label={`${A.reset[locale]}. ${A.resetLabel[locale].replace('{a0}', n(a0))}`}
           className="ulink inline-flex min-h-11 items-center px-1 text-[15px] font-medium disabled:cursor-default disabled:text-kursun disabled:no-underline"
         >
           {A.reset[locale]}
         </button>
       </p>
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-[var(--g)] md:grid-cols-3">
-        <dt className="t-meta tnum col-span-full mb-1">{A.readoutsAt[locale].replace('{a}', n(a))}</dt>
+      <p className="t-meta tnum pb-1">{A.readoutsAt[locale].replace('{a}', n(a))}</p>
+      <dl className="grid grid-cols-2 gap-x-[var(--g)] md:grid-cols-3">
         {rows.map((r, i) => (
           <div key={i} className="hair flex items-baseline justify-between gap-3 py-3">
             <dt className="font-serif text-[17px]">{r.label}</dt>

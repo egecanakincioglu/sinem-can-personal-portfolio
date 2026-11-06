@@ -95,6 +95,7 @@ function renderBlock(
       const n = ++counters.eq;
       return (
         <div key={i} className="art-prose art-eq" id={b.id ? `eq-${b.id}` : undefined}>
+          {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- escaped MathML from texToMathML */}
           <div className="art-eq-body" dangerouslySetInnerHTML={{ __html: texToMathML(b.tex, locale, true) }} />
           <span className="art-eq-no tnum">({n})</span>
         </div>
@@ -129,6 +130,7 @@ function renderBlock(
               role="img"
               aria-label={b.alt}
               className="block h-auto w-full"
+              // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- authored SVG from the repository's own notes; replaced by the figure registry later
               dangerouslySetInnerHTML={{ __html: b.svg }}
             />
           </div>

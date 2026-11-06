@@ -15,8 +15,6 @@ const allowed = new Set([
   'projects/Featured.tsx',
   'projects/ProjectDetail.tsx',
   'notes/NotesArchive.tsx',
-  'notes/NoteArticle.tsx',
-  'notes/ArticleBody.tsx',
 ]);
 
 const root = join(process.cwd(), 'src', 'components');
@@ -31,12 +29,12 @@ function files(dir: string): string[] {
   );
 }
 
-/** True when the file imports a value (not only types) from `@/content/`, other than the structure and types modules. */
+/** True when the file imports a value (not only types) from `@/content/`, other than the structure, types and figure registry modules. */
 function importsContentValues(source: string): boolean {
   const re = /import\s+(type\s+)?([^;]*?)\s+from\s+'@\/content\/([^']+)'/g;
   for (const m of source.matchAll(re)) {
     if (m[1]) continue;
-    if (m[3] === 'structure' || m[3] === 'types') continue;
+    if (m[3] === 'structure' || m[3] === 'types' || m[3] === 'figures/registry') continue;
     const clause = m[2] ?? '';
     const named = /\{([^}]*)\}/.exec(clause)?.[1];
     // `import { type A, type B }` carries no value.

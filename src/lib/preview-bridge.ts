@@ -17,6 +17,7 @@ import {
 import type { Copy, Locale, Platform, Process } from '@/content/types';
 import { num } from '@/lib/format';
 import { beamMaxMidspanOffset } from '@/lib/physics';
+import { describeInterfaceStrings, dictAt, putAt, type InterfaceString } from './interface-strings';
 
 /* ------------------------------------------------------------------------------------------------
    DEVELOPMENT ONLY. The single contract between the Admin editor (parent window) and the real Homepage
@@ -75,6 +76,9 @@ export type CopyField = {
   fixed?: readonly string[]; // static {tokens} the text MAY contain; replaced by their canonical value when the override is sanitised
 };
 
+/** What the validators read from a field: limits and tokens only. */
+export type CopyRule = Pick<CopyField, 'max' | 'words' | 'tokens' | 'optional' | 'fixed'>;
+
 /** Editor field registry: every editable bilingual Homepage text. One table, read by the editor,
  *  the parent-side builder and the iframe-side sanitiser, so the three can never disagree. */
 export const copyFields = {
@@ -99,7 +103,6 @@ export const copyFields = {
   // Yaklaşım / Beam. Equations, assumptions and the exaggeration note are protected and are not listed.
   beamHeading: { id: 'yaklasim.heading', dest: 'dict.approach', key: 'heading', max: 60 },
   beamInterests: { id: 'yaklasim.interests', dest: 'dict.approach', key: 'interests', max: 40 },
-  beamFigure: { id: 'yaklasim.figure', dest: 'dict.approach', key: 'figure', max: 16 },
   beamHint: { id: 'yaklasim.hint', dest: 'dict.approach', key: 'hint', max: 60 },
   beamCaption: { id: 'yaklasim.caption', dest: 'dict.approach', key: 'caption', max: 240 },
   beamTeaching: { id: 'yaklasim.teaching', dest: 'draft', key: 'beamTeaching', max: 280, fixed: ['{offset}'] },
@@ -125,8 +128,6 @@ export const copyFields = {
   introNote: { id: 'kisaca.note', dest: 'draft', key: 'introNote', max: 220 },
   workshopHeading: { id: 'atolye.heading', dest: 'dict.workshop', key: 'heading', max: 80 },
   workshopInternship: { id: 'atolye.internship', dest: 'dict.workshop', key: 'internship', max: 24 },
-  workshopApplied: { id: 'atolye.applied', dest: 'dict.workshop', key: 'applied', max: 24 },
-  workshopObserved: { id: 'atolye.observed', dest: 'dict.workshop', key: 'observed', max: 24 },
   workshopAppliedHint: { id: 'atolye.appliedHint', dest: 'dict.workshop', key: 'appliedHint', max: 60 },
   workshopObservedHint: { id: 'atolye.observedHint', dest: 'dict.workshop', key: 'observedHint', max: 60 },
   workHeading: { id: 'calismalar.heading', dest: 'dict.work', key: 'heading', max: 24 },
@@ -223,6 +224,58 @@ export const copyFields = {
 } as const satisfies Record<string, CopyField>;
 export type CopyKey = keyof typeof copyFields;
 
+/** Screen that edits a dictionary key through `copyFields`, so Arayüz metinleri links there instead of editing it twice. */
+const editorScreen = (f: CopyField) => {
+  const head = f.id.split('.')[0];
+  return head === 'ayarlar' || head === 'profil' ? head : 'ana-sayfa';
+};
+const copyFieldAt = (path: string) =>
+  (Object.values(copyFields) as CopyField[]).find((x) => x.dest !== 'draft' && `${x.dest.slice(5)}.${x.key}` === path);
+let strings: InterfaceString[] | undefined;
+/** Every dictionary leaf as the Arayüz metinleri screen edits it (built once). */
+export function interfaceStrings(): InterfaceString[] {
+  strings ??= describeInterfaceStrings((path) => {
+    const f = copyFieldAt(path);
+    return f && editorScreen(f);
+  });
+  return strings;
+}
+/** Rows that follow an editor value: Arayüz metinleri controls, and every place of a shared string that other
+ *  screens edit. Derived and locked rows are shown, never overridden. */
+const textEdits = () => interfaceStrings().filter((d) => d.kind === 'editable' || d.kind === 'alias');
+/** A shared string is edited through one control: the first path that uses it. */
+export const controlId = (d: InterfaceString) => `metinler.${d.aliasOf ?? d.path}`;
+/** Editor fields that can set a place of a shared string edited elsewhere: its own entry first, then the others. */
+const followIds = (d: InterfaceString): string[] => {
+  const root = d.aliasOf ?? d.path;
+  const ids = [d, ...interfaceStrings().filter((x) => (x.aliasOf ?? x.path) === root)].map(
+    (x) => copyFieldAt(x.path)?.id,
+  );
+  return [...new Set(ids.filter((x): x is string => !!x))];
+};
+/** Editor value ids (`<field id>.tr|en`) that hold one shared string, in `copyFields` order: the first is the canonical
+ *  one. A write to any of them goes to all, so every editor input and every place of the string show one value. */
+export function sharedFieldIds(valueId: string): string[] {
+  const m = /^(.*)\.(tr|en)$/.exec(valueId);
+  const own = m && (Object.values(copyFields) as CopyField[]).find((x) => x.id === m[1]);
+  if (!m || !own || own.dest === 'draft') return [valueId];
+  const mine = interfaceStrings().find((x) => x.path === `${own.dest.slice(5)}.${own.key}`);
+  if (!mine) return [valueId];
+  const root = mine.aliasOf ?? mine.path;
+  const unit = new Set(
+    interfaceStrings()
+      .filter((x) => (x.aliasOf ?? x.path) === root)
+      .map((x) => x.path),
+  );
+  return (Object.values(copyFields) as CopyField[])
+    .filter((x) => x.dest !== 'draft' && unit.has(`${x.dest.slice(5)}.${x.key}`))
+    .map((x) => `${x.id}.${m[2]}`);
+}
+
+/** Limits a place is checked against: its own entry in `copyFields`, else its shared string's owner, else its own. */
+const ruleOf = (d: InterfaceString): CopyRule =>
+  copyFieldAt(d.path) ?? (d.aliasOf && d.owner ? copyFieldAt(d.aliasOf) : undefined) ?? d;
+
 /** Identity (G-01, G-02): the canonical `identity` source; stable ids so the later Ayarlar editor reuses them. */
 export const identityFields = {
   firstName: { id: 'ayarlar.identity.firstName', max: 40 },
@@ -248,7 +301,7 @@ const wordCount = (t: string) => (t.trim() ? t.trim().split(/\s+/).length : 0);
 const TOKEN = /\{[^{}]*\}/g;
 
 /** Validation shared by the editor (messages) and the sanitiser (drop invalid). `undefined` = valid or empty. */
-export function checkCopy(f: CopyField, text: string): string | undefined {
+export function checkCopy(f: CopyRule, text: string): string | undefined {
   const t = text.trim();
   if (!t) return undefined;
   if (t.length > f.max) return `En fazla ${f.max} karakter.`;
@@ -285,10 +338,10 @@ const LANGS: Locale[] = ['tr', 'en'];
 /** Static tokens carry their canonical value (never typed): {offset} is the geometric constant from lib/physics.ts. */
 const fixedValue = (token: string, l: Locale): string | undefined =>
   token === '{offset}' ? num(beamMaxMidspanOffset(), l, 3) : undefined;
-const fillFixed = (f: CopyField, t: string, l: Locale) =>
+const fillFixed = (f: CopyRule, t: string, l: Locale) =>
   (f.fixed ?? []).reduce((acc, k) => acc.split(k).join(fixedValue(k, l) ?? k), t);
 
-function copyEdit(f: CopyField, o: unknown): Partial<Copy> | undefined {
+function copyEdit(f: CopyRule, o: unknown): Partial<Copy> | undefined {
   if (!o || typeof o !== 'object') return undefined;
   const r = o as Record<string, unknown>;
   const out: Partial<Copy> = {};
@@ -594,7 +647,7 @@ function forceEdits(raw: unknown): ForceRecordEdit[] | undefined {
  */
 export function sanitizeOverride(raw: unknown): SiteContentOverride {
   const r = obj(raw);
-  const groups: Record<string, Record<string, Partial<Copy>>> = {};
+  const groups: Record<string, Record<string, unknown>> = {};
   const draft: Record<string, Partial<Copy>> = {};
   for (const f of Object.values(copyFields) as CopyField[]) {
     const g = f.dest === 'draft' ? undefined : f.dest.slice(5);
@@ -602,6 +655,10 @@ export function sanitizeOverride(raw: unknown): SiteContentOverride {
     if (!e) continue;
     if (g) (groups[g] ??= {})[f.key] = e;
     else draft[f.key] = e;
+  }
+  for (const d of textEdits()) {
+    const e = copyEdit(ruleOf(d), dictAt(r.dict, d.path));
+    if (e) putAt(groups, getSiteContent().dict, d.path, e);
   }
   // Kısaca summary labels: the nine rows stay in place; only their labels can be edited (values are derived).
   // (the editor sends `summaryLabels`; the iframe re-validates the sanitised `summaryRows`, whose rows carry `label`)
@@ -693,7 +750,7 @@ function portraitOverride(raw: unknown): SiteContentOverride['portrait'] | undef
     typeof v === 'number' && Number.isFinite(v) && v >= portraitFields[k].min && v <= portraitFields[k].max ? v : fb;
   const alt = {
     ...b.alt,
-    ...(copyEdit({ id: 'p', dest: 'draft', key: 'alt', max: portraitFields.alt.max }, o.alt) ?? {}),
+    ...(copyEdit({ max: portraitFields.alt.max }, o.alt) ?? {}),
   };
   const next = {
     ...b,
@@ -749,12 +806,18 @@ export function buildOverride(values: Record<string, string>): SiteContentOverri
   } catch {
     list = undefined;
   }
-  const pair = (f: CopyField) => ({ tr: values[`${f.id}.tr`], en: values[`${f.id}.en`] });
+  const pair = (f: Pick<CopyField, 'id'>) => ({ tr: values[`${f.id}.tr`], en: values[`${f.id}.en`] });
   const dict: Record<string, Record<string, unknown>> = {};
   const draft: Record<string, unknown> = {};
   for (const f of Object.values(copyFields) as CopyField[]) {
     if (f.dest === 'draft') draft[f.key] = pair(f);
     else (dict[f.dest.slice(5)] ??= {})[f.key] = pair(f);
+  }
+  for (const d of textEdits()) {
+    const id = (d.owner ? followIds(d) : [controlId(d)]).find(
+      (i) => typeof values[`${i}.tr`] === 'string' || typeof values[`${i}.en`] === 'string',
+    );
+    if (id) putAt(dict, getSiteContent().dict, d.path, pair({ id }));
   }
   const json = (id: string): unknown => {
     try {

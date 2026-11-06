@@ -43,7 +43,7 @@ function resolve<T>(v: T, tk: TokenSet): T {
 
 /** Unresolved dictionary: `{tokens}` still in place. `resolveDict` fills them from a token set, so the Admin preview
  *  can re-derive the dictionary from edited records (name, program, internship …) without a second copy. */
-const dictTemplate = {
+export const dictTemplate = {
   meta: {
     title: { tr: '{name} — {program}', en: '{name} — {program}' },
     description: {

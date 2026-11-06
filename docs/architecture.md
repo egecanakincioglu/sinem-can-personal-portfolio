@@ -38,6 +38,8 @@ The project has its own `[locale]` routing. It uses no i18n library ([ADR 0001](
 
 Tailwind CSS 4 with design tokens defined in `src/app/globals.css` ([ADR 0002](adr/0002-styling-tailwind-4-with-tokens.md)). Admin styles are kept in `src/app/admin/admin.css`.
 
+Interactive links and footnote marks have a 44 px hit area on small screens without changing the layout. The sticky header uses the solid paper colour.
+
 ## Content layer
 
 Components receive content only as typed props. Pages read content through accessors in `src/lib` (for example `projects.ts` and `notes.ts`). Data lives in `src/content` ([ADR 0003](adr/0003-content-layer-and-visibility-rule.md)).

@@ -28,7 +28,10 @@ export function Footer({
       k: f.contact[locale],
       wide: true,
       v: (
-        <a href={`mailto:${contact.email}`} className="ulink whitespace-nowrap">
+        <a
+          href={`mailto:${contact.email}`}
+          className="ulink -my-2.5 inline-flex min-h-11 items-center whitespace-nowrap"
+        >
           {contact.email}
         </a>
       ),
@@ -37,11 +40,11 @@ export function Footer({
     {
       k: f.language[locale],
       v: (
-        <span className="inline-flex gap-2">
+        <span className="-my-2.5 -ml-3 inline-flex items-center">
           {locales.map((l, i) => (
-            <span key={l}>
+            <span key={l} className="inline-flex items-center">
               {i > 0 && (
-                <span aria-hidden className="mr-2 text-kalem">
+                <span aria-hidden className="text-kalem">
                   ·
                 </span>
               )}
@@ -51,7 +54,7 @@ export function Footer({
                 lang={l}
                 aria-label={`${l.toUpperCase()}, ${dict.langNames[l]}`}
                 aria-current={l === locale ? 'true' : undefined}
-                className={l === locale ? '' : 'ulink text-kursun'}
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center ${l === locale ? '' : 'ulink text-kursun'}`}
               >
                 {l.toUpperCase()}
               </HashLink>
@@ -64,11 +67,11 @@ export function Footer({
       k: f.links[locale],
       wide: true,
       v: (
-        <span className="flex flex-wrap gap-x-3">
+        <span className="-my-2.5 flex flex-wrap gap-x-3">
           {platforms
             .filter((p) => p.id === 'linkedin' || p.show.footer)
             .map((p) => (
-              <a key={p.id} href={p.url} {...ext} className="ulink inline-flex min-h-6 items-center">
+              <a key={p.id} href={p.url} {...ext} className="ulink inline-flex min-h-11 items-center">
                 {p.name}
               </a>
             ))}

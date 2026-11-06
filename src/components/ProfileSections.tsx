@@ -11,10 +11,14 @@ import { Sidenote } from './Sidenote';
 /** `content` defaults to the authoritative public content; the Admin live preview passes the edited, derived content. */
 type P = { locale: Locale; content: SiteContent };
 
+/** Keeps "Month Year" and the dash that follows together, so a range breaks only after the dash. */
+const NBSP = String.fromCodePoint(0xa0);
+const keepRange = (s: string) => s.replace(/ (?=\d{4}\b)/g, NBSP).replace(/ –/g, `${NBSP}–`);
+
 /** Record pattern: meta column, then title and detail, separated by hairlines. */
 function Rec({ meta, children }: { meta?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="hair grid gap-2 py-6 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6">
+    <div className="hair grid gap-2 py-6 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6">
       <div className="tnum text-[15px] leading-snug text-kursun">{meta}</div>
       <div className="min-w-0">{children}</div>
     </div>
@@ -96,7 +100,7 @@ function ProfileEducation({ locale, content }: P) {
             key={e.id}
             meta={
               <>
-                <p>{periodText(e.period, locale)}</p>
+                <p>{keepRange(periodText(e.period, locale))}</p>
                 {e.period.expected ? <p className="t-caption pt-0.5">{p.expected[locale]}</p> : null}
               </>
             }
@@ -179,7 +183,7 @@ function ProfileCommunity({ locale, content }: P) {
   return (
     <Block id="community" locale={locale} dict={dict}>
       {content.memberships.map((m) => (
-        <Rec key={m.id} meta={periodText(m.period, locale)}>
+        <Rec key={m.id} meta={keepRange(periodText(m.period, locale))}>
           <Title>{m.organization}</Title>
           <p className="pt-2 text-[17px]">{m.role[locale]}</p>
           <div className="rail-q mt-4">
@@ -198,10 +202,7 @@ function ProfileSkills({ locale, content }: P) {
   return (
     <Block id="skills" locale={locale} dict={content.dict}>
       {content.skillGroups.map((g) => (
-        <div
-          key={g.id}
-          className="hair grid gap-3 py-6 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6"
-        >
+        <div key={g.id} className="hair grid gap-3 py-6 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6">
           <h3 className="serif text-[20px] italic leading-tight">{g.name[locale]}</h3>
           <ul className="dot-sep text-[17px]">
             {g.items.map((it, n) => (
@@ -221,10 +222,7 @@ function ProfileLanguages({ locale, content }: P) {
   return (
     <Block id="languages" locale={locale} dict={content.dict}>
       {content.languages.map((l) => (
-        <div
-          key={l.id}
-          className="hair grid gap-1 py-4 first:border-t-0 first:pt-0 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6"
-        >
+        <div key={l.id} className="hair grid gap-1 py-4 md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] md:gap-6">
           <p className="text-[19px] font-semibold leading-[1.3]">{l.name[locale]}</p>
           {/* Turkish carries no level label until Sinem confirms one */}
           {l.level ? <p className="text-[17px] text-kursun">{l.level[locale]}</p> : null}
@@ -263,7 +261,7 @@ function ProfileOffField({ locale, content }: P) {
       </div>
       <div className="mt-8">
         {content.activities.map((a) => (
-          <Rec key={a.id} meta={a.period ? periodText(a.period, locale) : undefined}>
+          <Rec key={a.id} meta={a.period ? keepRange(periodText(a.period, locale)) : undefined}>
             <p className="text-[19px] font-semibold leading-[1.3]">{a.name[locale]}</p>
           </Rec>
         ))}

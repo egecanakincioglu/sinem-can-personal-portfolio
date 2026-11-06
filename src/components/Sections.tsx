@@ -31,22 +31,23 @@ export function Intro({ locale, content }: P) {
 
         <p className="t-statement col-[1/-1] lg:col-[2/10]">{draft.statement[locale]}</p>
 
-        {/* Portrait: right-aligned and narrower than the column on small screens, hung at the right margin beside statement and paragraph on lg (clear of the rail note) */}
-        <Portrait
-          locale={locale}
-          source={content.portrait}
-          sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 72vw"
-          className="col-[2/-1] mt-10 md:col-[4/-1] lg:col-[10/13] lg:row-[2/4] lg:ml-16 lg:mt-3 lg:self-start"
-        />
+        {/* Portrait: full width on phones, right-aligned on tablets, hung at the right margin beside statement and paragraph on lg; the rail note sits left of it */}
+        <div className="col-[1/-1] mt-10 md:col-[4/-1] lg:col-[10/13] lg:row-[2/4] lg:mt-0 lg:self-start">
+          <Portrait
+            locale={locale}
+            source={content.portrait}
+            sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 100vw"
+          />
+        </div>
 
-        <div className="rail-host col-[1/-1] mt-10 lg:col-[2/9] lg:mt-14">
+        <div className="rail-q rail-q--near col-[1/-1] mt-10 lg:col-[2/9] lg:mt-14">
           <p className="max-w-[58ch] text-[17px] leading-[1.6]">
             {draft.introBody[locale]}
             <Sidenote n="1">{draft.introNote[locale]}</Sidenote>
           </p>
         </div>
 
-        <div className="col-[1/-1] lg:col-[2/11]">
+        <div className="col-[1/-1] mt-12 lg:col-[2/11] lg:mt-14">
           <p className="t-meta pb-3">{dict.intro.summary[locale]}</p>
           <dl className="grid grid-cols-1 gap-x-[calc(var(--g)*2)] md:grid-cols-2">
             {summaryRows.map((r) => (
@@ -75,7 +76,7 @@ export function Forces({ locale, content, preview }: PreviewP) {
         <h2 id="forces-h" className="t-display-l col-[1/-1] lg:col-[1/10]">
           {dict.forces.heading[locale]}
         </h2>
-        <p className="col-[1/-1] mt-8 max-w-[52ch] text-[17px] leading-[1.6] lg:col-[2/7] lg:mt-10">
+        <p className="col-[1/-1] max-w-[52ch] pt-8 text-[17px] leading-[1.6] lg:col-[2/7] lg:pt-10">
           {draft.forcesText[locale]}
         </p>
 
@@ -359,7 +360,7 @@ export function Direction({ locale, content }: P) {
           </div>
         </div>
 
-        <p className="t-lead col-[1/-1] mt-12 max-w-[34ch] lg:col-[2/8]">{draft.openness[locale]}</p>
+        <p className="t-lead col-[1/-1] max-w-[34ch] pt-14 lg:col-[2/8] lg:pt-20">{draft.openness[locale]}</p>
       </div>
     </section>
   );
@@ -382,7 +383,7 @@ export function Contact({ locale, content }: P) {
           <div className="col-[1/-1] mt-10 lg:col-[2/-1]">
             <a
               href={`mailto:${contact.email}`}
-              className="ulink serif block max-w-full break-words text-[clamp(1.25rem,6.2vw,1.75rem)] leading-tight md:text-[clamp(1.75rem,3.5vw,3rem)]"
+              className="ulink serif -my-2 block max-w-full break-words py-2 text-[clamp(1.25rem,6.2vw,1.75rem)] leading-tight md:text-[clamp(1.75rem,3.5vw,3rem)]"
             >
               {contact.email}
             </a>

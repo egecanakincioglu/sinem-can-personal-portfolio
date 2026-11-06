@@ -66,6 +66,14 @@ describe('Viewer3D', () => {
     }
   });
 
+  it('uses the paper colour, not white, and keeps disabled controls legible', () => {
+    const { container } = render(<Viewer3D modelSrc="/models/test.glb" poster={poster} labels={labels} />);
+    expect(container.innerHTML).not.toContain('bg-white');
+    const btn = screen.getByRole('button', { name: labels.rotateLeft });
+    expect(btn.className).toContain('disabled:text-kursun');
+    expect(btn.className).not.toContain('opacity');
+  });
+
   it('loads three.js and the model only after the button is pressed', async () => {
     render(<Viewer3D modelSrc="/models/test.glb" poster={poster} labels={labels} />);
     fireEvent.click(screen.getByRole('button', { name: labels.activate }));

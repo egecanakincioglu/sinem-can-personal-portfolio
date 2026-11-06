@@ -291,7 +291,7 @@ export function ForcesInteractive({
   return (
     <>
       {/* bottom padding keeps the sticky figure pinned while the last entry is still in the reading zone */}
-      <div className="col-[1/-1] mt-14 lg:col-[1/6] lg:mt-20 lg:pb-[28vh]">
+      <div className="col-[1/-1] mt-14 lg:col-[1/6] lg:mt-20 lg:pb-[72px]">
         <p className="t-meta mb-2">{copy.list[locale]}</p>
         {/* always chronological, whatever order the diagram uses */}
         <ol ref={list}>
@@ -355,7 +355,6 @@ export function ForcesInteractive({
             </span>
             {isFinal && <span className="text-kursun">{copy.resultText[locale]}</span>}
           </p>
-          <p className="t-note mt-3">{copy.note[locale]}</p>
 
           <button
             type="button"

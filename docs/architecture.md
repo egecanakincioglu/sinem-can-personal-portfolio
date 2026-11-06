@@ -68,6 +68,8 @@ Note pages render formulas as MathML, code blocks and figures. Figures come from
 
 `src/lib/note-blocks.ts` pairs the Turkish and English block lists of a note into one list for editing and splits it back. Language-neutral fields must match in both languages: ids, TeX, code and its language, figure id, image file and size, table alignment and callout kind. The file name of a code block is translated. List items, paragraphs and table rows must have the same count in both languages. An empty string marks an absent optional field, and a note may have one language only. A validation step reports missing heading ids, bad or duplicate ids, unknown figure ids, missing image alt text, table limits (8 columns, 30 rows) and ragged rows. It warns on pull quotes.
 
+`src/lib/note-record.ts` turns a note into an editable record with both languages side by side, and back, without loss for every sample note. A language that is switched off keeps its text in the editor but is not stored. Language status is complete, missing (with a count) or absent. The checks cover required heading ids, dates, summary and category length, cover alt text, reference links (https only), footnote and reference ids, cross-references, unknown TeX commands and link targets (https, a site path or an anchor). An undefined cross-reference id is an error and an unused one is a warning. Labels resolve only against numbered blocks.
+
 ## Admin interface
 
 The admin interface lives under `src/app/admin`. It works on mock data and has a live preview of the public pages.
@@ -84,6 +86,8 @@ The Medya screen (`/admin/medya`) lists the real image files from `src/content/m
 The Projeler screen (`/admin/projeler`) lists project records with counts, the work-section layout, status chips and marks for missing languages. In development, sample records can be loaded and removed. The "Yeni proje" button stays disabled until the editor exists.
 
 The interface strings screen (`/admin/metinler`) lists every dictionary string by group. Search covers both languages and the key path, and a filter shows missing translations. Each string is editable, derived from records, locked with a reason, or owned by another screen (then it links there). A string shared by several places is one value: editing it on any screen changes every place. An edit that drops a required placeholder is rejected.
+
+The 3D and CAD screen (`/admin/cad-glb`) lists projects with a model or private originals. The size gauge counts 1 MB as 1,000,000 bytes and shows the byte count. Up to 5 MB is fine, up to 15 MB is a warning, and above that is an error, shown without the brand red. Only `.glb` and `.gltf` models can be selected, and the portrait cannot be a poster. In development, the model library holds a generated sample model and three labelled size samples without files. The test button opens the project preview at the 3D section. The bridge carries only the project id, a library model id and the approval flag. Private originals are metadata only, with no link or file field, and never reach the public site.
 
 The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
 

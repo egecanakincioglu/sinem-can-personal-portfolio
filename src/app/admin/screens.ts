@@ -97,7 +97,11 @@ export const screens: ScreenDef[] = [
     group: 'work',
     preview: 'projeler',
     stage: 5,
-    sections: [],
+    sections: [
+      { id: 'projeler', label: 'Projeler', status: 'ok' },
+      { id: 'onizleme', label: '3B önizleme', status: 'ok' },
+      { id: 'ozgunler', label: 'Özel dosyalar', status: 'ok' },
+    ],
   },
   {
     slug: 'metinler',

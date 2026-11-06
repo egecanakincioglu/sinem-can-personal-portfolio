@@ -74,7 +74,6 @@ export default function HomeScreen() {
             beamHeading: pair(dict.approach.heading),
             beamInterests: pair(dict.approach.interests),
             beamHint: pair(dict.approach.hint),
-            beamFigure: pair(dict.approach.figure),
             beamCaption: pair(dict.approach.caption),
             beamTeaching: pair(draft.beamTeaching),
             beamMoment: pair(dict.approach.momentLabel),
@@ -87,6 +86,7 @@ export default function HomeScreen() {
             beamResetLabel: pair(dict.approach.resetLabel),
           },
           protectedCopy: {
+            figure: pair(dict.approach.figure),
             exaggeration: pair(dict.approach.exaggeration),
             assumptionsTitle: pair(dict.approach.assumptionsTitle),
             assumptions: pair(dict.approach.assumptions),

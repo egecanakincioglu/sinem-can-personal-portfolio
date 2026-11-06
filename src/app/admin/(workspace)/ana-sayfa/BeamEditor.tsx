@@ -22,7 +22,6 @@ const BEAM_KEYS = [
   'beamHeading',
   'beamInterests',
   'beamHint',
-  'beamFigure',
   'beamCaption',
   'beamTeaching',
   'beamMoment',
@@ -38,7 +37,7 @@ export type BeamKey = (typeof BEAM_KEYS)[number];
 
 export type BeamSeed = {
   copy: Record<BeamKey, Pair>;
-  protectedCopy: { exaggeration: Pair; assumptionsTitle: Pair; assumptions: Pair };
+  protectedCopy: { figure: Pair; exaggeration: Pair; assumptionsTitle: Pair; assumptions: Pair };
   offset: Pair; // {offset} as printed in each language (reference-only constant)
   scale: { desktop: number; compact: number };
 };
@@ -49,11 +48,11 @@ const tr2 = (n: number) => num(n, 'tr', 2);
 const both = (p: Pair): ReactNode => (
   <span className="block text-right">
     <span className="block">
-      <span className="a-sfx">TR </span>
+      <span className="a-sfx">TR&nbsp;</span>
       {p.tr}
     </span>
     <span className="block">
-      <span className="a-sfx">EN </span>
+      <span className="a-sfx">EN&nbsp;</span>
       {p.en}
     </span>
   </span>
@@ -280,7 +279,6 @@ export function BeamEditor({ seed }: { seed: BeamSeed }) {
           'Sol sütundaki listenin üstündeki küçük başlık. Listenin kendisi Eğitim/İlgi kayıtlarından gelir.',
         )}
         {pairFor('beamHint', 'Kısa davet cümlesi', 'Diyagramın üstündeki büyük cümle.')}
-        {pairFor('beamFigure', 'Şekil numarası', '“Şekil 2” gibi. Sayfadaki şekil sırasıyla uyumlu kalmalı.')}
       </div>
 
       <div className="a-fgroup">
@@ -342,7 +340,11 @@ export function BeamEditor({ seed }: { seed: BeamSeed }) {
           Bu değerler a<sub>0</sub> ile değişmez: geometrik sabitler ve çizim ölçeğidir.
         </p>
         <dl className="a-readouts">
-          <Readout derived label="{offset}: açıklık ortasından en uzak mesafe" value={both(seed.offset)} unit="L" />
+          <Readout
+            derived
+            label="{offset}: açıklık ortasından en uzak mesafe"
+            value={both({ tr: `${seed.offset.tr}\u00a0L`, en: `${seed.offset.en}\u00a0L` })}
+          />
           <Readout
             derived
             label="Çökme çizim ölçeği (δ₀, açıklığın %’si)"
@@ -352,6 +354,7 @@ export function BeamEditor({ seed }: { seed: BeamSeed }) {
               </span>
             }
           />
+          <Readout locked label="Şekil numarası" value={both(seed.protectedCopy.figure)} />
           <Readout label="Abartı notu" value={both(seed.protectedCopy.exaggeration)} />
           <Readout label="Varsayımlar başlığı" value={both(seed.protectedCopy.assumptionsTitle)} />
           <Readout label="Varsayımlar" value={both(seed.protectedCopy.assumptions)} />

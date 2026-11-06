@@ -60,11 +60,11 @@ const toField = (n: number) => String(n).replace('.', ',');
 const both = (p: Pair): ReactNode => (
   <span className="block text-right">
     <span className="block">
-      <span className="a-sfx">TR </span>
+      <span className="a-sfx">TR&nbsp;</span>
       {p.tr}
     </span>
     <span className="block">
-      <span className="a-sfx">EN </span>
+      <span className="a-sfx">EN&nbsp;</span>
       {p.en}
     </span>
   </span>

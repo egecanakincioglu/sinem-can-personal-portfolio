@@ -57,7 +57,7 @@ export function HomeEditor({ seed }: { seed: Seed }) {
       <Section
         id="hero"
         title="Hero"
-        note="Adın çevresindeki kesikli çerçeve, yan sütun ve ilgi alanları. Her alan sağdaki gerçek Hero’yu değiştirir."
+        note="Adın çevresindeki kesikli çerçeve, yan sütun ve ilgi alanları. Her alan önizlemedeki gerçek Hero’yu değiştirir."
       >
         <HeroEditor seed={seed.hero} />
       </Section>

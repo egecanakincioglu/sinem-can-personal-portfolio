@@ -15,16 +15,16 @@ export default async function RecordStub({ params }: { params: Promise<{ screen:
   const sample = devFixtureProjects().some((p) => p.id === key);
   return (
     <>
-      <PageHeader kicker={s.title} title="Proje düzenle" lede="Kayıt düzenleyicisi sonraki aşamada." />
+      <PageHeader kicker={s.title} title="Proje düzenle" lede="Bu kayıt için düzenleyici kullanıma açık değil." />
       <Section id="kayit" title="Kayıt">
         {sample ? (
-          <p className="a-help">“{key}” bir geliştirme örneğidir; kayıt düzenleyicisi sonraki aşamada gelir.</p>
+          <p className="a-help">“{key}” bir geliştirme örneğidir; bu kayıt için düzenleyici yok.</p>
         ) : (
           <ErrorState title={`“${key}” kaydı bulunamadı.`}>
-            <p>Henüz hiç kayıt yok; yayın alanı boş pafta olarak kalır.</p>
+            <p>Kayıt yok; yayın alanı boş pafta olarak kalır.</p>
           </ErrorState>
         )}
-        <EmptyState title="Düzenleyici sonraki aşamada." mark={`Aşama ${s.stage}`} />
+        <EmptyState title="Düzenleyici kullanıma açık değil." />
       </Section>
     </>
   );

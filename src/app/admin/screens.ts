@@ -26,7 +26,7 @@ export const screens: ScreenDef[] = [
   {
     slug: 'ana-sayfa',
     title: 'Ana sayfa',
-    lede: 'Genel sitenin ilk sayfasındaki sekiz bölümü düzenleyin; sağda önizleme görünür.',
+    lede: 'Genel sitenin ilk sayfasındaki sekiz bölümü düzenleyin; değişiklikler önizlemede görünür.',
     group: 'work',
     preview: 'ana-sayfa',
     stage: 3,
@@ -65,7 +65,7 @@ export const screens: ScreenDef[] = [
   {
     slug: 'projeler',
     title: 'Projeler',
-    lede: 'Pafta listesi: projeler, durumları ve sayıları.',
+    lede: 'Projeleri ekleyin, düzenleyin ve hangilerinin yayında olduğunu görün.',
     group: 'work',
     preview: 'projeler',
     stage: 5,

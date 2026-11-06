@@ -78,15 +78,16 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
         </p>
       </div>
       <div className="a-media-form">
-        <p className="a-help a-media-status">
-          Durum:{' '}
-          {clearance ? (
-            <StatusChip kind="draft">Onay bekliyor</StatusChip>
-          ) : (
-            <span>{consent ? 'Sinem onayı kayıtlı' : 'Sinem onayı kaydedilmedi'}</span>
-          )}
-          {clearance && current.clearanceNote && <span> {current.clearanceNote}</span>}
-        </p>
+        {clearance ? (
+          <div className="a-media-status">
+            <p className="a-media-chips">
+              <StatusChip kind="draft">Onay bekliyor</StatusChip>
+            </p>
+            {current.clearanceNote && <p className="a-help">{current.clearanceNote}</p>}
+          </div>
+        ) : (
+          <p className="a-help a-media-status">{consent ? 'Sinem onayı kayıtlı' : 'Sinem onayı kaydedilmedi'}</p>
+        )}
         <Segmented
           label="Portre göster"
           options={onOff}
@@ -105,7 +106,7 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
           >
             {eligible.map((a) => (
               <option key={a.id} value={a.id}>
-                {a.id} ({a.width} × {a.height})
+                {a.alt.tr || 'Başlıksız görsel'} ({a.width} × {a.height})
               </option>
             ))}
           </select>
@@ -151,10 +152,11 @@ function Card({ a, uses }: { a: MediaAsset; uses: string[] }) {
   return (
     <li className="a-media-card">
       <Thumb a={a} />
-      <p className="a-media-id">{a.id}</p>
+      <p className="a-media-id">{a.alt.tr || 'Başlıksız görsel'}</p>
       <p className="a-help a-num">
         {a.kind} · {a.width} × {a.height}
       </p>
+      <p className="a-help">Kimlik: {a.id}</p>
       <p className="a-help">{uses.length ? uses.join(', ') : 'Kullanılmıyor'}</p>
       <p className="a-media-chips">
         {a.fixture && <StatusChip kind="sample" />}
@@ -187,7 +189,7 @@ export function MediaEditor({
       >
         <PortraitSlot assets={assets} />
       </Section>
-      <Section id="kitaplik" title="Görsel kitaplığı" note="Depodaki dosyalar; yükleme bu aşamada yok.">
+      <Section id="kitaplik" title="Görsel kitaplığı" note="Depodaki dosyalar.">
         <div className="a-field">
           <button type="button" className="a-btn" disabled aria-describedby="medya-upload-help">
             Yükle

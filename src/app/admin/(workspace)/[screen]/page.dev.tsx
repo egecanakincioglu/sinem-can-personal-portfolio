@@ -17,11 +17,11 @@ export default async function Stub({ params }: { params: Promise<{ screen: strin
         kicker="Pafta"
         title={s.title}
         lede={s.lede}
-        aside={<StatusChip kind="draft">Yer tutucu</StatusChip>}
+        aside={<StatusChip kind="draft">Kullanıma açık değil</StatusChip>}
       />
-      <Section id="durum" title="Bu ekran sonraki aşamada">
-        <EmptyState title={`${s.title} ekranı henüz çizilmedi.`} mark={`Aşama ${s.stage}`}>
-          <p>Şimdilik yalnızca yer, başlık ve gezinme hazır. Alanlar, kayıt defterinden üretilecek.</p>
+      <Section id="durum" title="Durum">
+        <EmptyState title={`${s.title} ekranı kullanıma açık değil.`}>
+          <p>Bu ekranın alanları kayıt defterinden gelir.</p>
         </EmptyState>
       </Section>
     </>

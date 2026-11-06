@@ -480,9 +480,9 @@ html[data-locked] body {
 /* Page header + sections ---------------------------------------------------------------------------------------- */
 .admin-root .a-ph {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
   padding-bottom: 8px;
 }
 .admin-root .a-ph-k {
@@ -765,6 +765,15 @@ html[data-locked] body {
   .admin-root .a-rec-tools {
     flex-direction: column;
     align-items: flex-end;
+  }
+}
+
+/* Chips sit in one wrapping row under the record text instead of a narrow column beside it. */
+@media (min-width: 640px) {
+  .admin-root .a-rec-tools.a-rec-chips {
+    flex-direction: row;
+    align-items: center;
+    grid-column: 2 / -1;
   }
 }
 
@@ -1898,15 +1907,18 @@ html[data-locked] body {
   margin: 0;
   overflow-wrap: anywhere;
 }
+.admin-root .a-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
 .admin-root .a-nowrap {
   white-space: nowrap;
 }
 
 /* Not düzenleyicisi ---------------------------------------------------------------------------------------------- */
 .admin-root .a-note-index {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
+  display: inline-block;
   margin: 0 0 12px;
   font-size: 15px;
 }

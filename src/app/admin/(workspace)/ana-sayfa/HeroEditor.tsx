@@ -147,7 +147,7 @@ export function HeroEditor({ seed }: { seed: HeroSeed }) {
       {name(
         'firstName',
         'Ad',
-        'Hero başlığının ilk satırı. Aynı değer üst bilgi, alt bilgi ve sayfa başlıklarında da kullanılır; kaynağı Site ayarları › Kimlik (sonraki aşama).',
+        'Hero başlığının ilk satırı. Aynı değer üst bilgi, alt bilgi ve sayfa başlıklarında da kullanılır; kaynağı Site ayarları › Kimlik.',
       )}
       {name(
         'lastName',
@@ -183,7 +183,7 @@ export function HeroEditor({ seed }: { seed: HeroSeed }) {
         {pair(
           'program',
           'Bölüm etiketi',
-          'Yalnızca Hero’daki satır etiketi. Kısaca bölümündeki özet satırının etiketi ayrı bir alandır (sonraki aşama).',
+          'Yalnızca Hero’daki satır etiketi. Kısaca bölümündeki özet satırının etiketi ayrı bir alandır.',
         )}
         {pair('university', 'Üniversite etiketi', 'Yalnızca Hero’daki satır etiketi.')}
         {pair(

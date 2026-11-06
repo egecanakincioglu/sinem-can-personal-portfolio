@@ -71,6 +71,19 @@ describe('Medya screen', () => {
     expect(container.textContent).not.toMatch(/Onaylı|İzinli/);
   });
 
+  it('shows the waiting status as a chip like the other chips', () => {
+    const { container } = setup();
+    const chip = container.querySelector('.a-media-status .a-chip');
+    expect(chip?.textContent).toBe('Onay bekliyor');
+  });
+
+  it('names library cards by their description, with the id as a small line', () => {
+    const { container } = setup();
+    const card = container.querySelector('.a-media-card')!;
+    expect(card.querySelector('.a-media-id')?.textContent).toBe(photo.alt.tr);
+    expect(card.textContent).toContain(`Kimlik: ${photo.id}`);
+  });
+
   it('hides the portrait only with the show switch', () => {
     const { container } = setup();
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Portre göster' })).getByText('Gizle'));

@@ -1,6 +1,6 @@
 import type { SiteContent } from '@/content/site-content';
 import { type Locale, type Process } from '@/content/types';
-import { fullDate, monthYear, num } from '@/lib/format';
+import { angleText, fullDate, monthYear } from '@/lib/format';
 import type { NoteItem } from '@/lib/notes';
 import type { ProjectCard } from '@/lib/projects';
 import { resultant } from '@/lib/physics';
@@ -355,7 +355,7 @@ export function Direction({ locale, content }: P) {
               label={dict.hero.resultantAlt[locale].replace('{deg}', String(deg))}
             />
             <p className="tnum t-caption mt-2">
-              <V n="θ" s="R" /> = {num(R.angleDeg, locale, 0)}°
+              <V n="θ" s="R" /> = {angleText(R.angleDeg, locale)}
             </p>
           </div>
         </div>

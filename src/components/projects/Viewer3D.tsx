@@ -235,7 +235,7 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
         />
 
         {labels.demo && (
-          <p className="pointer-events-none absolute left-3 top-3 border border-grafit bg-kagit px-2 py-1 text-[13px] font-medium text-grafit">
+          <p className="pointer-events-none absolute left-3 top-3 z-10 border border-grafit bg-kagit px-2 py-1 text-[13px] font-medium text-grafit">
             {labels.demo}
           </p>
         )}
@@ -251,7 +251,7 @@ export function Viewer3D({ modelSrc, poster, labels }: { modelSrc: string; poste
               loading="lazy"
               className="h-full w-full object-contain"
             />
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-cizgi bg-kagit/95 px-4 py-2">
+            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-cizgi bg-kagit px-4 py-2">
               <button
                 type="button"
                 onClick={() => setStatus('loading')}

@@ -37,4 +37,16 @@ describe('Sidenote', () => {
     );
     expect(screen.getByRole('button').textContent).toContain('what is this');
   });
+
+  it('keeps a plain mark on the line of the word before it, and lets a labelled one wrap', () => {
+    const plain = render(<Sidenote n="2">Note</Sidenote>);
+    expect(plain.container.querySelector('.sn')?.className).toContain('sn-nowrap');
+    cleanup();
+    const labelled = render(
+      <Sidenote n="1" label="What is this?">
+        Note
+      </Sidenote>,
+    );
+    expect(labelled.container.querySelector('.sn')?.className).not.toContain('sn-nowrap');
+  });
 });

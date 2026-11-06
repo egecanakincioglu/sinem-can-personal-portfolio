@@ -1,7 +1,7 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getSiteContent } from '@/content/site-content.ts';
-import { Intro } from './Sections.tsx';
+import { Direction, Intro } from './Sections.tsx';
 
 afterEach(cleanup);
 
@@ -21,5 +21,13 @@ describe('Intro', () => {
       expect(child.tagName).toBe('DIV');
       expect(Array.from(child.children).map((c) => c.tagName)).toEqual(['DT', 'DD']);
     }
+  });
+
+  it.each([
+    ['tr', /θ.*= \d+,\d°/],
+    ['en', /θ.*= \d+\.\d°/],
+  ] as const)('writes the closing resultant angle with one decimal (%s)', (locale, pattern) => {
+    const { container } = render(<Direction locale={locale} content={getSiteContent()} />);
+    expect(container.querySelector('p.tnum')?.textContent).toMatch(pattern);
   });
 });

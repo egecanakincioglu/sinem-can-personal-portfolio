@@ -41,9 +41,12 @@ Only if you plan to commit:
 | `corepack pnpm format` / `corepack pnpm format:check` | Write or check formatting with Prettier |
 | `corepack pnpm knip` | Find unused files, exports and dependencies |
 | `corepack pnpm site-audit` | Page audit: overflow, accessibility, console errors, Lighthouse |
+| `corepack pnpm admin-audit` | Local sweep of the panel screens (see below) |
 | `corepack pnpm release:prepare` | Prepare a release (see the [release runbook](../runbooks/release-and-rollback.md)) |
 
 The `site-audit` command is optional locally. The audit is switched off in CI until `enabled` is `true` in `tooling/site-audit/thresholds.json`. The audit loads every page with the browser cache off, so each page is measured as a first visit.
+
+The `admin-audit` command runs only on your machine. It needs Chrome (set `CHROME_PATH`). It starts `next dev` on a free port, or uses the server at `ADMIN_AUDIT_URL`. It writes its report to the file named in `ADMIN_AUDIT_OUT`, or prints it. It checks overflow, headings, accessibility, console errors, touch targets, input font size and the command palette keys on every panel screen at the review sizes. Exit code 0 means no findings, 1 means findings, and 2 means a setup problem.
 
 Run `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm format:check` and `corepack pnpm test` before you open a pull request. CI runs the full set of checks.
 

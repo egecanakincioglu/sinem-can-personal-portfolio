@@ -9,7 +9,7 @@ import { useAdmin } from './store';
 
 /** Task queue: the working state's issues in the fixed groups. Every row opens its field. */
 export function TaskQueue({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { issues } = useAdmin();
+  const { issues, state } = useAdmin();
   const groups = groupIssues(issues);
   return (
     <Dialog open={open} onClose={onClose} label="Görev kuyruğu" variant="sheet">
@@ -51,6 +51,21 @@ export function TaskQueue({ open, onClose }: { open: boolean; onClose: () => voi
           ))}
         </>
       )}
+      {/* The toasts disappear after a few seconds; this is the list that stays, for anyone who missed one. */}
+      <section aria-label="Son eylemler" className="a-task-group">
+        <h3 className="a-panel-k">Son eylemler</h3>
+        {state.log.length === 0 ? (
+          <p className="a-help">Henüz eylem yok.</p>
+        ) : (
+          <ul className="a-task-list">
+            {state.log.map((text, i) => (
+              <li key={`${i}-${text}`} className="a-task a-log">
+                {text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </Dialog>
   );
 }

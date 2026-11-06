@@ -6,6 +6,12 @@ import { PREVIEW_PROTOCOL, buildOverride, type ModelProbe, type StateMessage } f
 import { devices } from '../screens';
 import { Segmented } from './controls';
 import { useAdmin } from './store';
+import { useMedia } from './useMedia';
+
+// Preview routes backed by real public components; the others show a plain placeholder without controls.
+const LIVE_ROUTES = ['ana-sayfa', 'profil', 'projeler'];
+// A "ready" repeat within this window of a send is not answered with another full send.
+const REPEAT_WINDOW = 1500;
 
 /** Right panel: same-origin iframe at true device width, scaled to fit. State goes in by postMessage. */
 export function PreviewPanel({ route, title, onClose }: { route: string; title: string; onClose: () => void }) {
@@ -15,6 +21,8 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [ready, setReady] = useState(false);
   const [hello, setHello] = useState(0);
+  const phone = useMedia('(max-width: 767.98px)');
+  const connected = LIVE_ROUTES.includes(route);
 
   useEffect(() => {
     const el = wrap.current;
@@ -25,14 +33,17 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
     return () => ro.disconnect();
   }, []);
 
-  // Handshake: every "ready" from the frame (first load, reload, hot reload) bumps `hello`, which re-sends the state.
+  // Handshake: a "ready" from the frame (first load, reload, hot reload) bumps `hello`, which re-sends the state.
+  // The frame repeats its "ready" a few times while it waits; one that arrives right after a send is such a repeat
+  // (the state is already on its way), so it does not trigger another full send.
+  const sentAt = useRef(0);
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return;
       const d = e.data as { type?: unknown; v?: unknown } | null;
       if (d?.type === 'ready' && d.v === PREVIEW_PROTOCOL) {
         setReady(true);
-        setHello((n) => n + 1);
+        if (Date.now() - sentAt.current > REPEAT_WINDOW) setHello((n) => n + 1);
       }
     };
     window.addEventListener('message', on);
@@ -45,6 +56,9 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
     setSeenFrameKey(frameKey);
     setReady(false);
   }
+  useEffect(() => {
+    sentAt.current = 0; // a new frame has received nothing yet
+  }, [frameKey]);
 
   // The editor values become a validated SiteContentOverride (lib/preview-bridge.ts); the frame validates it again.
   // The footer date is the simulated publish date, never a typed value.
@@ -76,19 +90,22 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
         ...(probe ? { probe } : {}),
       };
       frame.current?.contentWindow?.postMessage(msg, window.location.origin);
+      sentAt.current = Date.now();
     }, 120);
     return () => window.clearTimeout(t);
   }, [ready, hello, override, projectIds, probe, state.previewLang]);
 
   const dev = state.device;
-  const PAD = 24,
-    CAP = 28; // well padding (12 × 2) and caption row
-  const k = box.w ? Math.min(1, (box.w - PAD - 2) / dev) : 1;
+  // Well padding (12 × 2) and the frame border; on a phone both are dropped so the 390 frame fills the width unscaled.
+  const PAD = phone ? 0 : 24,
+    CAP = 28, // caption row
+    BORDER = phone ? 0 : 2;
+  const k = box.w ? Math.min(1, (box.w - PAD - BORDER) / dev) : 1;
   // The iframe's viewport height is what 100svh-based sections (the hero) measure against, so it must be a real
   // device height, not "whatever fills the well after scaling". Frame height = that × scale, capped by the well.
   const DEVICE_H: Record<number, number> = { 390: 844, 768: 1024, 1440: 900, 1920: 1080 };
   const vh = DEVICE_H[dev] ?? 900;
-  const frameH = Math.max(0, Math.min(box.h - PAD - CAP, vh * k + 2));
+  const frameH = Math.max(0, Math.min(box.h - PAD - CAP, vh * k + BORDER));
   const label = devices.find((d) => d.id === dev)!.label;
 
   return (
@@ -102,35 +119,43 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
             Düzenlemeye dön
           </button>
         </div>
-        <div className="a-prev-ctl">
-          <Segmented
-            label="Önizleme genişliği"
-            value={dev}
-            onChange={setDevice}
-            options={devices.map((d) => ({ value: d.id, label: d.label }))}
-          />
-          <Segmented
-            label="Önizleme kaynağı"
-            value={state.previewSource}
-            onChange={setPreviewSource}
-            options={[
-              { value: 'draft', label: 'Taslak' },
-              { value: 'published', label: 'Yayınlanan (sim.)' },
-            ]}
-          />
-          <Segmented
-            label="Önizleme dili"
-            value={state.previewLang}
-            onChange={setPreviewLang}
-            options={[
-              { value: 'tr', label: 'TR' },
-              { value: 'en', label: 'EN' },
-            ]}
-          />
-        </div>
+        {connected && (
+          <div className="a-prev-ctl">
+            <div className="a-prev-dev">
+              <Segmented
+                label="Önizleme genişliği"
+                value={dev}
+                onChange={setDevice}
+                options={devices.map((d) => ({ value: d.id, label: d.label }))}
+              />
+            </div>
+            <div className="a-prev-src">
+              <Segmented
+                label="Önizleme kaynağı"
+                value={state.previewSource}
+                onChange={setPreviewSource}
+                options={[
+                  { value: 'draft', label: 'Taslak' },
+                  { value: 'published', label: 'Yayınlanan (sim.)' },
+                ]}
+              />
+            </div>
+            <div className="a-prev-lang">
+              <Segmented
+                label="Önizleme dili"
+                value={state.previewLang}
+                onChange={setPreviewLang}
+                options={[
+                  { value: 'tr', label: 'TR' },
+                  { value: 'en', label: 'EN' },
+                ]}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div className="a-prev-well" ref={wrap}>
-        <div className="a-prev-frame" style={{ width: dev * k + 2, height: frameH }}>
+        <div className="a-prev-frame" style={{ width: dev * k + BORDER, height: frameH }}>
           <iframe
             ref={frame}
             title={`Canlı önizleme: ${title}, ${state.previewLang.toUpperCase()}, ${dev} piksel`}
@@ -143,19 +168,21 @@ export function PreviewPanel({ route, title, onClose }: { route: string; title: 
                     ? `/${state.previewLang}/dev-preview/live-project`
                     : `/admin/onizleme/${route}?lang=${state.previewLang}`
             }
-            style={{ width: dev, height: Math.min((frameH - 2) / k, vh), transform: `scale(${k})` }}
+            style={{ width: dev, height: Math.min((frameH - BORDER) / k, vh), transform: `scale(${k})` }}
           />
         </div>
-        <p className="a-prev-cap">
-          {label} · {dev} px
-          {state.previewSource === 'published'
-            ? state.published
-              ? ' · Yayınlanan (sim.) revizyon'
-              : ' · Henüz yayın simüle edilmedi; taslak gösteriliyor'
-            : state.dirty
-              ? ' · Önizleme · kaydedilmemiş mock veri'
-              : ''}
-        </p>
+        {connected && (
+          <p className="a-prev-cap">
+            {label} · {dev} px
+            {state.previewSource === 'published'
+              ? state.published
+                ? ' · Yayınlanan (sim.) revizyon'
+                : ' · Henüz yayın simüle edilmedi; taslak gösteriliyor'
+              : state.dirty
+                ? ' · Önizleme · kaydedilmemiş mock veri'
+                : ''}
+          </p>
+        )}
       </div>
     </div>
   );

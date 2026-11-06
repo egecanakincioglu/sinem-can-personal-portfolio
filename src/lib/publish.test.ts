@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { getSiteContent, mergeSiteContent, type SiteContent } from '@/content/site-content';
 import type { Issue } from './admin-issues';
+import { pairNote } from './note-record';
 import { buildOverride } from './preview-bridge';
 import {
   changesBetween,
   diffContent,
+  diffNotes,
   diffRecords,
   excerpt,
   flattenContent,
@@ -91,9 +94,25 @@ describe('diffRecords', () => {
 });
 
 describe('changesBetween', () => {
+  it('labels note changes with the note title', () => {
+    const paired = pairNote(fixtureNotes[0]);
+    if (!paired.ok) throw new Error('fixture does not pair');
+    const note = paired.note;
+    const title = note.title.tr;
+    expect(diffNotes([], [note])).toEqual([
+      { path: `note.${note.id}`, label: `Not “${title}”`, shared: { before: '—', after: 'Eklendi' } },
+    ]);
+    expect(diffNotes([note], [])[0].shared).toEqual({ before: 'Vardı', after: 'Kaldırıldı' });
+    const edited = { ...note, blocks: note.blocks.slice(1), approved: !note.approved };
+    const labels = diffNotes([note], [edited]).map((c) => c.label);
+    expect(labels).toContain(`Not “${title}” · Onay`);
+    expect(labels.some((l) => l?.startsWith(`Not “${title}” · Gövde, blok `))).toBe(true);
+    expect(diffNotes([note], [note])).toEqual([]);
+  });
+
   it('joins content and record changes', () => {
-    const from = { values: {}, projects: [] };
-    const to = { values: { 'hero.lead.tr': 'Yeni cümle' }, projects: [fixtureProjects[0]] };
+    const from = { values: {}, projects: [], notes: [] };
+    const to = { values: { 'hero.lead.tr': 'Yeni cümle' }, projects: [fixtureProjects[0]], notes: [] };
     const paths = changesBetween(from, to).map((c) => c.path);
     expect(paths).toContain('draft.heroLead');
     expect(paths).toContain(`project.${fixtureProjects[0].id}`);
@@ -122,7 +141,7 @@ describe('pushRevision', () => {
     rev: n,
     at: '2026-11-06T10:00',
     changes: [],
-    state: { values: {}, projects: [] },
+    state: { values: {}, projects: [], notes: [] },
   });
   it('puts the newest first and drops the oldest beyond ten', () => {
     let list: Revision[] = [];

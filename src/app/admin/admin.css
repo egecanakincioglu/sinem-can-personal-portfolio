@@ -1866,3 +1866,100 @@ html[data-locked] body {
 .admin-root .a-nowrap {
   white-space: nowrap;
 }
+
+/* Not düzenleyicisi ---------------------------------------------------------------------------------------------- */
+.admin-root .a-note-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+.admin-root .a-blocks {
+  display: grid;
+  gap: 16px;
+}
+.admin-root .a-block {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--a-cizgi);
+  list-style: none;
+}
+.admin-root .a-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.admin-root .a-block-type {
+  font-family: var(--a-serif);
+  font-size: 18px;
+}
+.admin-root .a-block-tools {
+  flex-direction: row;
+}
+.admin-root .a-block-body {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.admin-root .a-mono textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+}
+.admin-root .a-live {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.admin-root .a-issues {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.admin-root .a-palette {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+.admin-root .a-palette-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--a-grafit);
+  background: var(--a-kagit);
+  min-width: 240px;
+}
+.admin-root .a-palette-opt {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  border-top: 1px solid var(--a-cizgi);
+}
+.admin-root .a-palette-opt:first-child {
+  border-top: 0;
+}
+.admin-root .a-palette-opt:hover,
+.admin-root .a-palette-opt:focus-visible {
+  background: var(--a-pafta);
+}
+.admin-root .a-grid-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.admin-root .a-grid {
+  border-collapse: collapse;
+}
+.admin-root .a-grid th,
+.admin-root .a-grid td {
+  min-width: 150px;
+  padding: 4px;
+  border: 1px solid var(--a-cizgi);
+  vertical-align: top;
+}

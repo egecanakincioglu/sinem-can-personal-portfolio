@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { initialState, reducer, type AdminState } from './store';
 
@@ -51,12 +52,49 @@ describe('restore', () => {
   });
 
   it('restores the project records too', () => {
-    const withSamples = reducer(ready, { type: 'seedSamples', records: fixtureProjects });
+    const withSamples = reducer(ready, { type: 'seedSamples', records: fixtureProjects, notes: [] });
     const a = publish(withSamples);
     const cleared = reducer(a, { type: 'clearSamples' });
     const s = reducer(cleared, { type: 'restore', rev: 1 });
     expect(s.projects).toHaveLength(fixtureProjects.length);
     expect(s.seeded).toBe(true);
+  });
+
+  it('brings an edited note back, and lists the note change under its title', () => {
+    const seeded = reducer(ready, { type: 'seedSamples', records: [], notes: fixtureNotes });
+    const id = seeded.notes[0].id;
+    const original = seeded.notes[0].title.tr;
+    const a = publish(seeded);
+    const edited = reducer(a, { type: 'patchNote', id, patch: { title: { tr: 'Değişti', en: 'Changed' } } });
+    const b = publish(edited);
+    expect(b.revisions[0].changes.map((c) => c.label)).toContain(`Not “Değişti” · Başlık`);
+    const s = reducer(edited, { type: 'restore', rev: 1 });
+    expect(s.notes.find((n) => n.id === id)?.title.tr).toBe(original);
+    expect(s.notes).toHaveLength(fixtureNotes.length);
+  });
+
+  it('restores a stored revision that has no notes, with an empty notes list', () => {
+    const a = publish(edit(ready, 'hero.lead.tr', 'Birinci'));
+    const stored = JSON.parse(JSON.stringify(a));
+    for (const r of stored.revisions) delete r.state.notes;
+    const hydrated = reducer(initialState, { type: 'hydrate', state: stored });
+    const s = reducer(hydrated, { type: 'restore', rev: 1 });
+    expect(s.notes).toEqual([]);
+    expect(s.values).toEqual({ 'hero.lead.tr': 'Birinci' });
+  });
+
+  it('discards an unsaved note edit and keeps a saved one', () => {
+    const seeded = reducer(ready, { type: 'seedSamples', records: [], notes: fixtureNotes });
+    expect(seeded.dirty).toBe(false);
+    const id = seeded.notes[0].id;
+    const original = seeded.notes[0].title.tr;
+    const edited = reducer(seeded, { type: 'patchNote', id, patch: { title: { tr: 'Değişti', en: 'Changed' } } });
+    expect(edited.dirty).toBe(true);
+    const discarded = reducer(edited, { type: 'discard' });
+    expect(discarded.notes.find((n) => n.id === id)?.title.tr).toBe(original);
+    expect(discarded.dirty).toBe(false);
+    const saved = reducer(reducer(edited, { type: 'save' }), { type: 'discard' });
+    expect(saved.notes.find((n) => n.id === id)?.title.tr).toBe('Değişti');
   });
 
   it('ignores a revision that does not exist', () => {
@@ -72,7 +110,7 @@ describe('previewSource', () => {
 
 describe('reset', () => {
   it('returns to the initial state and clears revisions, projects and the log', () => {
-    let s = reducer(ready, { type: 'seedSamples', records: fixtureProjects });
+    let s = reducer(ready, { type: 'seedSamples', records: fixtureProjects, notes: [] });
     s = publish(edit(s, 'hero.lead.tr', 'Yeni cümle'));
     s = reducer(s, { type: 'toast', id: 1, text: 'Bir eylem' });
     expect(s.log).toHaveLength(1);

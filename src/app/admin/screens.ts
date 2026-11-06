@@ -86,7 +86,14 @@ export const screens: ScreenDef[] = [
     group: 'work',
     preview: 'notlar',
     stage: 6,
-    sections: [],
+    sections: [
+      { id: 'ustbilgi', label: 'Üstbilgi', status: 'ok' },
+      { id: 'govde', label: 'Gövde', status: 'ok' },
+      { id: 'dipnotlar', label: 'Dipnotlar', status: 'ok' },
+      { id: 'kaynaklar', label: 'Kaynaklar', status: 'ok' },
+      { id: 'revizyonlar', label: 'Revizyonlar', status: 'ok' },
+      { id: 'yayin', label: 'Yayın', status: 'ok' },
+    ],
   },
   {
     slug: 'medya',
@@ -181,7 +188,7 @@ export const screens: ScreenDef[] = [
 
 export const screenHref = (s: ScreenDef) => (s.slug ? `/admin/${s.slug}` : '/admin');
 export const screenBySlug = (slug: string) => screens.find((s) => s.slug === slug);
-export const subRecordScreens = ['projeler', 'notlar'];
+export const subRecordScreens = ['projeler'];
 
 export const devices = [
   { id: 390, label: 'Mobil' },

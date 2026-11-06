@@ -10,13 +10,12 @@ export default async function RecordStub({ params }: { params: Promise<{ screen:
   const { screen: slug, id } = await params;
   if (!subRecordScreens.includes(slug)) notFound();
   const s = screenBySlug(slug)!;
-  const one = slug === 'projeler' ? 'Proje düzenle' : 'Not düzenle';
   const key = decodeURIComponent(id);
   // Loaded development samples have a record but no editor yet; any other id has no record at all.
-  const sample = slug === 'projeler' && devFixtureProjects().some((p) => p.id === key);
+  const sample = devFixtureProjects().some((p) => p.id === key);
   return (
     <>
-      <PageHeader kicker={s.title} title={one} lede="Kayıt düzenleyicisi sonraki aşamada." />
+      <PageHeader kicker={s.title} title="Proje düzenle" lede="Kayıt düzenleyicisi sonraki aşamada." />
       <Section id="kayit" title="Kayıt">
         {sample ? (
           <p className="a-help">“{key}” bir geliştirme örneğidir; kayıt düzenleyicisi sonraki aşamada gelir.</p>

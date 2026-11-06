@@ -32,7 +32,7 @@ import { screens } from './screens';
    ------------------------------------------------------------------------------------------------ */
 
 /** Screens that are placeholders or only partly built; an entry pointing here is `planned`. */
-export const plannedScreens = ['notlar', 'medya'] as const;
+export const plannedScreens = ['medya'] as const;
 type PlannedScreen = (typeof plannedScreens)[number];
 /** Screens that are built but still have planned fields (images other than the portrait). */
 export const partlyBuiltScreens = ['medya'] as const;
@@ -316,7 +316,7 @@ for (const d of interfaceStrings()) {
 
 /* ---- 6. project and note records ---- */
 
-type RecordMeta = readonly [screen: PlannedScreen, type: FieldType, locale: FieldLocale, label: string];
+type RecordMeta = readonly [screen: PlannedScreen | 'notlar', type: FieldType, locale: FieldLocale, label: string];
 /** A project field's section in the project editor (`Projeler › [id]`), then its type, language scope and label. */
 type ProjectMeta = readonly [section: string, type: FieldType, locale: FieldLocale, label: string];
 type ProjectKey = keyof Extract<ProjectRecord, { visibility: 'published' }>;
@@ -390,7 +390,11 @@ function recordFields(
 ) {
   for (const [key, [screen, type, locale, label]] of Object.entries(table)) {
     if (skip.includes(key)) continue;
-    planned(`${screen}.${prefix}.${key}`, `${prefix}.${key}`, { page, section, screen }, type, locale, label);
+    const id = `${screen}.${prefix}.${key}`;
+    const path = `${prefix}.${key}`;
+    // The note editor is built; the other record screens are still placeholders.
+    if (screen === 'notlar') ready(id, path, { page, section, screen }, type, locale, { label });
+    else planned(id, path, { page, section, screen }, type, locale, label);
   }
 }
 // The 3D preview and the private originals are edited from 3B ve CAD, which is built; they are registered as ready below.

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { dict } from '@/content/dictionary';
+import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import { FILTER_THRESHOLD } from '@/components/projects/ArchiveList';
 import { listRow, projectCounts, workLayout } from '@/lib/public-snapshot';
@@ -79,7 +80,7 @@ function NewProjectDialog({
 }
 
 /** Project list ("pafta listesi"): hairline records, header counts, the Homepage Work state, development samples. */
-export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
+export function ProjectList({ samples, noteSamples = [] }: { samples: ProjectRecord[]; noteSamples?: NoteRecord[] }) {
   const { state, snapshot, seedSamples, clearSamples, createProject } = useAdmin();
   const router = useRouter();
   const [creating, setCreating] = useState(false);
@@ -127,7 +128,7 @@ export function ProjectList({ samples }: { samples: ProjectRecord[] }) {
               type="button"
               className="a-btn"
               disabled={state.seeded || samples.length === 0}
-              onClick={() => seedSamples(samples)}
+              onClick={() => seedSamples(samples, noteSamples)}
             >
               Örnek verileri yükle
             </button>

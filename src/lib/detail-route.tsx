@@ -76,14 +76,20 @@ export function DetailView({ locale, slug, entry }: { locale: string; slug: stri
     const { l, n } = r;
     const paths = notePaths(n.record);
     // The running head follows the H2 being read; ids and order come from the same outline as the table of contents.
-    const sections = tocOf(n, l)
+    const sections = tocOf(n, l, content.dict)
       .filter((i) => i.level === 2)
       .map((i) => ({ id: i.id, label: i.label }));
     return (
       <>
         <Header locale={l} page="note" paths={paths} sections={sections} />
         <main id="main">
-          <NoteArticle note={n} locale={l} />
+          <NoteArticle
+            note={n}
+            locale={l}
+            dict={content.dict}
+            ownerName={content.ownerName}
+            email={content.contact.email}
+          />
           <Contact locale={l} content={content} />
         </main>
         <Footer locale={l} page="note" paths={paths} content={content} />

@@ -1,6 +1,6 @@
 # Architecture decisions (ADR)
 
-This folder holds the architecture decisions of the project. Each one is numbered, dated and has a status. When a decision changes, the old ADR is not deleted or rewritten. A new ADR is opened, and the status line of the old one becomes "Superseded: ADR NNNN".
+This folder holds the architecture decisions of the project. Each one is numbered, dated and has a status. When a decision changes, the old ADR is not deleted or rewritten. A new ADR is opened, and the status line of the old one becomes "Superseded: ADR NNNN". For the overall picture, see [architecture.md](../architecture.md).
 | No | Decision | Status | Date |
 |---|---|---|---|
 | [0001](0001-architecture-and-locale-routing.md) | Architecture: Next.js 16 App Router and own `[locale]` routing, no i18n library | Accepted | 2026-11-05 |

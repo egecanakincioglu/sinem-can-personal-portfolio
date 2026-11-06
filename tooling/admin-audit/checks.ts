@@ -20,9 +20,20 @@ const MIN_INPUT_FONT = 16;
 /** Below this width the action bar sits at the bottom of the screen and is used by touch. */
 export const BOTTOM_BAR_BELOW = 768;
 
-/** Every panel address: the overview is `/admin`, a screen is `/admin/<slug>`; the sign-in page is added. */
-export function screenRoutes(slugs: readonly string[]): string[] {
-  return ['/admin/giris', ...slugs.map((s) => (s === '' ? '/admin' : `/admin/${s}`))];
+/** Panel addresses in the sidebar navigation of a rendered page (`/admin`, `/admin/<slug>`), without hashes or queries. */
+export function navRoutes(html: string): string[] {
+  const nav = /<nav\b[^>]*aria-label="Ekranlar"[^>]*>([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? '';
+  const routes = new Set<string>();
+  for (const m of nav.matchAll(/<a\b[^>]*?\shref="([^"]*)"/g)) {
+    const path = m[1].split(/[?#]/)[0].replace(/\/$/, '');
+    if (path === '/admin' || path.startsWith('/admin/')) routes.add(path);
+  }
+  return [...routes];
+}
+
+/** Every address the sweep visits: the sign-in page, the overview and the navigation links, once each. */
+export function screenRoutes(found: readonly string[]): string[] {
+  return [...new Set(['/admin/giris', '/admin', ...found])];
 }
 
 export interface Finding {

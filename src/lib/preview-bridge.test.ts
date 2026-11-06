@@ -208,6 +208,17 @@ describe('sanitising text', () => {
     expect(Object.keys(o)).toEqual(['workView']);
   });
 
+  it('does not accept the locked workshop and figure labels', () => {
+    const ids = Object.values(copyFields).map((f) => f.id);
+    expect(ids).not.toContain('atolye.applied');
+    expect(ids).not.toContain('atolye.observed');
+    expect(ids).not.toContain('yaklasim.figure');
+    const o = sanitizeOverride({
+      dict: { workshop: { applied: { tr: 'X', en: 'X' } }, approach: { figure: { tr: 'Y', en: 'Y' } } },
+    });
+    expect(Object.keys(o)).toEqual(['workView']);
+  });
+
   it('fills the fixed offset token with its canonical value', () => {
     const f = copyFields.beamTeaching;
     const o = sanitizeOverride({ draft: { [f.key]: { tr: 'Sapma {offset} kadar', en: 'Offset {offset}' } } });

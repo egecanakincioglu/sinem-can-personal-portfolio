@@ -11,6 +11,7 @@ import type {
   ProjectKind,
   ProjectRecord,
   ProjectStatus,
+  PublicProject,
 } from '@/content/projects/types';
 import type { Copy, Period } from '@/content/types';
 import { posterCandidates, type GlbEntry } from '@/lib/glb';
@@ -24,7 +25,7 @@ import { BilingualField, ListEditor, RecordRow, Segmented, TextField } from '../
 import { ConfirmDialog, ErrorState, Glyph, Readout, StatusChip } from '../../../ui/feedback';
 import { MediaPicker } from '../../../ui/MediaPicker';
 import { PageHeader, Section } from '../../../ui/PageHeader';
-import { revLetter, useAdmin, type ProjectPatch } from '../../../ui/store';
+import { revLetter, useAdmin, useAdminContent, type ProjectPatch } from '../../../ui/store';
 import { ProjectBody } from './ProjectBody';
 import { CopyList, MAX_ITEMS, OptionalCopy, bare, emptyCopy, moved } from './parts';
 import { sheetLabel } from '../../../screens';
@@ -81,6 +82,22 @@ function Choice<T extends string>({
         </label>
       ))}
     </fieldset>
+  );
+}
+
+/** The title block as the preview language reads it. Reads the language itself, so only this re-renders on a switch. */
+function AntetCells({ pub }: { pub: PublicProject }) {
+  const { state } = useAdmin();
+  const cells = titleBlockCells(pub, state.previewLang, dict);
+  return (
+    <div className="a-field">
+      <p className="a-label">Antet önizlemesi · {state.previewLang.toUpperCase()}</p>
+      <dl className="a-readouts" aria-label="Antet hücreleri">
+        {cells.map(([label, value]) => (
+          <Readout key={label} derived label={label} value={value} />
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -165,7 +182,7 @@ const periodShape = (p: Period | undefined): string | undefined => {
 type Props = { id: string; assets: MediaAsset[]; portraitId: string; library: GlbEntry[] };
 
 export function ProjectEditor(props: Props) {
-  const { state, hydrated } = useAdmin();
+  const { state, hydrated } = useAdminContent();
   const project = state.projects.find((p) => p.id === props.id);
   if (!hydrated) return null;
   if (!project) {
@@ -186,7 +203,7 @@ export function ProjectEditor(props: Props) {
 }
 
 function Editor({ project, assets, portraitId, library }: Props & { project: ProjectRecord }) {
-  const { state, patchProject, setFeatured, removeProject, probeProject, toast } = useAdmin();
+  const { state, patchProject, setFeatured, removeProject, probeProject, toast } = useAdminContent();
   const router = useRouter();
   const [touched, setTouched] = useState<ReadonlySet<string>>(new Set());
   const [toolDraft, setToolDraft] = useState('');
@@ -228,7 +245,6 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
     (savedVisible.slug.tr !== project.slug.tr || savedVisible.slug.en !== project.slug.en);
 
   const pub = toPublicProject(project);
-  const cells = titleBlockCells(pub, state.previewLang, dict);
   const period = project.period;
   const setPeriod = (next: Partial<Period>) => {
     const m: Period = { start: '', precision: 'month', ...period, ...next };
@@ -469,14 +485,7 @@ function Editor({ project, assets, portraitId, library }: Props & { project: Pro
           items={project.materials ?? []}
           onChange={(next) => patch({ materials: next.length ? next : undefined })}
         />
-        <div className="a-field">
-          <p className="a-label">Antet önizlemesi · {state.previewLang.toUpperCase()}</p>
-          <dl className="a-readouts" aria-label="Antet hücreleri">
-            {cells.map(([label, value]) => (
-              <Readout key={label} derived label={label} value={value} />
-            ))}
-          </dl>
-        </div>
+        <AntetCells pub={pub} />
       </Section>
 
       <Section id="gorsel" title="Görsel">

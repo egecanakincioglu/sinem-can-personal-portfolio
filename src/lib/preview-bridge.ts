@@ -15,7 +15,7 @@ import {
   recsOf,
 } from './profile-fields';
 import type { Copy, Locale, Platform, Process } from '@/content/types';
-import { num } from '@/lib/format';
+import { cachedNum as num } from '@/lib/format';
 import { isGlbId } from '@/lib/glb';
 import { beamMaxMidspanOffset } from '@/lib/physics';
 import { describeInterfaceStrings, dictAt, putAt, type InterfaceString } from './interface-strings';
@@ -234,8 +234,18 @@ const editorScreen = (f: CopyField) => {
   const head = f.id.split('.')[0];
   return head === 'ayarlar' || head === 'profil' ? head : 'ana-sayfa';
 };
-const copyFieldAt = (path: string) =>
-  (Object.values(copyFields) as CopyField[]).find((x) => x.dest !== 'draft' && `${x.dest.slice(5)}.${x.key}` === path);
+let fieldByPath: Map<string, CopyField> | undefined;
+const copyFieldAt = (path: string): CopyField | undefined => {
+  if (!fieldByPath) {
+    fieldByPath = new Map();
+    for (const x of Object.values(copyFields) as CopyField[]) {
+      if (x.dest === 'draft') continue;
+      const p = `${x.dest.slice(5)}.${x.key}`;
+      if (!fieldByPath.has(p)) fieldByPath.set(p, x);
+    }
+  }
+  return fieldByPath.get(path);
+};
 let strings: InterfaceString[] | undefined;
 /** Every dictionary leaf as the Arayüz metinleri screen edits it (built once). */
 export function interfaceStrings(): InterfaceString[] {
@@ -251,12 +261,17 @@ const textEdits = () => interfaceStrings().filter((d) => d.kind === 'editable' |
 /** A shared string is edited through one control: the first path that uses it. */
 export const controlId = (d: InterfaceString) => `metinler.${d.aliasOf ?? d.path}`;
 /** Editor fields that can set a place of a shared string edited elsewhere: its own entry first, then the others. */
+const followCache = new WeakMap<InterfaceString, string[]>();
 const followIds = (d: InterfaceString): string[] => {
+  const hit = followCache.get(d);
+  if (hit) return hit;
   const root = d.aliasOf ?? d.path;
   const ids = [d, ...interfaceStrings().filter((x) => (x.aliasOf ?? x.path) === root)].map(
     (x) => copyFieldAt(x.path)?.id,
   );
-  return [...new Set(ids.filter((x): x is string => !!x))];
+  const unique = [...new Set(ids.filter((x): x is string => !!x))];
+  followCache.set(d, unique);
+  return unique;
 };
 /** Editor value ids (`<field id>.tr|en`) that hold one shared string, in `copyFields` order: the first is the canonical
  *  one. A write to any of them goes to all, so every editor input and every place of the string show one value. */
@@ -805,7 +820,19 @@ function profileLists(r: Record<string, unknown>): SiteContentOverride {
 }
 
 /** Parent side: editor values (field id -> string) -> sanitised override. */
+/** The admin keeps one immutable values object per edit, and the provider, the preview and several editors all ask for
+ *  the override of that same object; derive it once per object. The result is read-only for every caller. */
+const overrides = new WeakMap<Record<string, string>, SiteContentOverride>();
 export function buildOverride(values: Record<string, string>): SiteContentOverride {
+  let built = overrides.get(values);
+  if (!built) {
+    built = deriveOverride(values);
+    overrides.set(values, built);
+  }
+  return built;
+}
+
+function deriveOverride(values: Record<string, string>): SiteContentOverride {
   let list: unknown;
   try {
     const raw = values[interestsField.id];

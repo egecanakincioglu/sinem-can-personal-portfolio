@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import type { Period } from '@/content/types';
 import {
   angleText,
+  cachedFullDate,
+  cachedMonthYear,
+  cachedNum,
+  cachedPeriodText,
   capFirst,
   fill,
   glueLastWords,
@@ -86,5 +91,28 @@ describe('text helpers', () => {
   it('glues the last two words with a no-break space', () => {
     expect(glueLastWords('beklenen mezuniyet Temmuz 2027')).toBe('beklenen mezuniyet Temmuz 2027');
     expect(glueLastWords('single')).toBe('single');
+  });
+});
+
+describe('cached formatters', () => {
+  it('match the plain ones, repeatedly and across locales', () => {
+    for (const locale of ['tr', 'en'] as const) {
+      for (const digits of [0, 1, 2, 3]) {
+        expect(cachedNum(1234.5678, locale, digits)).toBe(num(1234.5678, locale, digits));
+      }
+      expect(cachedNum(0.5, locale)).toBe(num(0.5, locale));
+      expect(cachedMonthYear('2022-10-01', locale)).toBe(monthYear('2022-10-01', locale));
+      expect(cachedMonthYear('2022-10-01', locale)).toBe(monthYear('2022-10-01', locale));
+      expect(cachedFullDate('2026-11-01', locale)).toBe(fullDate('2026-11-01', locale));
+    }
+  });
+
+  it('format a period like periodText, by month and by year', () => {
+    const open: Period = { start: '2022-10', precision: 'month' };
+    const closed: Period = { start: '2017', end: '2021', precision: 'year' };
+    const range: Period = { start: '2022-10', end: '2027-07', precision: 'month' };
+    for (const locale of ['tr', 'en'] as const) {
+      for (const p of [open, closed, range]) expect(cachedPeriodText(p, locale)).toBe(periodText(p, locale));
+    }
   });
 });

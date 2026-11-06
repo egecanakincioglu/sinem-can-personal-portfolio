@@ -7,7 +7,7 @@ import { DiffView } from '../../ui/DiffView';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { ConfirmDialog, EmptyState, Readout } from '../../ui/feedback';
 import { ErrorLinks } from '../../ui/PublishDialog';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('yayin')!;
@@ -15,7 +15,7 @@ const when = (at: string) => `${fullDate(at.slice(0, 10), 'tr')} (sim.)`;
 
 /** Simulated publish: pending changes, checks, the revision list with restore, and the demo reset. */
 export function YayinScreen() {
-  const { state, pending, issues, restore, reset } = useAdmin();
+  const { state, pending, issues, restore, reset } = useAdminContent();
   const { blocking, acknowledge } = publishChecks(issues);
   const [shown, setShown] = useState<number | null>(null);
   const [target, setTarget] = useState<number | null>(null);

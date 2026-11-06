@@ -1,6 +1,16 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  type ReactNode,
+} from 'react';
 import type { NoteRecord } from '@/content/notes/types';
 import type { ProjectKind, ProjectRecord } from '@/content/projects/types';
 import type { SiteContent } from '@/content/site-content';
@@ -356,22 +366,7 @@ export function reducer(s: AdminState, a: Action): AdminState {
   }
 }
 
-type Ctx = {
-  state: AdminState;
-  /** The public content as the current mock values would render it: one derivation shared by every editor readout. */
-  derived: SiteContent;
-  /** Everything the public site would take from the current mock state; the preview and every count come from it. */
-  snapshot: PublicSnapshot;
-  hydrated: boolean;
-  /** Changes since the last simulated publish (or since the initial state before any). */
-  pending: Change[];
-  /** Validation errors and warnings for the working values. */
-  issues: Issue[];
-  /** The state of the last simulated publish, or null before any. */
-  publishedState: WorkSnapshot | null;
-  /** What the preview renders: the working values, or the last published ones when that source is chosen. */
-  previewValues: Record<string, string>;
-  previewSnapshot: PublicSnapshot;
+type Actions = {
   setEditLang: (l: Lang) => void;
   setPreviewLang: (l: Lang) => void;
   setDevice: (d: DeviceId) => void;
@@ -405,10 +400,42 @@ type Ctx = {
   toast: (text: string) => void;
   dismiss: (id: number) => void;
 };
+
+type Ctx = Actions & {
+  state: AdminState;
+  /** The public content as the current mock values would render it: one derivation shared by every editor readout. */
+  derived: SiteContent;
+  /** Everything the public site would take from the current mock state; the preview and every count come from it. */
+  snapshot: PublicSnapshot;
+  hydrated: boolean;
+  /** Changes since the last simulated publish (or since the initial state before any). */
+  pending: Change[];
+  /** Validation errors and warnings for the working values. */
+  issues: Issue[];
+  /** The state of the last simulated publish, or null before any. */
+  publishedState: WorkSnapshot | null;
+  /** What the preview renders: the working values, or the last published ones when that source is chosen. */
+  previewValues: Record<string, string>;
+  previewSnapshot: PublicSnapshot;
+};
+
+/** Fields that only the preview controls and the chrome use; an editor does not re-render when they change. */
+type UiKeys = 'editLang' | 'previewLang' | 'device' | 'previewSource' | 'recent' | 'toasts' | 'log';
+export type ContentState = Omit<AdminState, UiKeys>;
+export type ContentCtx = Actions &
+  Omit<Ctx, keyof Actions | 'state' | 'previewValues' | 'previewSnapshot'> & { state: ContentState };
 const AdminCtx = createContext<Ctx | null>(null);
+const ContentCtx = createContext<ContentCtx | null>(null);
 export const useAdmin = () => {
   const c = useContext(AdminCtx);
   if (!c) throw new Error('useAdmin outside AdminProvider');
+  return c;
+};
+
+/** The editor view of the store: the same data and actions, without the preview controls (see `ContentState`). */
+export const useAdminContent = () => {
+  const c = useContext(ContentCtx);
+  if (!c) throw new Error('useAdminContent outside AdminProvider');
   return c;
 };
 
@@ -504,17 +531,14 @@ export function AdminProvider({ children, library = NO_LIBRARY }: { children: Re
     [snapshot, state.published],
   );
 
-  const value = useMemo<Ctx>(
+  // Actions never change identity, so a component that only calls them does not re-render with the state. The two
+  // that read records at call time read the latest committed state.
+  const latest = useRef(state);
+  useLayoutEffect(() => {
+    latest.current = state;
+  });
+  const actions = useMemo<Actions>(
     () => ({
-      state,
-      derived,
-      snapshot,
-      hydrated: state.ready,
-      pending,
-      issues,
-      publishedState,
-      previewValues,
-      previewSnapshot,
       setEditLang: (lang) => dispatch({ type: 'editLang', lang }),
       setPreviewLang: (lang) => dispatch({ type: 'previewLang', lang }),
       setDevice: (device) => dispatch({ type: 'device', device }),
@@ -553,7 +577,7 @@ export function AdminProvider({ children, library = NO_LIBRARY }: { children: Re
       createNote: (title) => {
         const id = newNoteId(
           title,
-          state.notes.map((n) => n.id),
+          latest.current.notes.map((n) => n.id),
         );
         dispatch({ type: 'createNote', note: newNote(id, title) });
         return id;
@@ -565,14 +589,14 @@ export function AdminProvider({ children, library = NO_LIBRARY }: { children: Re
       removeBlock: (id, index) => dispatch({ type: 'removeBlock', id, index }),
       patchBlock: (id, index, block) => dispatch({ type: 'patchBlock', id, index, block }),
       setLang: (id, lang, to) => {
-        const note = state.notes.find((n) => n.id === id);
+        const note = latest.current.notes.find((n) => n.id === id);
         if (note) dispatch({ type: 'patchNote', id, patch: { langs: { ...note.langs, [lang]: to } } });
       },
       setNoteFeatured: (id, featured) => dispatch({ type: 'patchNote', id, patch: { featured } }),
       createProject: ({ title, kind }) => {
         const id = newRecordId(
           'proje',
-          state.projects.map((p) => p.id),
+          latest.current.projects.map((p) => p.id),
           Math.random,
         );
         dispatch({ type: 'createProject', record: draftProject(id, title.trim(), kind) });
@@ -584,8 +608,80 @@ export function AdminProvider({ children, library = NO_LIBRARY }: { children: Re
       toast,
       dismiss: (id) => dispatch({ type: 'dismiss', id }),
     }),
-    [state, snapshot, derived, pending, issues, publishedState, previewValues, previewSnapshot, toast],
+    [toast],
   );
 
-  return <AdminCtx.Provider value={value}>{children}</AdminCtx.Provider>;
+  // The part of the state an editor reads. It keeps its identity while only the preview controls, the recent
+  // commands, the toasts or the action log change, so switching the preview width does not re-render an editor.
+  const content = useMemo<ContentState>(
+    () => ({
+      schema: state.schema,
+      values: state.values,
+      savedValues: state.savedValues,
+      projects: state.projects,
+      savedProjects: state.savedProjects,
+      notes: state.notes,
+      savedNotes: state.savedNotes,
+      seeded: state.seeded,
+      probe: state.probe,
+      dirty: state.dirty,
+      saveCount: state.saveCount,
+      rev: state.rev,
+      published: state.published,
+      revisions: state.revisions,
+      ready: state.ready,
+    }),
+    [
+      state.schema,
+      state.values,
+      state.savedValues,
+      state.projects,
+      state.savedProjects,
+      state.notes,
+      state.savedNotes,
+      state.seeded,
+      state.probe,
+      state.dirty,
+      state.saveCount,
+      state.rev,
+      state.published,
+      state.revisions,
+      state.ready,
+    ],
+  );
+  const contentValue = useMemo<ContentCtx>(
+    () => ({
+      ...actions,
+      state: content,
+      derived,
+      snapshot,
+      hydrated: content.ready,
+      pending,
+      issues,
+      publishedState,
+    }),
+    [actions, content, derived, snapshot, pending, issues, publishedState],
+  );
+
+  const value = useMemo<Ctx>(
+    () => ({
+      ...actions,
+      state,
+      derived,
+      snapshot,
+      hydrated: state.ready,
+      pending,
+      issues,
+      publishedState,
+      previewValues,
+      previewSnapshot,
+    }),
+    [actions, state, snapshot, derived, pending, issues, publishedState, previewValues, previewSnapshot],
+  );
+
+  return (
+    <AdminCtx.Provider value={value}>
+      <ContentCtx.Provider value={contentValue}>{children}</ContentCtx.Provider>
+    </AdminCtx.Provider>
+  );
 }

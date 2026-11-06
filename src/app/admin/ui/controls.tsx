@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Glyph, StatusChip } from './feedback';
+import { useDeferredEdit } from './useDeferredEdit';
 
 type FieldMeta = {
   label: string;
@@ -128,6 +129,7 @@ export function TextField({
   name: string;
 }) {
   const id = useId();
+  const [shown, edit] = useDeferredEdit(value, onChange);
   const readOnly = !!meta.derived || !!meta.locked;
   const area = useRef<HTMLTextAreaElement>(null);
   useAutosize(area, value, !!multiline);
@@ -142,12 +144,12 @@ export function TextField({
             data-field={name}
             className="a-input"
             rows={4}
-            value={value}
+            value={shown}
             readOnly={readOnly}
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
             aria-required={meta.required || undefined}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => edit(e.target.value)}
           />
         ) : (
           <input
@@ -156,12 +158,12 @@ export function TextField({
             data-field={name}
             className="a-input"
             type="text"
-            value={value}
+            value={shown}
             readOnly={readOnly}
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
             aria-required={meta.required || undefined}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => edit(e.target.value)}
           />
         )
       }

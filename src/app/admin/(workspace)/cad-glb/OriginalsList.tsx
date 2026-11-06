@@ -5,7 +5,7 @@ import { formatSize, newAssetId } from '@/lib/glb';
 import { toPublicProject } from '@/lib/projects';
 import { BilingualField, RemoveButton } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 
 type Original = NonNullable<ProjectRecord['privateOriginals']>[number];
 
@@ -20,7 +20,7 @@ const formats: { value: Original['format']; label: string }[] = [
 
 /** Metadata of the private originals. There is no address or file field: the list never reaches the public site. */
 export function OriginalsList({ project }: { project: ProjectRecord }) {
-  const { patchProject } = useAdmin();
+  const { patchProject } = useAdminContent();
   const list = project.privateOriginals ?? [];
   const write = (next: Original[]) => patchProject(project.id, { privateOriginals: next });
   const edit = (i: number, patch: Partial<Original>) => write(list.map((o, j) => (i === j ? { ...o, ...patch } : o)));

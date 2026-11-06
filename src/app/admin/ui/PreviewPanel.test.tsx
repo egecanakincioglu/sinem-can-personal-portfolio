@@ -51,7 +51,7 @@ describe('PreviewPanel bridge', () => {
   it('sends the state once when the frame says ready', () => {
     const { post, ready, wait } = mount('ana-sayfa');
     ready();
-    wait(200);
+    wait(300);
     expect(post).toHaveBeenCalledTimes(1);
     expect(post.mock.calls[0][0]).toMatchObject({ type: 'state', v: PREVIEW_PROTOCOL });
   });
@@ -59,22 +59,22 @@ describe('PreviewPanel bridge', () => {
   it('does not answer the frame’s repeated ready messages with the full state again', () => {
     const { post, ready, wait } = mount('ana-sayfa');
     ready();
-    wait(200);
+    wait(300);
     // A repeat right after the send is not answered; a ready after the quiet window (a reloaded frame) is.
-    wait(200);
+    wait(300);
     ready();
-    wait(200);
+    wait(300);
     expect(post).toHaveBeenCalledTimes(1);
     wait(1500);
     ready();
-    wait(200);
+    wait(300);
     expect(post).toHaveBeenCalledTimes(2);
   });
 
   it('never loops: no message to the frame follows without a ready or an edit', () => {
     const { post, ready, wait } = mount('ana-sayfa');
     ready();
-    wait(200);
+    wait(300);
     wait(60_000);
     expect(post).toHaveBeenCalledTimes(1);
   });

@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from 'react';
 import { getSiteContent } from '@/content/site-content';
-import { fullDate, monthYear, num } from '@/lib/format';
+import { cachedFullDate as fullDate, cachedMonthYear as monthYear, cachedNum as num } from '@/lib/format';
 import { resultant } from '@/lib/physics';
 import {
   SUMMARY_COUNT,
@@ -25,7 +25,7 @@ import {
 } from '@/lib/preview-bridge';
 import { BilingualField, Disclosure, Field, ListEditor, RecordRow, Segmented, TextField } from '../../ui/controls';
 import { EmptyState, Readout, StatusChip } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { fieldMeta } from './fieldMeta';
 import type { Pair } from './HeroEditor';
 
@@ -45,7 +45,7 @@ const pairOf = (c: { tr: string; en: string }): Pair => ({ tr: c.tr, en: c.en })
 
 /** TR/EN completeness of a group of registry fields. A missing language is never filled from the other one. */
 export function CopyStatus({ keys }: { keys: readonly CopyKey[] }) {
-  const { state, derived } = useAdmin();
+  const { state, derived } = useAdminContent();
   const n = { tr: 0, en: 0 };
   for (const k of keys) {
     const f = copyFields[k] as CopyField;
@@ -64,7 +64,7 @@ export function CopyStatus({ keys }: { keys: readonly CopyKey[] }) {
 
 /** The generic editor: one bilingual control per registry key. Everything it writes is read back by lib/preview-bridge.ts. */
 export function CopyGroup({ keys }: { keys: readonly CopyKey[] }) {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue, derived } = useAdminContent();
   return (
     <>
       {keys.map((k) => {
@@ -95,7 +95,7 @@ export function CopyGroup({ keys }: { keys: readonly CopyKey[] }) {
 }
 
 export function useJsonList<T>(id: string, seed: T[]): [T[], (next: T[]) => void] {
-  const { state, setValue } = useAdmin();
+  const { state, setValue } = useAdminContent();
   let list = seed;
   try {
     const raw = state.values[id];
@@ -126,7 +126,7 @@ const INTRO_KEYS = [
 ] as const satisfies readonly CopyKey[];
 
 export function IntroEditor() {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue, derived } = useAdminContent();
   const rows = derived.summaryRows; // values re-derived from the Profile records; labels as edited
   return (
     <>
@@ -193,7 +193,7 @@ function seedTechniques(): TechniqueRecord[] {
 }
 
 export function WorkshopEditor() {
-  const { state, derived: c } = useAdmin();
+  const { state, derived: c } = useAdminContent();
   const exp = c.experience[0];
   const [list, setList] = useJsonList<TechniqueRecord>(workshopField.id, seedTechniques());
   const [pending, setPending] = useState<{ id: string; kind: TechniqueKind } | null>(null);
@@ -395,7 +395,7 @@ const WORK_KEYS = [
 ] as const satisfies readonly CopyKey[];
 
 export function WorkEditor() {
-  const { state, setValue, snapshot, derived } = useAdmin();
+  const { state, setValue, snapshot, derived } = useAdminContent();
   // The same records the preview shows: public-rule projects of the mock state (loaded samples included).
   const projects = snapshot.publicProjects;
   const selectId = useId();
@@ -482,7 +482,7 @@ export function WorkEditor() {
 
 const DIRECTION_KEYS = ['directionHeading', 'directionOpenness'] as const satisfies readonly CopyKey[];
 export function DirectionEditor() {
-  const c = useAdmin().derived;
+  const c = useAdminContent().derived;
   const theta = Math.round(resultant(c.forceRecords).angleDeg);
   return (
     <>
@@ -516,7 +516,7 @@ const CONTACT_KEYS = [
 ] as const satisfies readonly CopyKey[];
 
 export function ContactEditor() {
-  const { state, setValue } = useAdmin();
+  const { state, setValue } = useAdminContent();
   const c = getSiteContent();
   const v = (id: string, fb: string) => state.values[id] ?? fb;
   const email = v(contactFields.email, c.contact.email);
@@ -637,7 +637,7 @@ const FOOTER_KEYS = [
 ] as const satisfies readonly CopyKey[];
 
 export function GlobalEditor() {
-  const c = useAdmin().derived;
+  const c = useAdminContent().derived;
   return (
     <>
       <h3 className="a-label">Üst bilgi</h3>

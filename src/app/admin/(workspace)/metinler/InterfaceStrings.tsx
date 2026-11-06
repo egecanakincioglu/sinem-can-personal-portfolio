@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useId, useState, type ReactNode } from 'react';
+import { memo, useId, useState, type ReactNode } from 'react';
 import { getSiteContent } from '@/content/site-content';
 import { dictAt, stringLabel, type InterfaceString } from '@/lib/interface-strings';
 import { checkCopy, controlId, interfaceStrings } from '@/lib/preview-bridge';
 import { BilingualField, Segmented } from '../../ui/controls';
 import { EmptyState, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import { fold, screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('metinler')!;
@@ -66,8 +66,68 @@ function ReadOnlyRow({
   );
 }
 
+/** One row. It re-renders only when its own pair changes, so a keystroke does not repaint the other rows. */
+const Row = memo(function Row({
+  d,
+  tr,
+  en,
+  setValue,
+}: {
+  d: InterfaceString;
+  tr: string;
+  en: string;
+  setValue: (id: string, v: string) => void;
+}) {
+  const text = { tr, en };
+  const label = stringLabel(((dictAt(getSiteContent().dict, d.path) as Pair | undefined) ?? { tr: '' }).tr);
+  if (d.kind === 'locked')
+    return (
+      <ReadOnlyRow d={d} label={label} text={text}>
+        {d.reason}
+      </ReadOnlyRow>
+    );
+  if (d.owner) {
+    const target = screenBySlug(d.owner);
+    const root = d.aliasOf ?? d.path;
+    const places = interfaceStrings().filter((x) => x.owner && (x.aliasOf ?? x.path) === root).length;
+    return (
+      <ReadOnlyRow d={d} label={label} text={text}>
+        Bu metin <Link href={`/admin/${d.owner}`}>{target?.title ?? d.owner} ekranından</Link> düzenlenir
+        {places > 1 && ` · aynı metin ${places} yerde`}.
+      </ReadOnlyRow>
+    );
+  }
+  if (d.kind === 'derived')
+    return (
+      <ReadOnlyRow d={d} label={label} text={text}>
+        Kayıttan gelir; kayıtlar değişince kendiliğinden güncellenir.
+      </ReadOnlyRow>
+    );
+  const also = interfaceStrings()
+    .filter((x) => (x.kind === 'editable' || x.kind === 'alias') && !x.owner && x.aliasOf === d.path)
+    .map((x) => x.path);
+  return (
+    <BilingualField
+      name={d.id}
+      label={label}
+      helper={
+        also.length
+          ? `Anahtar: ${d.path}. Aynı metin ${also.length + 1} yerde kullanılır (${[d.path, ...also].join(', ')}); bir düzenleme hepsini değiştirir.`
+          : `Anahtar: ${d.path}`
+      }
+      max={d.max}
+      multiline={d.max > 120}
+      tr={tr}
+      en={en}
+      onTr={(x) => setValue(`${controlId(d)}.tr`, x)}
+      onEn={(x) => setValue(`${controlId(d)}.en`, x)}
+      errors={{ tr: checkCopy(d, tr), en: checkCopy(d, en) }}
+    />
+  );
+});
+
 export function InterfaceStrings() {
-  const { state, setValue, derived } = useAdmin();
+  const { state, setValue, derived } = useAdminContent();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const searchId = useId();
@@ -76,7 +136,6 @@ export function InterfaceStrings() {
 
   const shown = (d: InterfaceString, root: unknown): Pair =>
     (dictAt(root, d.path) as Pair | undefined) ?? { tr: '', en: '' };
-  const labelOf = (d: InterfaceString) => stringLabel(shown(d, defaults).tr);
   const current = (d: InterfaceString): Pair => {
     const base = shown(d, defaults);
     const id = controlId(d);
@@ -84,7 +143,6 @@ export function InterfaceStrings() {
   };
   const editable = all.filter((d) => (d.kind === 'editable' || d.kind === 'alias') && !d.owner);
   const controls = editable.filter((d) => d.kind === 'editable');
-  const sharedWith = (d: InterfaceString) => editable.filter((x) => x.aliasOf === d.path).map((x) => x.path);
   const missingEn = controls.filter((d) => !current(d).en.trim()).length;
 
   const needle = fold(query.trim());
@@ -96,52 +154,9 @@ export function InterfaceStrings() {
     return !needle || fold(`${d.path} ${text.tr} ${text.en}`).includes(needle);
   };
 
-  const row = (d: InterfaceString) => {
-    if (d.kind === 'locked')
-      return (
-        <ReadOnlyRow key={d.id} d={d} label={labelOf(d)} text={shown(d, derived.dict)}>
-          {d.reason}
-        </ReadOnlyRow>
-      );
-    if (d.owner) {
-      const target = screenBySlug(d.owner);
-      const root = d.aliasOf ?? d.path;
-      const places = all.filter((x) => x.owner && (x.aliasOf ?? x.path) === root).length;
-      return (
-        <ReadOnlyRow key={d.id} d={d} label={labelOf(d)} text={shown(d, derived.dict)}>
-          Bu metin <Link href={`/admin/${d.owner}`}>{target?.title ?? d.owner} ekranından</Link> düzenlenir
-          {places > 1 && ` · aynı metin ${places} yerde`}.
-        </ReadOnlyRow>
-      );
-    }
-    if (d.kind === 'derived')
-      return (
-        <ReadOnlyRow key={d.id} d={d} label={labelOf(d)} text={shown(d, derived.dict)}>
-          Kayıttan gelir; kayıtlar değişince kendiliğinden güncellenir.
-        </ReadOnlyRow>
-      );
-    const text = current(d);
-    const also = sharedWith(d);
-    return (
-      <BilingualField
-        key={d.id}
-        name={d.id}
-        label={labelOf(d)}
-        helper={
-          also.length
-            ? `Anahtar: ${d.path}. Aynı metin ${also.length + 1} yerde kullanılır (${[d.path, ...also].join(', ')}); bir düzenleme hepsini değiştirir.`
-            : `Anahtar: ${d.path}`
-        }
-        max={d.max}
-        multiline={d.max > 120}
-        tr={text.tr}
-        en={text.en}
-        onTr={(x) => setValue(`${controlId(d)}.tr`, x)}
-        onEn={(x) => setValue(`${controlId(d)}.en`, x)}
-        errors={{ tr: checkCopy(d, text.tr), en: checkCopy(d, text.en) }}
-      />
-    );
-  };
+  // What a row shows: the edited pair for a control, the derived text for every other kind.
+  const rowText = (d: InterfaceString): Pair =>
+    d.kind === 'editable' && !d.owner ? current(d) : shown(d, derived.dict);
 
   const groups = screen.sections
     .map((s) => ({ s, rows: all.filter((d) => d.group === s.id && visible(d)) }))
@@ -182,7 +197,10 @@ export function InterfaceStrings() {
       )}
       {groups.map(({ s, rows }) => (
         <Section key={s.id} id={s.id} title={s.label} note={groupNote(s.id, rows.length)}>
-          {rows.map(row)}
+          {rows.map((d) => {
+            const t = rowText(d);
+            return <Row key={d.id} d={d} tr={t.tr} en={t.en} setValue={setValue} />;
+          })}
         </Section>
       ))}
     </>

@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Portrait } from '@/components/Portrait';
 import { getSiteContent } from '@/content/site-content';
-import { monthYear } from '@/lib/format';
+import { cachedMonthYear as monthYear } from '@/lib/format';
 import { interestsField, type CopyKey } from '@/lib/preview-bridge';
 import {
   blank,
@@ -33,7 +32,8 @@ import {
 import { BilingualField, Disclosure, ListEditor, RecordRow, Segmented, TextField } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { useAdmin } from '../../ui/store';
+import { PreviewPortrait } from '../../ui/PreviewPortrait';
+import { useAdminContent } from '../../ui/store';
 import { screenBySlug, sheetLabel } from '../../screens';
 import { CopyGroup, CopyStatus, TopicsEditor, useJsonList } from '../ana-sayfa/SectionEditors';
 
@@ -288,7 +288,7 @@ function EducationEditor() {
 
 function ExperienceEditor() {
   const c = getSiteContent();
-  const { derived } = useAdmin();
+  const { derived } = useAdminContent();
   const { list, patch } = useRecs<ExpRec>('experience', () => recsOf.experience(c.experience));
   const errs = list.map(checkExp);
   const L = profileLimits.experience;
@@ -820,11 +820,10 @@ function ActivitiesEditor() {
 /* ------------------------------------------------------------------ Portre ------------------------------------------------------------------ */
 
 function PortraitEditor() {
-  const { state, derived } = useAdmin();
   return (
     <>
       <div className="a-media-mini">
-        <Portrait locale={state.previewLang} sizes="96px" source={derived.portrait} />
+        <PreviewPortrait sizes="96px" />
       </div>
       <p className="a-help">
         Portre görseli, odak noktası, yakınlaştırma ve alternatif metin Medya ekranında düzenlenir.{' '}
@@ -857,7 +856,7 @@ const SECTION_KEYS: CopyKey[] = [
 ];
 
 export function ProfileEditor() {
-  const { derived } = useAdmin();
+  const { derived } = useAdminContent();
   return (
     <>
       <PageHeader kicker={sheetLabel('profil')} title={screen.title} lede={screen.lede} />

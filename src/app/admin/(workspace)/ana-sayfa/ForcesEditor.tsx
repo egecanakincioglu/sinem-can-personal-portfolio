@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import { getSiteContent, mergeSiteContent } from '@/content/site-content';
-import { num } from '@/lib/format';
+import { cachedNum as num } from '@/lib/format';
 import { resultant } from '@/lib/physics';
 import {
   FORCE_IDS,
@@ -21,7 +21,7 @@ import {
 } from '@/lib/preview-bridge';
 import { BilingualField, Disclosure, Field } from '../../ui/controls';
 import { Readout, StatusChip } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 import type { Pair } from './HeroEditor';
 
 export type ForcesSeed = {
@@ -121,7 +121,7 @@ function NumField({
 
 /** Ana sayfa › Kuvvetler. Six fixed records F1–F6. Every control feeds lib/preview-bridge.ts → the real Forces section and Hero. */
 export function ForcesEditor({ seed }: { seed: ForcesSeed }) {
-  const { state, setValue } = useAdmin();
+  const { state, setValue, snapshot } = useAdminContent();
   const [activeId, setActiveId] = useState<string>(FORCE_IDS[0]);
   const val = (id: string, fallback: string) => state.values[id] ?? fallback;
   const sval = (id: string, fallback: string) => state.savedValues[id] ?? fallback;
@@ -154,7 +154,7 @@ export function ForcesEditor({ seed }: { seed: ForcesSeed }) {
   };
 
   // The same pipeline the preview uses: editor values -> validated override -> mergeSiteContent -> lib/physics.
-  const current = useMemo(() => mergeSiteContent(buildOverride(state.values)).forceRecords, [state.values]);
+  const current = snapshot.content.forceRecords;
   const saved = useMemo(() => mergeSiteContent(buildOverride(state.savedValues)).forceRecords, [state.savedValues]);
   const R = resultant(current);
   const Rsaved = resultant(saved);

@@ -17,7 +17,7 @@ import {
 import type { MediaAsset } from '@/lib/media';
 import { BilingualField } from '../../ui/controls';
 import { Glyph } from '../../ui/feedback';
-import { useAdmin } from '../../ui/store';
+import { useAdminContent } from '../../ui/store';
 
 type Preview3D = NonNullable<ProjectRecord['preview3d']>;
 
@@ -73,7 +73,7 @@ export function Preview3DPanel({
   posters: MediaAsset[];
   library: GlbEntry[];
 }) {
-  const { patchProject, probeProject } = useAdmin();
+  const { patchProject, probeProject } = useAdminContent();
   const p = project.preview3d;
   const set = (next: Partial<Preview3D>) => p && patchProject(project.id, { preview3d: { ...p, ...next } });
 

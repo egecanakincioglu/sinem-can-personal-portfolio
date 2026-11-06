@@ -22,17 +22,15 @@ export default function Giris() {
           </div>
         </div>
         <div className="a-sheet-body">
-          <p className="a-ph-k">ANTET</p>
           <h1 className="a-entry-t">Prototip girişi</h1>
           <p className="a-entry-l">Bu bir prototiptir. Kimlik doğrulama yoktur.</p>
           <p className="a-prose">
-            Genel sitenin çizim bürosuna geçiyorsunuz: aynı paftayı, çizenin tarafından görürsünüz. Düzenlemeler
-            sunucuya gitmez; yalnızca bu tarayıcı oturumunda saklanır ve geliştirme ortamı dışında bu alan hiç açılmaz.
+            Burada genel sitenin içeriğini düzenlersiniz. Değişiklikler sunucuya gitmez, yalnızca bu tarayıcıda
+            saklanır. Bu alan geliştirme ortamı dışında hiç açılmaz.
           </p>
           <Link href="/admin" className="a-btn a-btn-primary a-entry-btn">
             Prototipe gir
           </Link>
-          <p className="a-help">Gerçek oturum açma, ayrı ve sonraki bir aşamanın konusudur.</p>
         </div>
       </div>
     </main>

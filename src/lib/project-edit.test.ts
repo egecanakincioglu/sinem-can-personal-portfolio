@@ -329,7 +329,9 @@ describe('projectIssues', () => {
     });
     const issues = projectIssues(p, ctx([p], ['a/c', 'a/f1', 'a/f2', 'a/f3', 'a/p']));
     expect(find(issues, 'cover').map((i) => i.lang)).toEqual(['tr']);
-    expect(find(issues, 'figures.0').map((i) => i.message)).toEqual(['Hata: Açıklama (alt) en az 8 karakter olmalı.']);
+    expect(find(issues, 'figures.0').map((i) => i.message)).toEqual([
+      'Hata: Alternatif metin en az 8 karakter olmalı.',
+    ]);
     expect(find(issues, 'figures.1')[0].message).toMatch(/dosya adı/);
     expect(find(issues, 'figures.2')[0].message).toMatch(/dosya adı/);
     expect(find(issues, 'preview3d.poster')).toHaveLength(2);

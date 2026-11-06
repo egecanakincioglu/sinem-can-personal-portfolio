@@ -2,16 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { entryOfIssue } from '@/lib/task-queue';
 import { registry } from '../registry';
-import { screenHref, screens, type SectionStatus } from '../screens';
+import { screenHref, screens, sheetNumber, type ScreenDef, type SectionStatus } from '../screens';
 import { Glyph } from './feedback';
 import { useAdmin } from './store';
 
 const statusText: Record<SectionStatus, string> = { ok: 'tamam', draft: 'taslak metin var', later: 'sonraki aşamada' };
 
-function SectionGlyph({ s }: { s: SectionStatus }) {
+function SectionGlyph({ s, errors }: { s: SectionStatus; errors: boolean }) {
+  if (errors) {
+    return (
+      <span className="a-sg a-sg-error" title="hata var">
+        <span aria-hidden="true">!</span>
+        <span className="a-vh">hata var</span>
+      </span>
+    );
+  }
   return (
     <span className={`a-sg a-sg-${s}`} title={statusText[s]}>
       {s === 'ok' && <Glyph name="check" />}
@@ -22,6 +30,22 @@ function SectionGlyph({ s }: { s: SectionStatus }) {
   );
 }
 
+/** Arrow keys, Home and End move focus between the links of a list; only one link of the list is a tab stop. */
+const rovingKeys = (e: React.KeyboardEvent<HTMLElement>) => {
+  if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+  const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href]'));
+  const i = items.indexOf(document.activeElement as HTMLElement);
+  if (i < 0) return;
+  e.preventDefault();
+  const n =
+    e.key === 'Home'
+      ? 0
+      : e.key === 'End'
+        ? items.length - 1
+        : (i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+  items[n].focus();
+};
+
 /** Left panel: screen switcher + section index of the current screen. */
 export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const path = usePathname();
@@ -31,13 +55,16 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const sections = (!isRecord && screen.listSections) || screen.sections;
   const { issues } = useAdmin();
   // The same issue list as the title block count and the task queue.
-  const open = (section: string) =>
+  const inSection = (section: string) =>
     issues.filter((i) => {
       const e = entryOfIssue(i, registry);
       return e?.screen === screen.slug && e.editorSection === section;
-    }).length;
+    });
   const [active, setActive] = useState<string | null>(null);
-  const navRef = useRef<HTMLElement>(null);
+  const [navStop, setNavStop] = useState<string | null>(null);
+  const [indexStop, setIndexStop] = useState<string | null>(null);
+  const navStopId = navStop !== null && screens.some((s) => s.slug === navStop) ? navStop : screen.slug;
+  const indexStopId = indexStop !== null && sections.some((s) => s.id === indexStop) ? indexStop : sections[0]?.id;
 
   // Highlight the section nearest the top of the editor while scrolling.
   useEffect(() => {
@@ -57,33 +84,20 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
     return () => io.disconnect();
   }, [sections]);
 
-  const rovingKeys = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
-    const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href]'));
-    const i = items.indexOf(document.activeElement as HTMLElement);
-    if (i < 0) return;
-    e.preventDefault();
-    const n =
-      e.key === 'Home'
-        ? 0
-        : e.key === 'End'
-          ? items.length - 1
-          : (i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-    items[n].focus();
-  };
-
   const work = screens.filter((s) => s.group === 'work');
   const meta = screens.filter((s) => s.group === 'meta');
-  const link = (s: (typeof screens)[number], n: number) => (
+  const link = (s: ScreenDef) => (
     <li key={s.slug || 'home'}>
       <Link
         href={screenHref(s)}
         className="a-nav-link"
         aria-current={s === screen ? 'page' : undefined}
         onClick={onNavigate}
-        data-n={n}
+        tabIndex={s.slug === navStopId ? 0 : -1}
+        data-stop={s.slug}
       >
-        <span className="a-num a-nav-n">{String(n).padStart(2, '0')}</span>
+        <span className="a-num a-nav-n">{String(sheetNumber(s.slug)).padStart(2, '0')}</span>
+        <span className="a-nav-s">{s.short}</span>
         <span className="a-nav-t">{s.title}</span>
       </Link>
     </li>
@@ -91,45 +105,65 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="a-side-in">
-      <button type="button" className="a-btn a-side-close" onClick={onNavigate}>
-        Bölümleri kapat
+      <button
+        type="button"
+        className="a-btn a-side-close"
+        onClick={onNavigate}
+        aria-expanded="true"
+        aria-controls="a-side"
+      >
+        <span>Bölümler ve ekranlar</span>
+        <span aria-hidden="true">−</span>
       </button>
-      <nav aria-label="Ekranlar" className="a-nav" ref={navRef} onKeyDown={rovingKeys}>
+      <nav
+        aria-label="Ekranlar"
+        className="a-nav"
+        onKeyDown={rovingKeys}
+        onFocus={(e) => setNavStop((e.target as HTMLElement).dataset.stop ?? null)}
+      >
         <p className="a-panel-k">Pafta listesi</p>
-        <ul className="a-nav-list">{work.map((s, i) => link(s, i + 1))}</ul>
-        <ul className="a-nav-list a-nav-meta">{meta.map((s, i) => link(s, work.length + i + 1))}</ul>
+        <ul className="a-nav-list">{work.map(link)}</ul>
+        <ul className="a-nav-list a-nav-meta">{meta.map(link)}</ul>
       </nav>
-      <nav aria-label="Bölüm dizini" className="a-index" onKeyDown={rovingKeys}>
-        <p className="a-panel-k">Bölüm dizini · {screen.title}</p>
-        {sections.length ? (
+      {sections.length > 0 && (
+        <nav
+          aria-label="Bölüm dizini"
+          className="a-index"
+          onKeyDown={rovingKeys}
+          onFocus={(e) => setIndexStop((e.target as HTMLElement).dataset.stop ?? null)}
+        >
+          <p className="a-panel-k">Bölüm dizini · {screen.title}</p>
           <ul className="a-nav-list">
-            {sections.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#bolum-${s.id}`}
-                  className="a-idx-link"
-                  aria-current={active === s.id ? 'true' : undefined}
-                  onClick={() => {
-                    setActive(s.id);
-                    onNavigate?.();
-                  }}
-                >
-                  <span className="a-idx-t">{s.label}</span>
-                  <SectionGlyph s={s.status} />
-                  {open(s.id) > 0 && (
-                    <span className="a-num a-sg">
-                      {open(s.id)}
-                      <span className="a-vh"> görev</span>
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))}
+            {sections.map((s) => {
+              const found = inSection(s.id);
+              return (
+                <li key={s.id}>
+                  <a
+                    href={`#bolum-${s.id}`}
+                    className="a-idx-link"
+                    aria-current={active === s.id ? 'true' : undefined}
+                    tabIndex={s.id === indexStopId ? 0 : -1}
+                    data-stop={s.id}
+                    onClick={() => {
+                      setActive(s.id);
+                      onNavigate?.();
+                    }}
+                  >
+                    <span className="a-idx-t">{s.label}</span>
+                    <SectionGlyph s={s.status} errors={found.some((i) => i.severity === 'error')} />
+                    {found.length > 0 && (
+                      <span className="a-num a-sg">
+                        {found.length}
+                        <span className="a-vh"> görev</span>
+                      </span>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
-        ) : (
-          <p className="a-help a-index-empty">Bu ekranın bölümleri sonraki aşamada listelenecek.</p>
-        )}
-      </nav>
+        </nav>
+      )}
     </div>
   );
 }

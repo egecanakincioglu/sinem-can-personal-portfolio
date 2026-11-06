@@ -34,7 +34,7 @@ import { BilingualField, Disclosure, ListEditor, RecordRow, Segmented, TextField
 import { Readout, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { CopyGroup, CopyStatus, TopicsEditor, useJsonList } from '../ana-sayfa/SectionEditors';
 
 const screen = screenBySlug('profil')!;
@@ -214,7 +214,8 @@ function EducationEditor() {
                 </p>
               ) : (
                 <Segmented
-                  label={`${recName(r.institution.tr)}: dönem duyarlılığı`}
+                  label={`${recName(r.institution.tr)}: Dönem duyarlığı`}
+                  title="Dönem duyarlığı"
                   value={r.precision}
                   options={[
                     { value: 'year', label: 'Yıl' },
@@ -230,7 +231,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={7}
               />
               <Txt
                 name={`egitim.${r.id}.end`}
@@ -239,7 +239,6 @@ function EducationEditor() {
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
                 required={r.id === 'dogus'}
-                max={7}
                 helper={
                   r.id === 'dogus'
                     ? 'Beklenen mezuniyet ayı; Hero, Kısaca ve Profil ile Kuvvetler F3 bu değerden türetilir.'
@@ -250,7 +249,8 @@ function EducationEditor() {
                 <div className="a-field">
                   <p className="a-label">Beklenen bitiş</p>
                   <Segmented
-                    label={`${recName(r.institution.tr)}: beklenen`}
+                    label={`${recName(r.institution.tr)}: Mezuniyet durumu`}
+                    title="Mezuniyet durumu"
                     value={r.expected ? '1' : '0'}
                     options={[
                       { value: '0', label: 'Tamamlandı' },
@@ -337,7 +337,6 @@ function ExperienceEditor() {
                 onChange={(v) => patch(i, { month: v })}
                 error={e.month}
                 required
-                max={7}
                 helper="Hero staj satırı, Kısaca özeti, Kuvvetler F6 dönemi ve metin içindeki staj ayı bu değerden türetilir."
               />
               <Bi
@@ -466,7 +465,6 @@ function CommunityEditor() {
                 onChange={(v) => patch(i, { start: v })}
                 error={e.start}
                 required
-                max={4}
               />
               <Txt
                 name={`topluluk.${r.id}.end`}
@@ -474,7 +472,6 @@ function CommunityEditor() {
                 value={r.end}
                 onChange={(v) => patch(i, { end: v })}
                 error={e.end}
-                max={4}
               />
               <Bi
                 name={`topluluk.${r.id}.text`}
@@ -602,7 +599,8 @@ function SkillsEditor() {
                       helper="Yalnızca bilindiği yerde: ad yanında parantez içinde görünür."
                     />
                     <Segmented
-                      label={`${recName(g.name.tr)} ${ii + 1}: özet`}
+                      label={`${recName(g.name.tr)} ${ii + 1}: Özet`}
+                      title="Özet"
                       value={it.summary}
                       options={[...SUMMARY_OPTS]}
                       onChange={(v) =>
@@ -802,7 +800,6 @@ function ActivitiesEditor() {
               value={r.start}
               onChange={(v) => patch(i, { start: v })}
               error={errs[i].start}
-              max={4}
             />
             <Txt
               name={`etk.${r.id}.end`}
@@ -810,7 +807,6 @@ function ActivitiesEditor() {
               value={r.end}
               onChange={(v) => patch(i, { end: v })}
               error={errs[i].end}
-              max={4}
             />
           </RecordRow>
         ))}
@@ -864,7 +860,7 @@ export function ProfileEditor() {
   const { derived } = useAdmin();
   return (
     <>
-      <PageHeader kicker="Pafta 02" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('profil')} title={screen.title} lede={screen.lede} />
       <p className="a-help">
         “Korunan” etiketli kayıtlar başka alanların kaynağıdır ve silinemez. Bu kayıtlar değiştiğinde Ana sayfadaki
         türetilmiş alanlar aynı anda güncellenir. Tüm işlemler simülasyondur.

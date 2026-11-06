@@ -14,7 +14,7 @@ import {
   WorkshopEditor,
 } from './SectionEditors';
 import { PageHeader, Section } from '../../ui/PageHeader';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 import { useAdmin } from '../../ui/store';
 
 type Pair = { tr: string; en: string };
@@ -52,7 +52,7 @@ export function HomeEditor({ seed }: { seed: Seed }) {
 
   return (
     <>
-      <PageHeader kicker="Pafta 01" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('ana-sayfa')} title={screen.title} lede={screen.lede} />
 
       <Section
         id="hero"

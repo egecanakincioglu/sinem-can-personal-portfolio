@@ -1,5 +1,6 @@
 import type { ProjectRecord } from '@/content/projects/types';
 import { locales, type Copy, type Locale } from '@/content/types';
+import { LIMIT_BYTES } from './glb';
 import { parseForceNumber } from './preview-bridge';
 
 /* ------------------------------------------------------------------------------------------------
@@ -280,9 +281,9 @@ function altIssues(
   for (const l of locales) {
     const alt = m.alt[l].trim();
     if (!alt) out.push(issue('Hata: Görsel için açıklama (alt) gerekli.', l));
-    else if (alt.length < MIN_ALT) out.push(issue(`Hata: Açıklama (alt) en az ${MIN_ALT} karakter olmalı.`, l));
+    else if (alt.length < MIN_ALT) out.push(issue(`Hata: Alternatif metin en az ${MIN_ALT} karakter olmalı.`, l));
     else if (file && (alt.toLowerCase() === file || alt.toLowerCase() === stem(file)))
-      out.push(issue('Hata: Açıklama (alt) dosya adı olamaz.', l));
+      out.push(issue('Hata: Alternatif metin dosya adı olamaz.', l));
   }
   return out;
 }
@@ -328,6 +329,8 @@ export function projectIssues(
   if (p.cover) out.push(...altIssues(p, ctx.assetIds, 'gorsel', 'cover', p.cover));
   (p.figures ?? []).forEach((m, i) => out.push(...altIssues(p, ctx.assetIds, 'sekiller', `figures.${i}`, m)));
   if (p.preview3d) out.push(...altIssues(p, ctx.assetIds, 'model', 'preview3d.poster', p.preview3d.poster));
+  if (p.preview3d?.sizeBytes !== undefined && p.preview3d.sizeBytes > LIMIT_BYTES)
+    add('model', 'preview3d.sizeBytes', 'error', 'Hata: 3B model 15 MB sınırını aştı; genel sitede gösterilmez.');
 
   const missing = missingFields(p);
   for (const l of locales)

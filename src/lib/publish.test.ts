@@ -67,16 +67,28 @@ describe('diffContent', () => {
   });
 });
 
-describe('diffRecords', () => {
-  const [first, second] = fixtureProjects;
+// The sample records are marked as development-only; the tests need ordinary records.
+const plain = <T extends { fixture?: boolean }>(r: T): T => ({ ...r, fixture: undefined });
 
-  it('reports an added and a removed record', () => {
-    expect(diffRecords([], [first])).toEqual([
-      { path: `project.${first.id}`, shared: { before: '—', after: 'Eklendi' } },
-    ]);
-    expect(diffRecords([first], [])).toEqual([
-      { path: `project.${first.id}`, shared: { before: 'Vardı', after: 'Kaldırıldı' } },
-    ]);
+describe('diffRecords', () => {
+  const [first, second] = fixtureProjects.map(plain);
+
+  it('reports an added and a removed record by title, never by id', () => {
+    const label = `Proje “${first.title.tr}”`;
+    expect(diffRecords([], [first])).toEqual([{ path: `project.${first.id}`, label, record: 'added' }]);
+    expect(diffRecords([first], [])).toEqual([{ path: `project.${first.id}`, label, record: 'removed' }]);
+  });
+
+  it('falls back to a neutral title for a record without one', () => {
+    const blank = { ...first, title: { tr: ' ', en: '' } };
+    expect(diffRecords([], [blank])[0].label).toBe('Proje “Başlıksız kayıt”');
+  });
+
+  it('never lists a development sample, added, removed or edited', () => {
+    const sample = { ...first, fixture: true as const };
+    expect(diffRecords([], [sample])).toEqual([]);
+    expect(diffRecords([sample], [])).toEqual([]);
+    expect(diffRecords([sample], [{ ...sample, title: { tr: 'Başka', en: 'Other' } }])).toEqual([]);
   });
 
   it('reports only the fields that differ in a kept record', () => {
@@ -84,6 +96,7 @@ describe('diffRecords', () => {
     const changes = diffRecords([first, second], [edited, second]);
     expect(changes).toHaveLength(1);
     expect(changes[0].path).toBe(`project.${first.id}.title`);
+    expect(changes[0].title).toBe('Başka ad');
     expect(changes[0].tr).toEqual({ before: first.title.tr, after: 'Başka ad' });
     expect(changes[0].en).toEqual({ before: first.title.en, after: 'Other name' });
   });
@@ -97,12 +110,12 @@ describe('changesBetween', () => {
   it('labels note changes with the note title', () => {
     const paired = pairNote(fixtureNotes[0]);
     if (!paired.ok) throw new Error('fixture does not pair');
-    const note = paired.note;
+    const note = plain(paired.note);
     const title = note.title.tr;
-    expect(diffNotes([], [note])).toEqual([
-      { path: `note.${note.id}`, label: `Not “${title}”`, shared: { before: '—', after: 'Eklendi' } },
-    ]);
-    expect(diffNotes([note], [])[0].shared).toEqual({ before: 'Vardı', after: 'Kaldırıldı' });
+    expect(diffNotes([], [note])).toEqual([{ path: `note.${note.id}`, label: `Not “${title}”`, record: 'added' }]);
+    expect(diffNotes([note], [])[0].record).toBe('removed');
+    expect(diffNotes([], [{ ...note, title: { tr: '', en: 'x' } }])[0].label).toBe('Not “Başlıksız kayıt”');
+    expect(diffNotes([], [{ ...note, fixture: true }])).toEqual([]);
     const edited = { ...note, blocks: note.blocks.slice(1), approved: !note.approved };
     const labels = diffNotes([note], [edited]).map((c) => c.label);
     expect(labels).toContain(`Not “${title}” · Onay`);
@@ -112,7 +125,7 @@ describe('changesBetween', () => {
 
   it('joins content and record changes', () => {
     const from = { values: {}, projects: [], notes: [] };
-    const to = { values: { 'hero.lead.tr': 'Yeni cümle' }, projects: [fixtureProjects[0]], notes: [] };
+    const to = { values: { 'hero.lead.tr': 'Yeni cümle' }, projects: [plain(fixtureProjects[0])], notes: [] };
     const paths = changesBetween(from, to).map((c) => c.path);
     expect(paths).toContain('draft.heroLead');
     expect(paths).toContain(`project.${fixtureProjects[0].id}`);

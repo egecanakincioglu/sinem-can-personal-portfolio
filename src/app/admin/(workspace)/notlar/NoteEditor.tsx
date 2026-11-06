@@ -14,6 +14,7 @@ import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
 import { BlockList, IssueList } from './BlockEditor';
 import { PairText, type Ctxs } from './PairText';
+import { sheetLabel } from '../../screens';
 
 type Pair = { tr: string; en: string };
 const pair = (): Pair => ({ tr: '', en: '' });
@@ -58,7 +59,7 @@ export function NoteEditor({
   if (!note || !ctxs) {
     return (
       <>
-        <PageHeader kicker="Pafta 04" title="Not düzenle" />
+        <PageHeader kicker={sheetLabel('notlar')} title="Not düzenle" />
         <ErrorState title={`“${id}” kaydı bulunamadı.`}>
           <p>
             Not listesinden bir kayıt seçin.{' '}
@@ -91,8 +92,8 @@ export function NoteEditor({
   return (
     <>
       <PageHeader
-        kicker="Pafta 04"
-        title={note.title[state.editLang] || note.title.tr || 'Başlıksız not'}
+        kicker={sheetLabel('notlar')}
+        title={note.title[state.editLang] || note.title.tr || 'Başlıksız kayıt'}
         lede="Not düzenle"
         aside={
           <div className="a-rec-tools a-rec-chips">
@@ -115,7 +116,6 @@ export function NoteEditor({
           ))}
         </dl>
         <div className="a-field">
-          <span className="a-label">Durum</span>
           <Segmented
             label="Durum"
             value={note.status}
@@ -421,7 +421,7 @@ export function NoteEditor({
           router.push('/admin/notlar');
         }}
       >
-        <p>“{note.title.tr || 'Başlıksız not'}” bu tarayıcı oturumundan kaldırılır.</p>
+        <p>“{note.title.tr || 'Başlıksız kayıt'}” bu tarayıcı oturumundan kaldırılır.</p>
       </ConfirmDialog>
     </>
   );

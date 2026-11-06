@@ -9,7 +9,7 @@ import { BilingualField, Segmented, TextField } from '../../ui/controls';
 import { StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('medya')!;
 const dec = (n: number) => String(n).replace('.', ',');
@@ -62,7 +62,6 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
           k === 'zoom'
             ? '1 = yakınlaştırma yok. Kırpma 4:5 çerçevede odak noktasına göre yapılır.'
             : '0 sol/üst, 100 sağ/alt kenar.',
-        counter: { value: num(k).length, max: 6 },
       }}
     />
   );
@@ -90,6 +89,7 @@ function PortraitSlot({ assets }: { assets: readonly MediaAsset[] }) {
         )}
         <Segmented
           label="Portre göster"
+          title="Portre"
           options={onOff}
           value={show ? '1' : '0'}
           onChange={(x) => setValue(portraitSlotFields.show, x)}
@@ -181,7 +181,7 @@ export function MediaEditor({
 }) {
   return (
     <>
-      <PageHeader kicker="Pafta 05" title={screen.title} lede={screen.lede} />
+      <PageHeader kicker={sheetLabel('medya')} title={screen.title} lede={screen.lede} />
       <Section
         id="portre"
         title="Portre"

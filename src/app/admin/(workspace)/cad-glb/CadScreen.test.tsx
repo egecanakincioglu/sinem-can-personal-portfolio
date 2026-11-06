@@ -97,7 +97,7 @@ describe('3B ve CAD screen', () => {
     expect(screen.getByText(/Uyarı: Hedefin üzerinde; Draco\/meshopt sıkıştırması önerilir\./)).toBeTruthy();
     fireEvent.change(modelSelect(), { target: { value: 'size-18' } });
     expect(screen.getByText(/Hata: 15 MB sınırının üstünde/)).toBeTruthy();
-    expect(screen.getByText('Boyut 15 MB veya altında — eksik')).toBeTruthy();
+    expect(screen.getByText('Boyut 15 MB veya altında — aşıldı')).toBeTruthy();
     expect(screen.getAllByText('15 MB üstü').length).toBeGreaterThan(0);
     fireEvent.change(modelSelect(), { target: { value: 'dev-flange' } });
     expect(screen.getAllByText('0,0 MB · 48.000 bayt', { selector: 'p' })).toHaveLength(2);

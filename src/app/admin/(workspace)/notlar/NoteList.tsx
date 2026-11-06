@@ -11,7 +11,7 @@ import { TextField } from '../../ui/controls';
 import { Dialog, EmptyState, StatusChip } from '../../ui/feedback';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { useAdmin } from '../../ui/store';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 const screen = screenBySlug('notlar')!;
 const EXCERPT = 140;
@@ -78,7 +78,7 @@ export function NoteList({ samples, projectSamples }: { samples: NoteRecord[]; p
   return (
     <>
       <PageHeader
-        kicker="Pafta 04"
+        kicker={sheetLabel('notlar')}
         title={screen.title}
         lede={screen.lede}
         aside={

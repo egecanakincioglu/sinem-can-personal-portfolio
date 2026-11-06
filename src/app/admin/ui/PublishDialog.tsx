@@ -2,12 +2,45 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import type { Issue } from '@/lib/admin-issues';
 import { publishChecks, revLetter } from '@/lib/publish';
+import { taskRow } from '@/lib/task-queue';
+import { registry } from '../registry';
+import { screens } from '../screens';
 import { DiffView } from './DiffView';
 import { Dialog } from './feedback';
 import { useAdmin } from './store';
 
 const SHOWN = 8;
+
+/** Errors as links: each opens the field or record that has the problem. */
+export function ErrorLinks({
+  issues,
+  label,
+  onNavigate,
+}: {
+  issues: readonly Issue[];
+  label: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <ul className="a-pub-group" aria-label={label}>
+      {issues.map((issue, i) => {
+        const r = taskRow(issue, registry, screens);
+        return (
+          <li key={`${issue.fieldId}-${i}`}>
+            <Link href={r.href} className="a-link" onClick={onNavigate}>
+              {r.label}
+            </Link>
+            <span>
+              {r.where ? ` · ${r.where}` : ''} · {r.text}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 /** Simulated publish: what changes, what blocks it, what needs an acknowledgement, then the confirm. */
 export function PublishDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -18,7 +51,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
       open={open}
       onClose={onClose}
       label="Yayınla (simülasyon)"
-      initialFocus={hasBlocking ? '[data-summary]' : '[data-cancel]'}
+      initialFocus={hasBlocking ? '[data-summary]' : '[data-title]'}
     >
       <PublishBody onClose={onClose} />
     </Dialog>
@@ -33,7 +66,9 @@ function PublishBody({ onClose }: { onClose: () => void }) {
   const ready = blocking.length === 0 && acknowledge.every((g) => acked.includes(g.group));
   return (
     <>
-      <h2 className="a-dialog-title">Yayınla (simülasyon)</h2>
+      <h2 className="a-dialog-title" tabIndex={-1} data-title>
+        Yayınla (simülasyon)
+      </h2>
       <div className="a-dialog-body">
         <p>
           Rev. {revLetter(state.rev)} → Rev. {revLetter(state.rev + 1)} olarak simüle edilecek.
@@ -43,16 +78,14 @@ function PublishBody({ onClose }: { onClose: () => void }) {
         {blocking.length > 0 && (
           <div className="a-pub-summary" role="alert" tabIndex={-1} data-summary>
             <h3 className="a-help">Yayını engelleyen hatalar ({blocking.length})</h3>
-            <ul className="a-pub-group">
-              {blocking.map((i) => (
-                <li key={`${i.fieldId}:${i.text}`}>{i.text}</li>
-              ))}
-            </ul>
+            <ErrorLinks issues={blocking} label="Hatalar" onNavigate={onClose} />
           </div>
         )}
 
         <h3 className="a-help">Değişiklikler ({pending.length})</h3>
-        <DiffView changes={pending.slice(0, SHOWN)} label="Bekleyen değişiklikler" />
+        <div className="a-pub-changes">
+          <DiffView changes={pending.slice(0, SHOWN)} label="Bekleyen değişiklikler" />
+        </div>
         {pending.length > SHOWN && (
           <p className="a-help">
             {pending.length - SHOWN} değişiklik daha var.{' '}
@@ -82,7 +115,7 @@ function PublishBody({ onClose }: { onClose: () => void }) {
           </div>
         ))}
       </div>
-      <div className="a-dialog-actions">
+      <div className="a-dialog-actions is-sticky">
         <button type="button" className="a-btn" data-cancel onClick={onClose}>
           Vazgeç
         </button>

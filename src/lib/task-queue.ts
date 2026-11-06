@@ -43,14 +43,22 @@ export const entryOfIssue = (issue: Issue, registry: readonly RegistryEntry[]) =
   registry.find((e) => e.id === issue.fieldId) ??
   registry.find((e) => e.id === issue.fieldId.replace(/\.(tr|en)$/, ''));
 
+const withoutLabel = (text: string, label: string) =>
+  text.startsWith(label) ? text.slice(label.length).replace(/^:\s*/, '').trim() : text;
+
 /** One queue row: field label, screen › section, the problem, and the link that focuses the field. */
 export function taskRow(issue: Issue, registry: readonly RegistryEntry[], screens: readonly ScreenInfo[]): TaskRow {
   const entry = entryOfIssue(issue, registry);
+  if (!entry && issue.href) {
+    const label = issue.label ?? issue.fieldId;
+    const text = withoutLabel(issue.text, label);
+    return { label, where: issue.where ?? '', text, href: issue.href };
+  }
   if (!entry) return { label: issue.fieldId, where: '', text: issue.text, href: '/admin' };
   const label = entryLabel(entry);
   const screen = screens.find((s) => s.slug === entry.screen);
   const section = screen?.sections.find((s) => s.id === entry.editorSection)?.label ?? entry.section;
-  const text = issue.text.startsWith(label) ? issue.text.slice(label.length).replace(/^:\s*/, '').trim() : issue.text;
+  const text = withoutLabel(issue.text, label);
   return {
     label,
     where: `${screen?.title ?? entry.screen} › ${section}`,

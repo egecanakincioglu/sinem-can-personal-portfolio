@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { assertDevOnly } from '../../guard';
 import { PageHeader, Section } from '../../ui/PageHeader';
 import { EmptyState, StatusChip } from '../../ui/feedback';
-import { screenBySlug } from '../../screens';
+import { screenBySlug, sheetLabel } from '../../screens';
 
 // Stub for every screen that is not built yet. Real screens (ana-sayfa) have their own folder.
 export default async function Stub({ params }: { params: Promise<{ screen: string }> }) {
@@ -14,7 +14,7 @@ export default async function Stub({ params }: { params: Promise<{ screen: strin
   return (
     <>
       <PageHeader
-        kicker="Pafta"
+        kicker={sheetLabel(s.slug)}
         title={s.title}
         lede={s.lede}
         aside={<StatusChip kind="draft">Kullanıma açık değil</StatusChip>}

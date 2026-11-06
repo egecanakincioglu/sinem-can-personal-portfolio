@@ -1,4 +1,4 @@
-import { dict } from '@/content/dictionary';
+import type { SiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import type { ProjectCard } from '@/lib/projects';
 import { Cta } from '../linework';
@@ -6,7 +6,7 @@ import { Cta } from '../linework';
 // Client-safe view: imports only the ProjectCard TYPE from lib/projects (erased at build), so the Homepage
 // preview bundle never reaches the server-side project accessors or fixtures.
 
-function MiniAntet({ card, locale }: { card: ProjectCard; locale: Locale }) {
+function MiniAntet({ card, locale, dict }: { card: ProjectCard; locale: Locale; dict: SiteContent['dict'] }) {
   const d = dict.projects;
   const cells = [
     [d.kind[locale], card.kindLabel],
@@ -33,10 +33,12 @@ function MiniAntet({ card, locale }: { card: ProjectCard; locale: Locale }) {
 export function Featured({
   card,
   locale,
+  dict,
   embedded = false,
 }: {
   card: ProjectCard;
   locale: Locale;
+  dict: SiteContent['dict'];
   embedded?: boolean;
 }) {
   const d = dict.projects;
@@ -64,7 +66,7 @@ export function Featured({
           </a>
         </H>
         {card.subtitle && <p className="t-lead mt-4 max-w-[34ch] text-kursun">{card.subtitle}</p>}
-        <MiniAntet card={card} locale={locale} />
+        <MiniAntet card={card} locale={locale} dict={dict} />
         {card.fixture && (
           <p className="t-meta mt-3 w-fit border border-grafit px-2 py-1 text-grafit">{d.fixtureLabel[locale]}</p>
         )}

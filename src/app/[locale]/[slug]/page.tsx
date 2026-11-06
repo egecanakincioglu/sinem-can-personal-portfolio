@@ -64,9 +64,9 @@ export default async function TopLevelPage({ params }: Params) {
         {page === 'profile' ? (
           <ProfileLayout locale={l} content={content} />
         ) : page === 'projects' ? (
-          <ProjectsArchive locale={l} projects={getPublicProjects()} />
+          <ProjectsArchive locale={l} projects={getPublicProjects()} content={content} />
         ) : (
-          <NotesArchive locale={l} notes={getPublicNotes(l)} />
+          <NotesArchive locale={l} notes={getPublicNotes(l)} dict={content.dict} />
         )}
         <Contact locale={l} content={content} />
       </main>

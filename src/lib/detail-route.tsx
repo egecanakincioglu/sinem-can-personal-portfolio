@@ -102,7 +102,7 @@ export function DetailView({ locale, slug, entry }: { locale: string; slug: stri
     <>
       <Header locale={l} page="project" paths={projectPaths(p)} />
       <main id="main">
-        <ProjectDetail project={p} locale={l} />
+        <ProjectDetail project={p} locale={l} dict={content.dict} />
         <Contact locale={l} content={content} />
       </main>
       <Footer locale={l} page="project" paths={projectPaths(p)} content={content} />

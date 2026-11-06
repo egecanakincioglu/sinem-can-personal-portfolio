@@ -1,5 +1,4 @@
-import { dict } from '@/content/dictionary';
-import { ownerName } from '@/content/site';
+import type { SiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import { splitFeatured, toCard } from '@/lib/projects';
 import type { PublicProject } from '@/content/projects/types';
@@ -11,7 +10,15 @@ import { Featured } from './Featured';
 const TOP = 'pt-[calc(72px+clamp(48px,7vw,112px))]';
 
 /** Opening composition: oversized title left, italic introduction right, hairline closing the sheet head. */
-function Opening({ locale, children }: { locale: Locale; children?: React.ReactNode }) {
+function Opening({
+  locale,
+  dict,
+  children,
+}: {
+  locale: Locale;
+  dict: SiteContent['dict'];
+  children?: React.ReactNode;
+}) {
   const d = dict.projects;
   return (
     <header className={`shell g12 ${TOP}`}>
@@ -32,7 +39,8 @@ function Opening({ locale, children }: { locale: Locale; children?: React.ReactN
 }
 
 /** "Pafta hazırlanıyor." — a drawing sheet: frame, centre lines, one ghost outline, title block. */
-function EmptySheet({ locale }: { locale: Locale }) {
+function EmptySheet({ locale, content }: { locale: Locale; content: SiteContent }) {
+  const { dict, ownerName } = content;
   const d = dict.projects;
   const w = dict.work;
   return (
@@ -99,14 +107,23 @@ function EmptySheet({ locale }: { locale: Locale }) {
   );
 }
 
-export function ProjectsArchive({ locale, projects }: { locale: Locale; projects: PublicProject[] }) {
+export function ProjectsArchive({
+  locale,
+  projects,
+  content,
+}: {
+  locale: Locale;
+  projects: PublicProject[];
+  content: SiteContent;
+}) {
+  const { dict } = content;
   const d = dict.projects;
 
   if (projects.length === 0) {
     return (
       <>
-        <Opening locale={locale} />
-        <EmptySheet locale={locale} />
+        <Opening locale={locale} dict={dict} />
+        <EmptySheet locale={locale} content={content} />
       </>
     );
   }
@@ -125,7 +142,7 @@ export function ProjectsArchive({ locale, projects }: { locale: Locale; projects
 
   return (
     <>
-      <Opening locale={locale}>
+      <Opening locale={locale} dict={dict}>
         <dl className="hair col-[1/-1] mt-10 grid grid-cols-2 gap-x-[var(--g)] pt-4 md:grid-cols-4 lg:mt-14">
           <div>
             <dt className="t-meta">{d.other[locale]}</dt>
@@ -141,7 +158,7 @@ export function ProjectsArchive({ locale, projects }: { locale: Locale; projects
       </Opening>
 
       <section id="archive" aria-labelledby="archive-h" className="pb-[var(--section)]">
-        <Featured card={featured} locale={locale} />
+        <Featured card={featured} locale={locale} dict={dict} />
         {rest.length > 0 && (
           <div className="shell mt-[clamp(64px,8vw,128px)]">
             <h2 className="t-meta mb-4">{d.other[locale]}</h2>

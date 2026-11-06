@@ -257,7 +257,7 @@ export function Work({
             {w.heading[locale]}
           </h2>
 
-          <Featured card={featured} locale={locale} embedded />
+          <Featured card={featured} locale={locale} dict={dict} embedded />
 
           {rest.length > 0 && (
             <div className="col-[1/-1] mt-12 lg:mt-16">

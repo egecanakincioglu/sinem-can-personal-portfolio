@@ -38,7 +38,11 @@ export default async function DevPreview({
         >
           {dict.projects.fixtureLabel[l]} · /dev-preview
         </p>
-        <ProjectsArchive locale={l} projects={getPublicProjects({ includeFixtures: true, many: many === '1' })} />
+        <ProjectsArchive
+          locale={l}
+          projects={getPublicProjects({ includeFixtures: true, many: many === '1' })}
+          content={content}
+        />
         <Contact locale={l} content={content} />
       </main>
       <Footer locale={l} page="projects" content={content} />

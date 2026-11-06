@@ -19,9 +19,13 @@ Once per clone, to install the project.
 
 The project needs no environment variables and no database today. The file `.env.example` only says so.
 
+To run the site:
+
+4. Start the development server: `corepack pnpm dev`. Open http://localhost:3000. The root path redirects to `/tr`; the English site is under `/en`.
+
 Only if you plan to commit:
 
-4. Set up commit signing: `bash tooling/scripts/setup-commit-signing.sh`. Your Git identity (`user.email`) must be set; if it is not, the script stops. An existing `user.signingkey` is kept. Commits are signed with an SSH key.
+5. Set up commit signing: `bash tooling/scripts/setup-commit-signing.sh`. Your Git identity (`user.email`) must be set; if it is not, the script stops. An existing `user.signingkey` is kept. Commits are signed with an SSH key.
 
 ## Troubleshooting
 
@@ -32,6 +36,9 @@ Only if you plan to commit:
 
 | Command                                               | Purpose                                     |
 | ----------------------------------------------------- | ------------------------------------------- |
+| `corepack pnpm dev`                                   | Development server                          |
+| `corepack pnpm build`                                 | Production build                            |
+| `corepack pnpm start`                                 | Serve the production build                  |
 | `corepack pnpm lint`                                  | ESLint, with zero warnings allowed          |
 | `corepack pnpm typecheck`                             | TypeScript type check                       |
 | `corepack pnpm test`                                  | Vitest with the coverage gate               |

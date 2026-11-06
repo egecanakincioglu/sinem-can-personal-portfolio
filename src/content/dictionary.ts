@@ -290,6 +290,7 @@ const dictTemplate = {
     load: { tr: 'yük', en: 'load' },
     controls: { tr: 'Yük konumu', en: 'Load position' },
     momentLabel: { tr: 'Eğilme momenti', en: 'Bending moment' },
+    maxSub: { tr: 'maks', en: 'max' },
   },
   work: {
     heading: shared.work,

@@ -256,7 +256,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
             <text x={xm} y={yAt(m.xm) + 20} fontSize={fs} textAnchor="middle" className="svg-text">
               δ
               <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
-                maks
+                {copy.maxSub[locale]}
               </tspan>
             </text>
           </>
@@ -276,7 +276,7 @@ function Stage({ L, locale, shown, target, hover, onChange, onHover, valueText, 
           >
             M
             <tspan fontSize={fs - 3} dy={4} fontStyle="normal">
-              maks
+              {copy.maxSub[locale]}
             </tspan>
           </text>
         )}
@@ -383,7 +383,7 @@ export function BeamFigure({
     {
       label: (
         <>
-          <V n="M" s="maks" />/<V n="PL" />
+          <V n="M" s={A.maxSub[locale]} />/<V n="PL" />
         </>
       ),
       value: n(m.mmax),
@@ -391,7 +391,7 @@ export function BeamFigure({
     {
       label: (
         <>
-          δ<sub>maks</sub>/δ<sub>0</sub>
+          δ<sub>{A.maxSub[locale]}</sub>/δ<sub>0</sub>
         </>
       ),
       value: n(m.deltaRatio),
@@ -475,7 +475,7 @@ export function BeamFigure({
               <V n="R" s="B" /> = <V n="P" />·<V n="a" /> / <V n="L" />
             </Eq>
             <Eq n={3}>
-              <V n="M" s="maks" /> = <V n="P" />·<V n="a" />·<V n="b" /> / <V n="L" />
+              <V n="M" s={A.maxSub[locale]} /> =<V n="P" />·<V n="a" />·<V n="b" /> / <V n="L" />
             </Eq>
           </ul>
         </div>

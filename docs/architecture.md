@@ -68,6 +68,8 @@ Note pages render formulas as MathML, code blocks and figures. Figures come from
 
 `src/lib/note-blocks.ts` pairs the Turkish and English block lists of a note into one list for editing and splits it back. Language-neutral fields must match in both languages: ids, TeX, code and its language, figure id, image file and size, table alignment and callout kind. The file name of a code block is translated. List items, paragraphs and table rows must have the same count in both languages. An empty string marks an absent optional field, and a note may have one language only. A validation step reports missing heading ids, bad or duplicate ids, unknown figure ids, missing image alt text, table limits (8 columns, 30 rows) and ragged rows. It warns on pull quotes.
 
+`src/lib/note-record.ts` turns a note into an editable record with both languages side by side, and back, without loss for every sample note. A language that is switched off keeps its text in the editor but is not stored. Language status is complete, missing (with a count) or absent. The checks cover required heading ids, dates, summary and category length, cover alt text, reference links (https only), footnote and reference ids, cross-references, unknown TeX commands and link targets (https, a site path or an anchor). An undefined cross-reference id is an error and an unused one is a warning. Labels resolve only against numbered blocks.
+
 ## Admin interface
 
 The admin interface lives under `src/app/admin`. It works on mock data and has a live preview of the public pages.

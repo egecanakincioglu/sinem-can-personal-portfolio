@@ -79,6 +79,10 @@ One field registry (`src/app/admin/registry.ts`) lists every editable field of t
 
 The Medya screen (`/admin/medya`) lists the real image files from `src/content/media-manifest.ts` and edits the portrait slot. The slot has a show switch, a choice limited to eligible photos (a real photo whose shorter side is at least 1000 px), a focal point, a zoom from 1 to 2.5, alt text in both languages and a 4:5 preview. A consent checkbox is stored as a value and does not change the preview. While a third-party clearance is open, the status reads "Onay bekliyor". Sample images exist only in development, in a separate group, and cannot be the portrait. Upload is disabled until the backend exists. The Profil screen shows a thumbnail with a link to Medya, and the portrait field ids are unchanged. Pure checks live in `src/lib/media.ts`.
 
+The Projeler screen (`/admin/projeler`) lists project records with counts, the work-section layout, status chips and marks for missing languages. In development, sample records can be loaded and removed. The "Yeni proje" button stays disabled until the editor exists.
+
+The preview bridge carries project ids only: at most 50, made of letters, digits, dash and underscore, up to 80 characters each. The preview page resolves the ids against its own server-side list, so no record, file or URL crosses the bridge. Without a message, the preview shows only published records. `src/lib/public-snapshot.ts` applies the same visibility rule as the public site. A development-only route, `/[locale]/dev-preview/live-project`, renders the project archive.
+
 ## Backend (planned)
 
 No database, API route or authentication exists yet. When the backend arrives, it replaces the data behind the content accessors. Components and pages do not change. Private files must be authorized on the server; a flag in the front end is not a security boundary.

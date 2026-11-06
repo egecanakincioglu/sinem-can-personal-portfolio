@@ -715,6 +715,8 @@ export function sanitizeOverride(raw: unknown): SiteContentOverride {
   const fr = forceEdits(r.forceRecords);
   if (fr) out.forceRecords = fr;
   Object.assign(out, profileLists(r));
+  if (typeof r.lastRevision === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.lastRevision))
+    out.lastRevision = r.lastRevision;
   // null = the show switch is off: the public pages fall back to the typographic frame
   const po = r.portrait === null && getSiteContent().portrait ? null : portraitOverride(r.portrait);
   if (po !== undefined) out.portrait = po;

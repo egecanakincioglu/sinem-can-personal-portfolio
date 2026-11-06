@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { Portrait } from '@/components/Portrait';
 import { getSiteContent } from '@/content/site-content';
 import { monthYear } from '@/lib/format';
-import { checkPortraitNumber, interestsField, portraitFields, type CopyKey } from '@/lib/preview-bridge';
+import { interestsField, type CopyKey } from '@/lib/preview-bridge';
 import {
   blank,
   blankItem,
@@ -822,60 +823,16 @@ function ActivitiesEditor() {
 /* ------------------------------------------------------------------ Portre ------------------------------------------------------------------ */
 
 function PortraitEditor() {
-  const { state, setValue, derived } = useAdmin();
-  const p = getSiteContent().portrait;
-  if (!p) return <p className="a-help">Portre tanımlı değil; sitede yazısal çerçeve görünür.</p>;
-  const num = (k: 'focalX' | 'focalY' | 'zoom', fb: number) =>
-    state.values[portraitFields[k].id] ?? String(fb).replace('.', ',');
-  const alt = (l: 'tr' | 'en') => state.values[`${portraitFields.alt.id}.${l}`] ?? p.alt[l];
-  const field = (k: 'focalX' | 'focalY' | 'zoom') => {
-    const v = num(k, p[k]);
-    return (
-      <Txt
-        key={k}
-        name={portraitFields[k].id}
-        label={portraitFields[k].label}
-        value={v}
-        onChange={(x) => setValue(portraitFields[k].id, x)}
-        error={checkPortraitNumber(k, v)}
-        max={6}
-        helper={
-          k === 'zoom'
-            ? '1 = yakınlaştırma yok. Kırpma 4:5 çerçevede odak noktasına göre yapılır.'
-            : '0 sol/üst, 100 sağ/alt kenar.'
-        }
-      />
-    );
-  };
+  const { state, derived } = useAdmin();
   return (
     <>
+      <div className="a-media-mini">
+        <Portrait locale={state.previewLang} sizes="96px" source={derived.portrait} />
+      </div>
       <p className="a-help">
-        Gerçek görsel yükleme bu aşamada yok; dosya sabittir (<span className="a-num">{p.src}</span>, {p.width} ×{' '}
-        {p.height}). Yalnızca sunum ayarları ve alternatif metin düzenlenir. Aynı portre Ana sayfa Kısaca ve Profil’de
-        görünür.
+        Portre görseli, odak noktası, yakınlaştırma ve alternatif metin Medya ekranında düzenlenir.{' '}
+        <Link href="/admin/medya">Medya’da düzenle</Link>
       </p>
-      {field('focalX')}
-      {field('focalY')}
-      {field('zoom')}
-      <BilingualField
-        name={portraitFields.alt.id}
-        label="Alternatif metin"
-        max={portraitFields.alt.max}
-        multiline
-        tr={alt('tr')}
-        en={alt('en')}
-        onTr={(x) => setValue(`${portraitFields.alt.id}.tr`, x)}
-        onEn={(x) => setValue(`${portraitFields.alt.id}.en`, x)}
-        helper="Ekran okuyucular için; görseli doğru ve sade biçimde betimleyin."
-      />
-      <dl className="a-readouts">
-        <Readout
-          derived
-          label="Önizlemedeki zoom"
-          value={String(derived.portrait?.zoom ?? '—').replace('.', ',')}
-          unit="×"
-        />
-      </dl>
     </>
   );
 }
@@ -961,7 +918,7 @@ export function ProfileEditor() {
       <Section id="etkinlikler" title="Kişisel etkinlikler" note="Spor takımları ve okul etkinlikleri.">
         <ActivitiesEditor />
       </Section>
-      <Section id="portre" title="Portre" note="Sunum ayarları: odak noktası, yakınlaştırma ve alternatif metin.">
+      <Section id="portre" title="Portre" note="Portre ayarları Medya ekranındadır.">
         <PortraitEditor />
       </Section>
       <Section id="etiketler" title="Etiketler ve başlıklar" note="Profil sayfasındaki sabit metinler.">

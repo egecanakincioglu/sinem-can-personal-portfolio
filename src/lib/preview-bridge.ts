@@ -644,17 +644,25 @@ export function sanitizeOverride(raw: unknown): SiteContentOverride {
   const fr = forceEdits(r.forceRecords);
   if (fr) out.forceRecords = fr;
   Object.assign(out, profileLists(r));
-  const po = portraitOverride(r.portrait);
-  if (po) out.portrait = po;
+  // null = the show switch is off: the public pages fall back to the typographic frame
+  const po = r.portrait === null && getSiteContent().portrait ? null : portraitOverride(r.portrait);
+  if (po !== undefined) out.portrait = po;
   return out;
 }
 
-/** Portrait presentation (Profil › Portre): focal point, zoom and alt text. The file itself (`src`, size) is never editable here. */
+/** Portrait presentation (Medya): focal point, zoom and alt text. The file itself (`src`, size) is never editable here. */
 export const portraitFields = {
   focalX: { id: 'profil.portrait.focalX', min: 0, max: 100, label: 'Odak noktası, yatay (%)' },
   focalY: { id: 'profil.portrait.focalY', min: 0, max: 100, label: 'Odak noktası, dikey (%)' },
   zoom: { id: 'profil.portrait.zoom', min: 1, max: 2.5, label: 'Yakınlaştırma (×)' },
   alt: { id: 'profil.portrait.alt', max: 200 },
+} as const;
+/** Medya portrait slot values. '1'/'0' flags; consent is a recorded value only and never hides the portrait. */
+export const portraitSlotFields = {
+  show: 'medya.portrait.show',
+  consent: 'medya.portrait.consent',
+  assetId: 'medya.portrait.assetId',
+  prevAssetId: 'medya.portrait.prevAssetId',
 } as const;
 const NUM_SHAPE = /^\d{1,3}([.,]\d{1,2})?$/;
 /** Message for an invalid portrait number; `undefined` = valid. */
@@ -772,21 +780,24 @@ export function buildOverride(values: Record<string, string>): SiteContentOverri
   });
   return sanitizeOverride({
     forceRecords,
-    portrait: {
-      focalX:
-        checkPortraitNumber('focalX', values[portraitFields.focalX.id]) === undefined
-          ? Number(values[portraitFields.focalX.id].trim().replace(',', '.'))
-          : undefined,
-      focalY:
-        checkPortraitNumber('focalY', values[portraitFields.focalY.id]) === undefined
-          ? Number(values[portraitFields.focalY.id].trim().replace(',', '.'))
-          : undefined,
-      zoom:
-        checkPortraitNumber('zoom', values[portraitFields.zoom.id]) === undefined
-          ? Number(values[portraitFields.zoom.id].trim().replace(',', '.'))
-          : undefined,
-      alt: { tr: values[`${portraitFields.alt.id}.tr`], en: values[`${portraitFields.alt.id}.en`] },
-    },
+    portrait:
+      values[portraitSlotFields.show] === '0'
+        ? null
+        : {
+            focalX:
+              checkPortraitNumber('focalX', values[portraitFields.focalX.id]) === undefined
+                ? Number(values[portraitFields.focalX.id].trim().replace(',', '.'))
+                : undefined,
+            focalY:
+              checkPortraitNumber('focalY', values[portraitFields.focalY.id]) === undefined
+                ? Number(values[portraitFields.focalY.id].trim().replace(',', '.'))
+                : undefined,
+            zoom:
+              checkPortraitNumber('zoom', values[portraitFields.zoom.id]) === undefined
+                ? Number(values[portraitFields.zoom.id].trim().replace(',', '.'))
+                : undefined,
+            alt: { tr: values[`${portraitFields.alt.id}.tr`], en: values[`${portraitFields.alt.id}.en`] },
+          },
     profileRecords: Object.fromEntries(
       (Object.keys(profileIds) as (keyof typeof profileIds)[]).map((k) => [k, json(profileIds[k])]),
     ),

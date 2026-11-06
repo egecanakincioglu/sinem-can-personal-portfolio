@@ -3,7 +3,7 @@ import { fixtureNotes } from '@/content/fixtures/notes';
 import { fixtureProjects } from '@/content/fixtures/projects';
 import { checkCoverage, summarize } from '@/lib/field-registry';
 import { copyFields } from '@/lib/preview-bridge';
-import { plannedScreens, publicFieldPaths, recordFieldPaths, registry } from './registry';
+import { partlyBuiltScreens, plannedScreens, publicFieldPaths, recordFieldPaths, registry } from './registry';
 import { screens } from './screens';
 
 const leaves = publicFieldPaths();
@@ -53,8 +53,23 @@ describe('field registry entries', () => {
 
   it('are ready only on a built screen and planned only on a placeholder screen', () => {
     for (const e of registry) {
+      if ((partlyBuiltScreens as readonly string[]).includes(e.screen)) continue;
       const placeholder = (plannedScreens as readonly string[]).includes(e.screen);
       expect(e.status === 'planned', e.path).toBe(placeholder);
+    }
+  });
+
+  it('edit the portrait fields from Medya, keeping their saved ids', () => {
+    const portrait = registry.filter((e) => e.path.startsWith('portrait.') && e.status === 'ready');
+    expect(portrait.map((e) => e.path).sort()).toEqual([
+      'portrait.alt',
+      'portrait.focalX',
+      'portrait.focalY',
+      'portrait.zoom',
+    ]);
+    for (const e of portrait) {
+      expect(e.screen).toBe('medya');
+      expect(e.id.startsWith('profil.portrait.')).toBe(true);
     }
   });
 

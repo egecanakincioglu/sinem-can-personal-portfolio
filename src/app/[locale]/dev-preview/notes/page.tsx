@@ -38,7 +38,11 @@ export default async function DevNotesPreview({
         >
           {dict.notes.fixtureLabel[l]} · /dev-preview/notes
         </p>
-        <NotesArchive locale={l} notes={getPublicNotes(l, { includeFixtures: true, many: many === '1' })} />
+        <NotesArchive
+          locale={l}
+          notes={getPublicNotes(l, { includeFixtures: true, many: many === '1' })}
+          dict={content.dict}
+        />
         <Contact locale={l} content={content} />
       </main>
       <Footer locale={l} page="notes" content={content} />

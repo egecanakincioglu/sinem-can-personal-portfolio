@@ -1,4 +1,4 @@
-import { dict } from '@/content/dictionary';
+import type { SiteContent } from '@/content/site-content';
 import type { Locale } from '@/content/types';
 import { fullDate } from '@/lib/format';
 import { toItem, type NoteItem, type PublicNote } from '@/lib/notes';
@@ -7,12 +7,12 @@ import { Cta } from '../linework';
 import { langStatus } from '@/lib/note-view';
 import { NoteList } from './NoteList';
 
-const d = dict.notes;
 const TOP = 'pt-[calc(72px+clamp(48px,7vw,112px))]';
 const FILTER_FROM = 8; // topic filter opens at eight notes
 
 /** Opening: an oversized, outdented title; the eyebrow and lead sit in the margin rail beside it. */
-function Opening({ locale }: { locale: Locale }) {
+function Opening({ locale, dict }: { locale: Locale; dict: SiteContent['dict'] }) {
+  const d = dict.notes;
   return (
     <header className={`shell g12 ${TOP}`}>
       <p className="t-meta col-[1/-1] hair pt-4">{d.eyebrow[locale]}</p>
@@ -27,7 +27,8 @@ function Opening({ locale }: { locale: Locale }) {
 }
 
 /** Designed empty state: the first ruled lines of a notebook. Real statement, then ghost entries. */
-function EmptyNotebook({ locale }: { locale: Locale }) {
+function EmptyNotebook({ locale, dict }: { locale: Locale; dict: SiteContent['dict'] }) {
+  const d = dict.notes;
   return (
     <section id="archive" aria-labelledby="empty-h" className="sec pt-[clamp(56px,7vw,104px)]">
       <div className="shell g12">
@@ -67,7 +68,8 @@ function EmptyNotebook({ locale }: { locale: Locale }) {
   );
 }
 
-function Featured({ n, locale }: { n: NoteItem; locale: Locale }) {
+function Featured({ n, locale, dict }: { n: NoteItem; locale: Locale; dict: SiteContent['dict'] }) {
+  const d = dict.notes;
   return (
     <div className="shell g12 mt-14 lg:mt-20">
       <p className="t-meta col-[1/-1] mb-5">{d.latest[locale]}</p>
@@ -110,12 +112,21 @@ function Featured({ n, locale }: { n: NoteItem; locale: Locale }) {
   );
 }
 
-export function NotesArchive({ locale, notes }: { locale: Locale; notes: PublicNote[] }) {
+export function NotesArchive({
+  locale,
+  notes,
+  dict,
+}: {
+  locale: Locale;
+  notes: PublicNote[];
+  dict: SiteContent['dict'];
+}) {
+  const d = dict.notes;
   if (notes.length === 0) {
     return (
       <div className="notes-scope">
-        <Opening locale={locale} />
-        <EmptyNotebook locale={locale} />
+        <Opening locale={locale} dict={dict} />
+        <EmptyNotebook locale={locale} dict={dict} />
       </div>
     );
   }
@@ -130,9 +141,9 @@ export function NotesArchive({ locale, notes }: { locale: Locale; notes: PublicN
 
   return (
     <div className="notes-scope">
-      <Opening locale={locale} />
+      <Opening locale={locale} dict={dict} />
       <section id="archive" aria-labelledby="archive-h" className="pb-[var(--section)]">
-        <Featured n={featured} locale={locale} />
+        <Featured n={featured} locale={locale} dict={dict} />
         {rest.length > 0 && (
           <div className="shell mt-[clamp(64px,8vw,128px)]">
             <h2 className="t-meta mb-4">{d.archive[locale]}</h2>

@@ -1,4 +1,4 @@
-import { dict } from '@/content/dictionary';
+import type { SiteContent } from '@/content/site-content';
 import type { ImageMedia, PublicProject } from '@/content/projects/types';
 import type { Copy, Locale } from '@/content/types';
 import { num, fullDate, monthYear, periodText } from '@/lib/format';
@@ -9,7 +9,6 @@ import { Gallery, type GalleryItem } from './Gallery';
 import { Viewer3D } from './Viewer3D';
 import { ProjectRow } from './ProjectRow';
 
-const d = dict.projects;
 const TOP = 'pt-[calc(72px+clamp(32px,4vw,64px))]';
 
 /** A body section: label in the left margin, reading column right. Rendered only when it has content. */
@@ -36,8 +35,6 @@ function Block({
     </section>
   );
 }
-
-const v = d.viewer;
 
 function CalcRow({ label, children, strong }: { label: string; children: React.ReactNode; strong?: boolean }) {
   return (
@@ -95,7 +92,17 @@ function HeroFigure({ m, locale, tone }: { m: ImageMedia; locale: Locale; tone: 
   );
 }
 
-export function ProjectDetail({ project: p, locale }: { project: PublicProject; locale: Locale }) {
+export function ProjectDetail({
+  project: p,
+  locale,
+  dict,
+}: {
+  project: PublicProject;
+  locale: Locale;
+  dict: SiteContent['dict'];
+}) {
+  const d = dict.projects;
+  const v = d.viewer;
   const latestRev = p.revisions?.[p.revisions.length - 1];
 
   // Title block: only cells that carry a real value.

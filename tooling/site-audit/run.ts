@@ -18,6 +18,8 @@ import puppeteer, { type Page } from 'puppeteer-core';
 import {
   consoleProblems,
   bypassCache,
+  devOnlyProblem,
+  sitemapLeaks,
   hasHorizontalOverflow,
   imageProblem,
   pageSeoProblems,
@@ -33,7 +35,7 @@ import {
 } from './checks.ts';
 import { findChrome } from './chrome.ts';
 import { DEVICES, SWEEP_HEIGHT, isScreenshotDevice, sweepWidths, type Device } from './devices.ts';
-import { PAGES } from './pages.ts';
+import { DEV_ONLY_PATHS, PAGES, PROTOTYPE_MARKERS } from './pages.ts';
 import {
   browsingFailures,
   discardReason,
@@ -104,6 +106,11 @@ async function httpChecks(): Promise<void> {
     const res = await fetch(BASE + p, { redirect: 'manual' });
     if (res.status !== 200) fail(`http ${p}`, `status ${res.status}, expected 200`);
   }
+  for (const p of DEV_ONLY_PATHS) {
+    const res = await fetch(BASE + p, { redirect: 'manual' });
+    const problem = devOnlyProblem(res.status, await res.text(), PROTOTYPE_MARKERS);
+    if (problem) fail(`http ${p}`, problem);
+  }
   const roots: [string, string | undefined, string][] = [
     ['/ with Accept-Language en', 'en', '/en'],
     ['/ with Accept-Language tr', 'tr', '/tr'],
@@ -130,6 +137,7 @@ async function seoChecks(): Promise<void> {
     return;
   }
   const urls = sitemapUrls(await sitemap.text());
+  for (const url of sitemapLeaks(urls)) fail('seo', `${url} is a development-only address but is in the sitemap`);
   const listed = new Set(urls);
   for (const p of PAGES) {
     if (!listed.has(BASE + p)) fail('seo', `${p} is a page of the audit but is not in the sitemap`);

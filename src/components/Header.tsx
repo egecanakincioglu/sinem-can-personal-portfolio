@@ -183,12 +183,15 @@ export function Header({
     <>
       <header
         ref={headerEl}
-        className={`fixed inset-x-0 top-0 z-40 bg-[rgb(246_247_242/0.96)] transition-[height,transform] duration-200 ${
+        className={`fixed inset-x-0 top-0 z-40 bg-kagit transition-[height,transform] duration-200 ${
           scrolled ? 'h-[52px] border-b border-cizgi' : 'h-[72px]'
         } ${hidden ? '-translate-y-full' : ''}`}
       >
         <div className="shell flex h-full items-center gap-6">
-          <a href={`/${locale}`} className="font-serif text-xl leading-none tracking-[-0.01em]">
+          <a
+            href={`/${locale}`}
+            className="inline-flex min-h-11 items-center font-serif text-xl leading-none tracking-[-0.01em]"
+          >
             {ownerName}
           </a>
           <span aria-hidden className="hidden min-w-0 truncate font-serif text-[15px] italic text-kursun md:block">
@@ -275,7 +278,7 @@ export function Header({
             <div className="hair pt-4">
               <LangSwitch D={D} locale={locale} page={page} paths={paths} full />
             </div>
-            <a href={`mailto:${email}`} className="ulink mt-2 inline-block whitespace-nowrap">
+            <a href={`mailto:${email}`} className="ulink inline-flex min-h-11 items-center whitespace-nowrap">
               {email}
             </a>
           </div>

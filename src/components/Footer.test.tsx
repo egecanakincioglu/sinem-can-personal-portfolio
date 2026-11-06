@@ -32,6 +32,18 @@ describe('Footer', () => {
     window.location.hash = '';
   });
 
+  it('gives language, e-mail and profile links a 44px hit area', () => {
+    render(<Footer locale="en" content={getSiteContent()} />);
+    const links = [
+      screen.getByRole('link', { name: content.contact.email }),
+      screen.getByRole('link', { name: `TR, ${content.dict.langNames.tr}` }),
+      screen.getByRole('link', { name: `EN, ${content.dict.langNames.en}` }),
+      ...Array.from(document.querySelectorAll<HTMLAnchorElement>('dl a[target="_blank"]')),
+    ];
+    for (const a of links) expect(a.className, a.textContent ?? '').toContain('min-h-11');
+    expect(screen.getByRole('link', { name: `TR, ${content.dict.langNames.tr}` }).className).toContain('min-w-11');
+  });
+
   it('opens external profile links safely', () => {
     render(<Footer locale="en" content={getSiteContent()} />);
     const external = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]'));

@@ -171,8 +171,8 @@ export function NoteArticle({
               </div>
               <div className="md:pt-6">
                 {!fixture && <Cta href={pagePath('profile', locale)}>{d.toProfileLink[locale]}</Cta>}
-                <p className="mt-2 text-[15px]">
-                  <a href={mailto} className="ulink">
+                <p className="text-[15px]">
+                  <a href={mailto} className="ulink inline-flex min-h-11 items-center">
                     {d.spotError[locale]}
                   </a>
                 </p>

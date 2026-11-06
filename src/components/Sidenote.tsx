@@ -2,6 +2,8 @@
 
 import { useId, useState } from 'react';
 
+const WORD_JOINER = String.fromCodePoint(0x2060);
+
 /**
  * Margin note. ≥1024px: always visible in the rail (CSS), the mark is a plain superscript.
  * <1024px: the mark is a real button that opens the note inline (no tooltip, no popover).
@@ -11,6 +13,8 @@ export function Sidenote({ n, label, children }: { n: string; label?: string; ch
   const id = useId();
   return (
     <span className="sn">
+      {/* word joiner: the mark never wraps onto a line of its own */}
+      {WORD_JOINER}
       <button
         type="button"
         className={label ? 'sn-mark sn-mark--label' : 'sn-mark'}
